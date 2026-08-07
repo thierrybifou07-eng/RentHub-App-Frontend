@@ -2,6 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { APP_ROUTES } from "../constants/routes"
 import { useAuthStore } from "../stores/authStore"
+import { useConversationsStore } from "../stores/conversationsStore"
 
 /* ── Navigation par rôle ────────────────────────────────────── */
 
@@ -51,7 +52,17 @@ function DashboardLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
+  const unreadCount = useConversationsStore(s => s.unreadCount)
+  const fetchUnreadCount = useConversationsStore(s => s.fetchUnreadCount)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Fetch unread messages periodically
+  useEffect(() => {
+    if (!user) return
+    fetchUnreadCount()
+    const interval = setInterval(fetchUnreadCount, 30000)
+    return () => clearInterval(interval)
+  }, [user, fetchUnreadCount])
 
   const links        = user ? NAV_SECTIONS[user.role]   || [] : []
   const sectionLabel = user ? SECTION_LABELS[user.role] || "" : ""
@@ -152,6 +163,11 @@ function DashboardLayout() {
                 >
                   <span className="sidebar-nav-icon">{link.icon}</span>
                   {link.label}
+                  {link.label === "Messages" && unreadCount > 0 && (
+                    <span className="badge bg-danger rounded-pill ms-auto px-2 py-1" style={{ fontSize: "0.7rem" }}>
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
                 </Link>
               </li>
             )

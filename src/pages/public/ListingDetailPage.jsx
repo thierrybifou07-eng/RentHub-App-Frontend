@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { APP_ROUTES } from "../../constants/routes"
 import { getAnnouncementById } from "../../api/announcementsApi"
+import { startConversation } from "../../api/conversationsApi"
 import { formatXAF, formatDate } from "../../utils/formatters"
 import { useAuthStore } from "../../stores/authStore"
 import { useFavoritesStore } from "../../stores/favoritesStore"
@@ -21,6 +22,31 @@ function ListingDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
+
+  const [contactText, setContactText] = useState("")
+  const [sendingContact, setSendingContact] = useState(false)
+  const [contactError, setContactError] = useState(null)
+
+  async function handleContact(e) {
+    e.preventDefault()
+    if (!contactText.trim()) return
+    setSendingContact(true)
+    setContactError(null)
+    try {
+      await startConversation({ announcementId: listingId, content: contactText })
+      navigate(`${APP_ROUTES.tenantMessages}?listing=${listingId}`)
+    } catch (err) {
+      if (err.status === 409) {
+        navigate(`${APP_ROUTES.tenantMessages}?listing=${listingId}`)
+      } else if (err.status === 403) {
+        setContactError("Seuls les locataires peuvent contacter les propriétaires.")
+      } else {
+        setContactError("Erreur lors de l'envoi du message.")
+      }
+    } finally {
+      setSendingContact(false)
+    }
+  }
 
   useEffect(() => {
     let active = true
@@ -273,9 +299,21 @@ function ListingDetailPage() {
                     Connectez-vous pour contacter
                   </Link>
                 ) : user?.role === "tenant" ? (
-                  <button type="button" className="btn btn-success" onClick={() => navigate(`${APP_ROUTES.tenantMessages}?listing=${listingId}`)}>
-                    Contacter le propriétaire
-                  </button>
+                  <form onSubmit={handleContact} className="d-flex flex-column gap-2 mb-2">
+                    {contactError && <div className="alert alert-danger p-2 small mb-0">{contactError}</div>}
+                    <textarea 
+                      className="form-control" 
+                      rows={3}
+                      placeholder="Votre message au propriétaire..."
+                      value={contactText}
+                      onChange={e => setContactText(e.target.value)}
+                      disabled={sendingContact}
+                      required
+                    />
+                    <button type="submit" className="btn btn-success" disabled={sendingContact || !contactText.trim()}>
+                      {sendingContact ? "Envoi..." : "Contacter le propriétaire"}
+                    </button>
+                  </form>
                 ) : null}
                 {isAuthenticated && user?.role === "tenant" && (
                   <>

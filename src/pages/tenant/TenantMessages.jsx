@@ -2,11 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { APP_ROUTES } from "../../constants/routes"
 import { useAuthStore } from "../../stores/authStore"
-import {
-  getConversationsByUser,
-  getMessagesByConversation,
-  sendMessage as sendMockMessage,
-} from "../../services/messagingService"
+import { useConversationsStore } from "../../stores/conversationsStore"
 import { messageFormSchema } from "../../schemas/messageSchema"
 import { formatRelativeTime } from "../../utils/formatters"
 import PageHeader from "../../components/common/PageHeader"
@@ -17,66 +13,51 @@ function TenantMessages() {
   const user = useAuthStore((s) => s.user)
   const [searchParams] = useSearchParams()
 
-  const [conversations, setConversations] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [selectedId, setSelectedId] = useState(null)
-  const [autoSelected, setAutoSelected] = useState(false)
+  const {
+    conversations,
+    activeConversation,
+    activeMessages,
+    fetchConversations,
+    openConversation,
+    sendMessage,
+  } = useConversationsStore()
 
-  const [messages, setMessages] = useState([])
+  const [loading, setLoading] = useState(true)
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [newText, setNewText] = useState("")
   const [sendError, setSendError] = useState(null)
   const [sending, setSending] = useState(false)
+  
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
     if (!user) return
     let active = true
-    getConversationsByUser(user.id).then((convs) => {
-      if (active) {
-        setConversations(convs)
-        setLoading(false)
-      }
+    fetchConversations().then(() => {
+      if (active) setLoading(false)
     })
     return () => { active = false }
-  }, [user])
+  }, [user, fetchConversations])
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    if (!user || autoSelected || conversations.length === 0) return
+    if (!user || conversations.length === 0) return
     const listingParam = searchParams.get("listing")
-    if (listingParam) {
-      const match = conversations.find((c) => c.listingId === listingParam)
+    if (listingParam && !activeConversation) {
+      // Find conversation by announcement id
+      const match = conversations.find((c) => c.announcement_id === listingParam || c.announcement?.id === listingParam)
       if (match) {
-        setSelectedId(match.id)
-        setAutoSelected(true)
+        handleSelectConversation(match.id)
       }
     }
-  }, [searchParams, conversations, user, autoSelected])
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    if (!selectedId) { setMessages([]); return }
-    let active = true
-    setLoadingMessages(true)
-    setMessages([])
-    getMessagesByConversation(selectedId).then((msgs) => {
-      if (active) {
-        setMessages(msgs)
-        setLoadingMessages(false)
-      }
-    })
-    return () => { active = false }
-  }, [selectedId])
-  /* eslint-enable react-hooks/set-state-in-effect */
+  }, [searchParams, conversations, user, activeConversation])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+  }, [activeMessages])
 
   function handleSelectConversation(convId) {
-    setSelectedId(convId)
+    setLoadingMessages(true)
+    openConversation(convId).finally(() => setLoadingMessages(false))
     setNewText("")
     setSendError(null)
   }
@@ -91,11 +72,7 @@ function TenantMessages() {
     }
     setSending(true)
     try {
-      const sent = await sendMockMessage(selectedId, user.id, newText)
-      setMessages((prev) => [
-        ...prev,
-        { ...sent, senderName: user.name },
-      ])
+      await sendMessage(activeConversation.id, newText)
       setNewText("")
     } catch {
       setSendError("Erreur lors de l'envoi.")
@@ -104,13 +81,11 @@ function TenantMessages() {
     }
   }
 
-  const selectedConv = conversations.find((c) => c.id === selectedId)
-
   return (
     <div>
       <PageHeader
         title="Mes conversations"
-        description="Vos échanges avec les propriéaires, regroupés par annonce."
+        description="Vos échanges avec les propriétaires, regroupés par annonce."
       />
 
       {loading ? (
@@ -132,85 +107,88 @@ function TenantMessages() {
                   </h2>
                 </div>
                 <div className="list-group list-group-flush" style={{ maxHeight: 480, overflowY: "auto" }}>
-                  {conversations.map((conv) => (
-                    <button
-                      key={conv.id}
-                      type="button"
-                      className={`list-group-item list-group-item-action conversation-item ${selectedId === conv.id ? "active" : ""}`}
-                      onClick={() => handleSelectConversation(conv.id)}
-                    >
-                      <div className="d-flex justify-content-between align-items-start mb-1">
-                        <span className="fw-bold small text-truncate" style={{ maxWidth: "70%" }}>
-                          {conv.listing?.title || "Annonce"}
-                        </span>
-                        {conv.lastMessage && (
-                          <small className="text-secondary text-nowrap ms-2">
-                            {formatRelativeTime(conv.lastMessage.createdAt)}
-                          </small>
-                        )}
-                      </div>
-                      <p className="mb-1 small text-secondary">
-                        {conv.otherParticipant?.name || "Participant"}
-                      </p>
-                      {conv.lastMessage && (
-                        <p className="mb-0 small text-truncate" style={{ maxWidth: "90%" }}>
-                          {conv.lastMessage.text}
+                  {conversations.map((conv) => {
+                    const title = conv.announcement?.title || conv.listing?.title || "Annonce"
+                    const participant = conv.owner?.name || conv.otherParticipant?.name || "Propriétaire"
+                    const lastMsg = conv.last_message || conv.lastMessage
+                    return (
+                      <button
+                        key={conv.id}
+                        type="button"
+                        className={`list-group-item list-group-item-action conversation-item ${activeConversation?.id === conv.id ? "active" : ""}`}
+                        onClick={() => handleSelectConversation(conv.id)}
+                      >
+                        <div className="d-flex justify-content-between align-items-start mb-1">
+                          <span className="fw-bold small text-truncate" style={{ maxWidth: "70%" }}>
+                            {title}
+                          </span>
+                          {lastMsg && (
+                            <small className="text-secondary text-nowrap ms-2">
+                              {formatRelativeTime(lastMsg.created_at || lastMsg.createdAt)}
+                            </small>
+                          )}
+                        </div>
+                        <p className="mb-1 small text-secondary">
+                          {participant}
                         </p>
-                      )}
-                    </button>
-                  ))}
+                        {lastMsg && (
+                          <p className={`mb-0 small text-truncate ${conv.unread_count > 0 ? 'fw-bold text-dark' : ''}`} style={{ maxWidth: "90%" }}>
+                            {lastMsg.content || lastMsg.text}
+                          </p>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
               <div className="col-md-8">
-                {!selectedId ? (
+                {!activeConversation ? (
                   <div className="d-flex align-items-center justify-content-center h-100 text-secondary py-5">
                     <p className="mb-0">Sélectionnez une conversation pour la lire.</p>
                   </div>
                 ) : (
                   <div className="d-flex flex-column" style={{ minHeight: 480 }}>
-                    {selectedConv && (
-                      <div className="px-3 py-2 border-bottom">
-                        <h3 className="h6 fw-bold mb-0">
-                          {selectedConv.listing?.title || "Annonce"}
-                        </h3>
-                        <small className="text-secondary">
-                          {selectedConv.otherParticipant?.name || "Participant"}
-                          {selectedConv.listing?.city ? ` \u00b7 ${selectedConv.listing.city}` : ""}
-                        </small>
-                      </div>
-                    )}
+                    <div className="px-3 py-2 border-bottom">
+                      <h3 className="h6 fw-bold mb-0">
+                        {activeConversation.announcement?.title || activeConversation.listing?.title || "Annonce"}
+                      </h3>
+                      <small className="text-secondary">
+                        {activeConversation.owner?.name || activeConversation.otherParticipant?.name || "Propriétaire"}
+                        {activeConversation.announcement?.city?.name ? ` \u00b7 ${activeConversation.announcement.city.name}` : ""}
+                      </small>
+                    </div>
 
-                    <div className="message-thread flex-grow-1">
+                    <div className="message-thread flex-grow-1 p-3" style={{ overflowY: "auto" }}>
                       {loadingMessages ? (
                         <p className="text-center text-secondary small mb-0">Chargement...</p>
-                      ) : messages.length === 0 ? (
+                      ) : activeMessages.length === 0 ? (
                         <p className="text-center text-secondary small mb-0">Aucun message.</p>
                       ) : (
-                        messages.map((msg) => (
+                        activeMessages.map((msg) => (
                           <div
                             key={msg.id}
-                            className={`message-bubble ${msg.senderId === user.id ? "own" : "other"}`}
+                            className={`message-bubble ${msg.sender_id === user.id || msg.senderId === user.id ? "own" : "other"}`}
                           >
-                            {msg.senderId !== user.id && (
-                              <div className="message-sender">{msg.senderName}</div>
+                            {(msg.sender_id !== user.id && msg.senderId !== user.id) && (
+                              <div className="message-sender">{msg.sender?.name || msg.senderName || "Propriétaire"}</div>
                             )}
-                            <p className="message-text">{msg.text}</p>
-                            <div className="message-time">{formatRelativeTime(msg.createdAt)}</div>
+                            <p className="message-text">{msg.content || msg.text}</p>
+                            <div className="message-time">{formatRelativeTime(msg.created_at || msg.createdAt)}</div>
                           </div>
                         ))
                       )}
                       <div ref={messagesEndRef} />
                     </div>
 
-                    <form onSubmit={handleSend} className="message-input-area">
+                    <form onSubmit={handleSend} className="message-input-area p-3 border-top bg-light">
                       {sendError && (
                         <div className="alert alert-danger py-1 px-2 small mb-2">{sendError}</div>
                       )}
                       <div className="d-flex gap-2">
                         <input
                           type="text"
-                          className="form-control form-control-sm"
+                          className="form-control"
                           placeholder="écrivez votre message..."
                           value={newText}
                           onChange={(e) => setNewText(e.target.value)}
@@ -219,7 +197,7 @@ function TenantMessages() {
                         />
                         <button
                           type="submit"
-                          className="btn btn-success btn-sm"
+                          className="btn btn-success"
                           disabled={sending || !newText.trim()}
                         >
                           {sending ? "Envoi..." : "Envoyer"}
