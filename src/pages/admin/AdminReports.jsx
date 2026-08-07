@@ -1,98 +1,101 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { getUserById } from "../../models/user.js"
-import { getListingById } from "../../models/listing.js"
+import { getAdminReports, reviewReport, dismissReport, takeActionReport } from "../../api/reportsApi"
 import EmptyState from "../../components/feedback/EmptyState"
-import * as adminService from "../../services/adminService.js"
+import LoadingState from "../../components/feedback/LoadingState"
+import { formatDate } from "../../utils/formatters"
 
 const STATUS_CLASSES = {
-  pending: "bg-info",
-  resolved: "bg-success",
-  dismissed: "bg-secondary",
+  PENDING: "bg-info",
+  REVIEWED: "bg-warning",
+  RESOLVED: "bg-success",
+  DISMISSED: "bg-secondary",
 }
 const STATUS_LABELS = {
-  pending: "En attente",
-  resolved: "Résolu",
-  dismissed: "Rejeté",
+  PENDING: "En attente",
+  REVIEWED: "En revue",
+  RESOLVED: "Résolu",
+  DISMISSED: "Rejeté",
 }
 
 export default function AdminReports() {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("all")
+  
+  // Note admin pour les actions
+  const [adminNote, setAdminNote] = useState("")
+  const [actionLoading, setActionLoading] = useState(null)
 
   useEffect(() => {
     let active = true
-    ;(async () => {
-      try {
-        const data = await adminService.getReports()
-        if (active) setReports(data)
-      } finally {
-        if (active) setLoading(false)
-      }
-    })()
-    return () => {
-      active = false
-    }
-  }, [])
+    loadReports(active)
+    return () => { active = false }
+  }, [filter])
 
-  const refresh = async () => {
+  async function loadReports(active = true) {
     setLoading(true)
-    const data = await adminService.getReports()
-    setReports(data)
-    setLoading(false)
+    try {
+      const params = filter === "all" ? {} : { status_id: filter }
+      const data = await getAdminReports(params)
+      if (active) setReports(data.items || data || [])
+    } catch (err) {
+      console.error(err)
+    } finally {
+      if (active) setLoading(false)
+    }
   }
 
-  const handleResolve = async (id) => {
-    await adminService.resolveReport(id)
-    await refresh()
+  const handleReview = async (id) => {
+    setActionLoading(id)
+    try {
+      await reviewReport(id)
+      await loadReports()
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleTakeAction = async (id) => {
+    const note = prompt("Note d'action (optionnelle) :", adminNote)
+    if (note === null) return
+    setActionLoading(id)
+    try {
+      await takeActionReport(id, note)
+      await loadReports()
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   const handleDismiss = async (id) => {
-    if (!window.confirm("Rejeter ce signalement ?")) return
-    await adminService.dismissReport(id)
-    await refresh()
-  }
-
-  const filtered =
-    filter === "all"
-      ? reports
-      : reports.filter((r) => r.status === filter)
-
-  if (loading && reports.length === 0) {
-    return (
-      <div className="container py-4">
-        <div className="placeholder-glow">
-          <span className="placeholder col-4 mb-3"></span>
-          <span className="placeholder col-12 mb-2" style={{ height: 320 }}></span>
-        </div>
-      </div>
-    )
+    const note = prompt("Raison du rejet (optionnelle) :", adminNote)
+    if (note === null) return
+    setActionLoading(id)
+    try {
+      await dismissReport(id, note)
+      await loadReports()
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   return (
-    <div className="container py-4">
+    <div>
       <header className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h1 className="h3 mb-1">Signalements</h1>
-          <p className="text-muted mb-0">
-            {reports.filter((r) => r.status === "pending").length} en attente
-          </p>
+          <p className="text-muted mb-0">Modération des signalements utilisateurs</p>
         </div>
-        <Link
-          to="/admin/dashboard"
-          className="btn btn-sm btn-outline-secondary"
-        >
-          Retour
-        </Link>
       </header>
 
       <ul className="nav nav-pills mb-3">
         {[
           { key: "all", label: "Toutes" },
-          { key: "pending", label: "En attente" },
-          { key: "resolved", label: "Résolus" },
-          { key: "dismissed", label: "Rejetés" },
+          { key: "PENDING", label: "En attente" },
+          { key: "REVIEWED", label: "En revue" },
+          { key: "RESOLVED", label: "Résolus" },
+          { key: "DISMISSED", label: "Rejetés" },
         ].map((t) => (
           <li key={t.key} className="nav-item">
             <button
@@ -106,16 +109,18 @@ export default function AdminReports() {
         ))}
       </ul>
 
-      {filtered.length === 0 ? (
-        <EmptyState message="Aucun signalement pour le moment." />
+      {loading ? (
+        <LoadingState message="Chargement des signalements..." />
+      ) : reports.length === 0 ? (
+        <EmptyState message="Aucun signalement trouvé." />
       ) : (
         <div className="table-responsive">
-          <table className="table align-middle">
+          <table className="table align-middle table-hover">
             <thead className="table-light">
               <tr>
+                <th>ID</th>
+                <th>Cible (Annonce)</th>
                 <th>Signalé par</th>
-                <th>Type</th>
-                <th>Cible</th>
                 <th>Raison</th>
                 <th>Statut</th>
                 <th>Date</th>
@@ -123,57 +128,62 @@ export default function AdminReports() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((report) => {
-                const reporter = getUserById(report.reporterId)
-                let targetName
-                if (report.targetType === "listing") {
-                  const listing = getListingById(report.targetId)
-                  targetName = listing ? listing.title : report.targetId
-                } else {
-                  const user = getUserById(report.targetId)
-                  targetName = user ? user.name : report.targetId
-                }
+              {reports.map((report) => {
+                const targetName = report.announcement?.title || `Annonce #${report.announcement_id}`
+                const reporterName = report.reporter?.name || report.reporter?.email || "Inconnu"
                 return (
                   <tr key={report.id}>
-                    <td>{reporter ? reporter.name : "Inconnu"}</td>
-                    <td>
-                      <span className="text-capitalize">
-                        {report.targetType === "listing"
-                          ? "Annonce"
-                          : "Utilisateur"}
-                      </span>
+                    <td>#{report.id}</td>
+                    <td className="fw-semibold">
+                      <Link to={`/annonces/${report.announcement_id}`} target="_blank">
+                        {targetName}
+                      </Link>
                     </td>
-                    <td className="fw-semibold">{targetName}</td>
-                    <td>{report.reason}</td>
+                    <td>{reporterName}</td>
                     <td>
-                      <span
-                        className={`badge ${STATUS_CLASSES[report.status]}`}
-                      >
-                        {STATUS_LABELS[report.status]}
+                      <span className="d-inline-block text-truncate" style={{ maxWidth: 200 }} title={report.reason}>
+                        {report.reason}
                       </span>
                     </td>
                     <td>
-                      {new Date(report.createdAt).toLocaleDateString("fr-FR")}
+                      <span className={`badge ${STATUS_CLASSES[report.status?.code || report.status] || "bg-secondary"}`}>
+                        {STATUS_LABELS[report.status?.code || report.status] || report.status?.code || "Inconnu"}
+                      </span>
                     </td>
+                    <td>{formatDate(report.created_at || report.createdAt)}</td>
                     <td className="text-end">
-                      {report.status === "pending" && (
-                        <div className="btn-group btn-group-sm">
+                      <div className="btn-group btn-group-sm">
+                        {(report.status?.code === "PENDING" || report.status === "PENDING") && (
                           <button
                             type="button"
-                            className="btn btn-success"
-                            onClick={() => handleResolve(report.id)}
+                            className="btn btn-outline-warning"
+                            onClick={() => handleReview(report.id)}
+                            disabled={actionLoading === report.id}
                           >
-                            Résoudre
+                            Mettre en revue
                           </button>
-                          <button
-                            type="button"
-                            className="btn btn-outline-secondary"
-                            onClick={() => handleDismiss(report.id)}
-                          >
-                            Rejeter
-                          </button>
-                        </div>
-                      )}
+                        )}
+                        {(report.status?.code === "REVIEWED" || report.status === "REVIEWED") && (
+                          <>
+                            <button
+                              type="button"
+                              className="btn btn-success"
+                              onClick={() => handleTakeAction(report.id)}
+                              disabled={actionLoading === report.id}
+                            >
+                              Agir & Résoudre
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-outline-secondary"
+                              onClick={() => handleDismiss(report.id)}
+                              disabled={actionLoading === report.id}
+                            >
+                              Rejeter
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 )

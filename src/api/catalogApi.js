@@ -13,3 +13,10 @@ export async function getPropertyTypes() {
   const result = await apiClient.get("/property-types")
   return result.data || result || []
 }
+
+// GET /catalog/report-reasons — Liste publique des raisons de signalement
+export async function getReportReasons() {
+  // It could be /report-reasons depending on the API design, but T6-2 says /catalog/report-reasons
+  const result = await apiClient.get("/catalog/report-reasons")
+  return result.data || result || []
+}

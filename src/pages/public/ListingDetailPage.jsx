@@ -9,6 +9,7 @@ import { useFavoritesStore } from "../../stores/favoritesStore"
 import ListingBadge from "../../components/listings/ListingBadge"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
+import ReportModal from "../../components/reports/ReportModal"
 
 const IMG_BASE = import.meta.env.VITE_API_MEDIA_URL || import.meta.env.VITE_API_BASE_URL?.replace("/api/v1", "") || ""
 
@@ -22,6 +23,9 @@ function ListingDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
+
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [hasReported, setHasReported] = useState(false)
 
   const [contactText, setContactText] = useState("")
   const [sendingContact, setSendingContact] = useState(false)
@@ -327,9 +331,10 @@ function ListingDetailPage() {
                     <button
                       type="button"
                       className="btn btn-outline-danger"
-                      onClick={() => alert("Signalement à venir (Phase 6)")}
+                      onClick={() => setShowReportModal(true)}
+                      disabled={hasReported}
                     >
-                      Signaler cette annonce
+                      {hasReported ? "Annonce signalée" : "Signaler cette annonce"}
                     </button>
                   </>
                 )}
@@ -350,6 +355,19 @@ function ListingDetailPage() {
           &larr; Retour aux annonces
         </Link>
       </div>
+
+      {showReportModal && (
+        <ReportModal
+          announcementId={listingId}
+          onClose={() => setShowReportModal(false)}
+          onSuccess={() => {
+            setShowReportModal(false)
+            setHasReported(true)
+            // Optionnel : un petit toast ou alert de confirmation
+            alert("Votre signalement a été envoyé à l'équipe de modération.")
+          }}
+        />
+      )}
     </div>
   )
 }
