@@ -2,9 +2,9 @@ import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { APP_ROUTES } from "../../constants/routes"
 import { useAuthStore } from "../../stores/authStore"
-import { getOwnerListings, deleteListing, updateListingStatus } from "../../services/ownerService"
+import { getOwnerListings, removeListing, updateListingStatus } from "../../services/ownerService"
 import { formatXAF } from "../../utils/formatters"
-import { PROPERTY_TYPES } from "../../constants/listingOptions"
+import { PROPERTY_TYPE_FALLBACK, ANNOUNCEMENT_STATUS } from "../../constants/apiStatuses"
 import PageHeader from "../../components/common/PageHeader"
 import ListingBadge from "../../components/listings/ListingBadge"
 import EmptyState from "../../components/feedback/EmptyState"
@@ -33,26 +33,39 @@ function OwnerListings() {
     if (!window.confirm(`Supprimer l'annonce \u00ab\u00a0${title}\u00a0\u00bb\u2002? Cette action est irréversible.`)) return
     setActionError(null)
     try {
-      await deleteListing(listingId)
+      await removeListing(listingId)
       setListings((prev) => prev.filter((l) => l.id !== listingId))
     } catch (err) {
       setActionError(err.message)
     }
   }
 
-  async function handleStatusToggle(listingId, currentStatus) {
+  async function handleStatusToggle(listingId, currentStatusId) {
     setActionError(null)
-    const newStatus = currentStatus === "published" ? "archived" : "published"
+    // If active -> archive. If archived/rejected -> resubmit (pending review)
+    let newStatusId
+    if (currentStatusId === ANNOUNCEMENT_STATUS.ACTIVE.id) {
+      newStatusId = ANNOUNCEMENT_STATUS.ARCHIVED.id
+    } else if (
+      currentStatusId === ANNOUNCEMENT_STATUS.ARCHIVED.id || 
+      currentStatusId === ANNOUNCEMENT_STATUS.REJECTED.id
+    ) {
+      newStatusId = ANNOUNCEMENT_STATUS.PENDING_REVIEW.id
+    } else {
+      return
+    }
+
     try {
-      const updated = await updateListingStatus(listingId, newStatus)
+      const updated = await updateListingStatus(listingId, newStatusId)
       setListings((prev) => prev.map((l) => (l.id === listingId ? updated : l)))
     } catch (err) {
       setActionError(err.message)
     }
   }
 
-  function getTypeLabel(type) {
-    return PROPERTY_TYPES.find((t) => t.value === type)?.label || type
+  function getTypeLabel(typeId) {
+    // Ideally this comes from a hook/context with catalogApi, but for now we fallback
+    return Object.values(PROPERTY_TYPE_FALLBACK).find((t) => t.id === typeId)?.label || typeId
   }
 
   return (
@@ -106,15 +119,15 @@ function OwnerListings() {
                           {listing.title}
                         </Link>
                       </td>
-                      <td className="small">{getTypeLabel(listing.type)}</td>
+                      <td className="small">{getTypeLabel(listing.property_type_id)}</td>
                       <td className="small">
-                        {listing.city}{listing.neighborhood ? `, ${listing.neighborhood}` : ""}
+                        {listing.city?.name || listing.city_id}
                       </td>
                       <td className="text-end fw-bold text-success small">
                         {formatXAF(listing.price)} XAF
                       </td>
                       <td className="text-center">
-                        <ListingBadge status={listing.status} />
+                        <ListingBadge statusId={listing.announcement_status_id} />
                       </td>
                       <td className="text-end pe-3">
                         <div className="d-flex gap-1 justify-content-end">
@@ -125,13 +138,21 @@ function OwnerListings() {
                           >
                             Modifier
                           </button>
-                          <button
-                            type="button"
-                            className={`btn btn-sm ${listing.status === "published" ? "btn-outline-warning" : "btn-outline-success"}`}
-                            onClick={() => handleStatusToggle(listing.id, listing.status)}
-                          >
-                            {listing.status === "published" ? "Archiver" : "Publier"}
-                          </button>
+                          {(listing.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id || 
+                            listing.announcement_status_id === ANNOUNCEMENT_STATUS.ARCHIVED.id ||
+                            listing.announcement_status_id === ANNOUNCEMENT_STATUS.REJECTED.id) && (
+                            <button
+                              type="button"
+                              className={`btn btn-sm ${
+                                listing.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id 
+                                  ? "btn-outline-warning" 
+                                  : "btn-outline-success"
+                              }`}
+                              onClick={() => handleStatusToggle(listing.id, listing.announcement_status_id)}
+                            >
+                              {listing.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id ? "Archiver" : "Publier"}
+                            </button>
+                          )}
                           <button
                             type="button"
                             className="btn btn-outline-danger btn-sm"

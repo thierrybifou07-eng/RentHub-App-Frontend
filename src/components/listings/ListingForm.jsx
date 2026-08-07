@@ -5,17 +5,20 @@ import { getListingById } from "../../services/listingsService"
 import { createListing, updateListing } from "../../services/ownerService"
 import { useAuthStore } from "../../stores/authStore"
 import { listingFormSchema } from "../../schemas/listingSchema"
-import { PROPERTY_TYPES, CAMEROON_CITIES } from "../../constants/listingOptions"
+import { getCities, getPropertyTypes } from "../../api/catalogApi"
 import FormField from "../forms/FormField"
 import LoadingState from "../feedback/LoadingState"
 
 const EMPTY_FORM = {
   title: "",
-  type: "",
+  property_type_id: "",
   price: "",
-  city: "",
-  neighborhood: "",
+  city_id: "",
+  surface_area: "",
   rooms: "",
+  bedrooms: "",
+  bathrooms: "",
+  furnished: false,
   description: "",
 }
 
@@ -26,11 +29,34 @@ function ListingForm() {
   const isEdit = Boolean(listingId)
 
   const [form, setForm] = useState(EMPTY_FORM)
+  const [mediaFiles, setMediaFiles] = useState([])
+  
+  const [cities, setCities] = useState([])
+  const [propertyTypes, setPropertyTypes] = useState([])
+  
   const [loadingListing, setLoadingListing] = useState(isEdit)
   const [errors, setErrors] = useState({})
   const [globalError, setGlobalError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
+  // Chargement du catalogue
+  useEffect(() => {
+    async function loadCatalog() {
+      try {
+        const [citiesData, typesData] = await Promise.all([
+          getCities(),
+          getPropertyTypes(),
+        ])
+        setCities(citiesData)
+        setPropertyTypes(typesData)
+      } catch (err) {
+        console.error("Failed to load catalog", err)
+      }
+    }
+    loadCatalog()
+  }, [])
+
+  // Chargement de l'annonce si mode édition
   useEffect(() => {
     if (!isEdit) return
     let active = true
@@ -42,15 +68,23 @@ function ListingForm() {
         return
       }
       setForm({
-        title: listing.title,
-        type: listing.type,
-        price: String(listing.price),
-        city: listing.city,
-        neighborhood: listing.neighborhood || "",
-        rooms: String(listing.rooms),
-        description: listing.description,
+        title: listing.title || "",
+        property_type_id: listing.property_type_id || listing.propertyType?.id || "",
+        price: listing.price ? String(listing.price) : "",
+        city_id: listing.city_id || listing.city?.id || "",
+        surface_area: listing.surface_area ? String(listing.surface_area) : "",
+        rooms: listing.rooms ? String(listing.rooms) : "",
+        bedrooms: listing.bedrooms ? String(listing.bedrooms) : "",
+        bathrooms: listing.bathrooms ? String(listing.bathrooms) : "",
+        furnished: Boolean(listing.furnished),
+        description: listing.description || "",
       })
       setLoadingListing(false)
+    }).catch(() => {
+      if (active) {
+        setGlobalError("Erreur lors du chargement de l'annonce.")
+        setLoadingListing(false)
+      }
     })
     return () => { active = false }
   }, [isEdit, listingId])
@@ -60,17 +94,14 @@ function ListingForm() {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }))
   }
 
-  function validate() {
-    const parsed = {
-      title: form.title,
-      type: form.type,
-      price: Number(form.price),
-      city: form.city,
-      neighborhood: form.neighborhood,
-      rooms: Number(form.rooms),
-      description: form.description,
+  function handleFileChange(e) {
+    if (e.target.files) {
+      setMediaFiles(Array.from(e.target.files))
     }
-    const result = listingFormSchema.safeParse(parsed)
+  }
+
+  function validate() {
+    const result = listingFormSchema.safeParse(form)
     if (!result.success) {
       const fieldErrors = {}
       for (const issue of result.error.issues) {
@@ -81,7 +112,7 @@ function ListingForm() {
       return null
     }
     setErrors({})
-    return parsed
+    return result.data
   }
 
   async function handleSubmit(e) {
@@ -92,14 +123,37 @@ function ListingForm() {
 
     setSubmitting(true)
     try {
-      if (isEdit) {
-        await updateListing(listingId, parsed)
+      let payload
+      
+      // Si des fichiers sont présents, on utilise FormData
+      if (mediaFiles.length > 0) {
+        payload = new FormData()
+        Object.entries(parsed).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            payload.append(key, value)
+          }
+        })
+        mediaFiles.forEach((file) => {
+          payload.append("media", file)
+        })
       } else {
-        await createListing(parsed, user.id)
+        payload = { ...parsed }
+        // Nettoyer les champs vides pour le payload JSON
+        Object.keys(payload).forEach((key) => {
+          if (payload[key] === "" || payload[key] === undefined) {
+            delete payload[key]
+          }
+        })
+      }
+
+      if (isEdit) {
+        await updateListing(listingId, payload)
+      } else {
+        await createListing(payload)
       }
       navigate(APP_ROUTES.ownerListings, { replace: true })
     } catch (err) {
-      setGlobalError(err.message)
+      setGlobalError(err.message || "Une erreur est survenue lors de l'enregistrement.")
     } finally {
       setSubmitting(false)
     }
@@ -129,8 +183,9 @@ function ListingForm() {
       )}
 
       <form onSubmit={handleSubmit} noValidate>
-        <div className="card border-0 shadow-sm">
+        <div className="card border-0 shadow-sm mb-4">
           <div className="card-body">
+            <h5 className="mb-3 border-bottom pb-2">Informations principales</h5>
             <FormField label="Titre de l'annonce" htmlFor="listing-title" error={errors.title}>
               <input
                 type="text"
@@ -139,22 +194,22 @@ function ListingForm() {
                 placeholder="Ex: Studio meublé à Akwa"
                 value={form.title}
                 onChange={(e) => setField("title", e.target.value)}
-                maxLength={100}
+                maxLength={255}
               />
             </FormField>
 
             <div className="row g-3">
               <div className="col-md-6">
-                <FormField label="Type de bien" htmlFor="listing-type" error={errors.type}>
+                <FormField label="Type de bien" htmlFor="listing-type" error={errors.property_type_id}>
                   <select
                     id="listing-type"
-                    className={`form-select ${errors.type ? "is-invalid" : ""}`}
-                    value={form.type}
-                    onChange={(e) => setField("type", e.target.value)}
+                    className={`form-select ${errors.property_type_id ? "is-invalid" : ""}`}
+                    value={form.property_type_id}
+                    onChange={(e) => setField("property_type_id", e.target.value)}
                   >
                     <option value="">Sélectionnez un type</option>
-                    {PROPERTY_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
+                    {propertyTypes.map((t) => (
+                      <option key={t.id} value={t.id}>{t.label}</option>
                     ))}
                   </select>
                 </FormField>
@@ -166,7 +221,8 @@ function ListingForm() {
                     id="listing-price"
                     className={`form-control ${errors.price ? "is-invalid" : ""}`}
                     placeholder="Ex: 75000"
-                    min={1}
+                    min={0}
+                    step="0.01"
                     value={form.price}
                     onChange={(e) => setField("price", e.target.value)}
                   />
@@ -174,48 +230,93 @@ function ListingForm() {
               </div>
             </div>
 
-            <div className="row g-3">
+            <div className="row g-3 mt-1">
               <div className="col-md-6">
-                <FormField label="Ville" htmlFor="listing-city" error={errors.city}>
+                <FormField label="Ville" htmlFor="listing-city" error={errors.city_id}>
                   <select
                     id="listing-city"
-                    className={`form-select ${errors.city ? "is-invalid" : ""}`}
-                    value={form.city}
-                    onChange={(e) => setField("city", e.target.value)}
+                    className={`form-select ${errors.city_id ? "is-invalid" : ""}`}
+                    value={form.city_id}
+                    onChange={(e) => setField("city_id", e.target.value)}
                   >
                     <option value="">Sélectionnez une ville</option>
-                    {CAMEROON_CITIES.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                    {cities.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                 </FormField>
               </div>
               <div className="col-md-6">
-                <FormField label="Quartier" htmlFor="listing-neighborhood" error={errors.neighborhood}>
+                <FormField label="Surface (m²)" htmlFor="listing-surface" error={errors.surface_area}>
                   <input
-                    type="text"
-                    id="listing-neighborhood"
-                    className={`form-control ${errors.neighborhood ? "is-invalid" : ""}`}
-                    placeholder="Ex: Akwa, Bastos..."
-                    value={form.neighborhood}
-                    onChange={(e) => setField("neighborhood", e.target.value)}
-                    maxLength={50}
+                    type="number"
+                    id="listing-surface"
+                    className={`form-control ${errors.surface_area ? "is-invalid" : ""}`}
+                    placeholder="Ex: 45"
+                    min={1}
+                    value={form.surface_area}
+                    onChange={(e) => setField("surface_area", e.target.value)}
                   />
                 </FormField>
               </div>
             </div>
 
-            <FormField label="Nombre de chambres" htmlFor="listing-rooms" error={errors.rooms}>
+            <div className="form-check mt-3 mb-2">
               <input
-                type="number"
-                id="listing-rooms"
-                className={`form-control ${errors.rooms ? "is-invalid" : ""}`}
-                min={1}
-                max={10}
-                value={form.rooms}
-                onChange={(e) => setField("rooms", e.target.value)}
+                className="form-check-input"
+                type="checkbox"
+                id="listing-furnished"
+                checked={form.furnished}
+                onChange={(e) => setField("furnished", e.target.checked)}
               />
-            </FormField>
+              <label className="form-check-label" htmlFor="listing-furnished">
+                Ce bien est meublé
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="card border-0 shadow-sm mb-4">
+          <div className="card-body">
+            <h5 className="mb-3 border-bottom pb-2">Pièces & Description</h5>
+            <div className="row g-3">
+              <div className="col-md-4">
+                <FormField label="Nombre total de pièces" htmlFor="listing-rooms" error={errors.rooms}>
+                  <input
+                    type="number"
+                    id="listing-rooms"
+                    className={`form-control ${errors.rooms ? "is-invalid" : ""}`}
+                    min={0}
+                    value={form.rooms}
+                    onChange={(e) => setField("rooms", e.target.value)}
+                  />
+                </FormField>
+              </div>
+              <div className="col-md-4">
+                <FormField label="Chambres à coucher" htmlFor="listing-bedrooms" error={errors.bedrooms}>
+                  <input
+                    type="number"
+                    id="listing-bedrooms"
+                    className={`form-control ${errors.bedrooms ? "is-invalid" : ""}`}
+                    min={0}
+                    value={form.bedrooms}
+                    onChange={(e) => setField("bedrooms", e.target.value)}
+                  />
+                </FormField>
+              </div>
+              <div className="col-md-4">
+                <FormField label="Salles de bain" htmlFor="listing-bathrooms" error={errors.bathrooms}>
+                  <input
+                    type="number"
+                    id="listing-bathrooms"
+                    className={`form-control ${errors.bathrooms ? "is-invalid" : ""}`}
+                    min={0}
+                    value={form.bathrooms}
+                    onChange={(e) => setField("bathrooms", e.target.value)}
+                  />
+                </FormField>
+              </div>
+            </div>
 
             <FormField label="Description" htmlFor="listing-description" error={errors.description}>
               <textarea
@@ -228,6 +329,30 @@ function ListingForm() {
                 maxLength={2000}
               />
             </FormField>
+          </div>
+        </div>
+
+        <div className="card border-0 shadow-sm mb-4">
+          <div className="card-body">
+            <h5 className="mb-3 border-bottom pb-2">Médias</h5>
+            <FormField label="Images (max 10)" htmlFor="listing-media">
+              <input
+                type="file"
+                id="listing-media"
+                className="form-control"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+              <div className="form-text">
+                Vous pouvez sélectionner plusieurs images (jpeg, png, webp, gif). Max 10 Mo par image.
+              </div>
+            </FormField>
+            {mediaFiles.length > 0 && (
+              <p className="small text-success mt-2 mb-0">
+                {mediaFiles.length} fichier(s) sélectionné(s) prêt(s) à être envoyé(s).
+              </p>
+            )}
           </div>
         </div>
 

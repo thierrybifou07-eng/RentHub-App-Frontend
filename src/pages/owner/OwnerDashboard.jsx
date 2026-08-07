@@ -7,6 +7,8 @@ import { getConversationsByUser } from "../../services/messagingService"
 import PageHeader from "../../components/common/PageHeader"
 import StatCard from "../../components/common/StatCard"
 
+import { ANNOUNCEMENT_STATUS } from "../../constants/apiStatuses"
+
 function OwnerDashboard() {
   const user = useAuthStore((s) => s.user)
   const [listingCount, setListingCount] = useState(0)
@@ -22,7 +24,9 @@ function OwnerDashboard() {
     ]).then(([listings, convs]) => {
       if (active) {
         setListingCount(listings.length)
-        setPublishedCount(listings.filter((l) => l.status === "published").length)
+        setPublishedCount(
+          listings.filter((l) => l.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id).length
+        )
         setConversationCount(convs.length)
       }
     })

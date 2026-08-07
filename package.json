@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.7.1",
     "axios": "^1.18.1",
     "bootstrap": "^5.3.8",
     "ejs": "^6.0.1",
@@ -17,6 +18,7 @@
     "nodemailer": "^9.0.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-hook-form": "^7.84.0",
     "react-router-dom": "^7.18.1",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
