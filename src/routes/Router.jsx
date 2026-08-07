@@ -13,6 +13,11 @@ import ListingDetailPage from "../pages/public/ListingDetailPage"
 
 import LoginPage from "../pages/auth/LoginPage"
 import RegisterPage from "../pages/auth/RegisterPage"
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage"
+import ResetPasswordPage from "../pages/auth/ResetPasswordPage"
+import VerifyEmailPage from "../pages/auth/VerifyEmailPage"
+
+import ProfilePage from "../pages/profile/ProfilePage"
 
 import TenantDashboard from "../pages/tenant/TenantDashboard"
 import TenantFavorites from "../pages/tenant/TenantFavorites"
@@ -42,11 +47,21 @@ export const router = createBrowserRouter([
     children: [
       { path: APP_ROUTES.login, element: <LoginPage /> },
       { path: APP_ROUTES.register, element: <RegisterPage /> },
+      { path: APP_ROUTES.forgotPassword, element: <ForgotPasswordPage /> },
+      { path: APP_ROUTES.resetPassword, element: <ResetPasswordPage /> },
+      { path: APP_ROUTES.verifyEmail, element: <VerifyEmailPage /> },
     ],
   },
   {
     element: <ProtectedRoute />,
     children: [
+      {
+        // Routes partagées par TOUS les utilisateurs connectés
+        element: <DashboardLayout />,
+        children: [
+          { path: APP_ROUTES.profile, element: <ProfilePage /> },
+        ]
+      },
       {
         element: <ProtectedRoute requiredRole={ROLE_KEYS.tenant} />,
         children: [
