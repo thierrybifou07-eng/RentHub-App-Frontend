@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { APP_ROUTES } from "../../constants/routes"
-import { getListingById } from "../../services/listingsService"
-import { startConversation } from "../../services/messagingService"
-import { getUserById } from "../../models/user"
+import { getAnnouncementById } from "../../api/announcementsApi"
 import { formatXAF, formatDate } from "../../utils/formatters"
-import { PROPERTY_TYPES } from "../../constants/listingOptions"
 import { useAuthStore } from "../../stores/authStore"
 import { useFavoritesStore } from "../../stores/favoritesStore"
 import ListingBadge from "../../components/listings/ListingBadge"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
+
+const IMG_BASE = import.meta.env.VITE_API_MEDIA_URL || import.meta.env.VITE_API_BASE_URL?.replace("/api/v1", "") || ""
 
 function ListingDetailPage() {
   const { listingId } = useParams()
@@ -19,9 +18,9 @@ function ListingDetailPage() {
   const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite)
   const isFavorite = useFavoritesStore((s) => s.isFavorite(listingId))
   const [listing, setListing] = useState(null)
-  const [owner, setOwner] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -29,17 +28,15 @@ function ListingDetailPage() {
       setLoading(true)
       setError(null)
       try {
-        const found = await getListingById(listingId)
-        if (!found) {
+        const result = await getAnnouncementById(listingId)
+        const data = result.data || result
+        if (!data) {
           if (active) setError("Annonce introuvable.")
           return
         }
-        if (active) {
-          setListing(found)
-          setOwner(getUserById(found.ownerId))
-        }
-      } catch {
-        if (active) setError("Erreur lors du chargement de l'annonce.")
+        if (active) setListing(data)
+      } catch (err) {
+        if (active) setError(err.status === 404 ? "Annonce introuvable." : "Erreur lors du chargement de l'annonce.")
       } finally {
         if (active) setLoading(false)
       }
@@ -47,12 +44,6 @@ function ListingDetailPage() {
     load()
     return () => { active = false }
   }, [listingId])
-
-  async function handleContact() {
-    if (!listing || !owner) return
-    await startConversation(listingId, user.id, owner.id)
-    navigate(`${APP_ROUTES.tenantMessages}?listing=${listingId}`)
-  }
 
   if (loading) return (
     <div className="container py-4">
@@ -71,7 +62,20 @@ function ListingDetailPage() {
     </div>
   )
 
-  const typeLabel = PROPERTY_TYPES.find((t) => t.value === listing.type)?.label || listing.type
+  // Extraction des données API (noms de clés backend)
+  const typeLabel = listing.PropertyType?.label || listing.propertyType?.label || listing.type || "—"
+  const cityName = listing.City?.name || listing.city?.name || listing.city || "—"
+  const media = listing.Media || listing.media || []
+  const images = media.filter((m) => m.MediaType?.code === "IMAGE" || m.mediaType?.code === "IMAGE" || m.type === "image" || !m.type)
+  const ownerInfo = listing.User || listing.owner || null
+  const favCount = listing.favoritesCount || listing.favorites_count || 0
+
+  function getMediaUrl(m) {
+    const path = m.url || m.path || m.file_path
+    if (!path) return null
+    if (path.startsWith("http")) return path
+    return `${IMG_BASE}/${path.replace(/^\//, "")}`
+  }
 
   return (
     <div className="container py-4">
@@ -91,23 +95,72 @@ function ListingDetailPage() {
 
       <div className="row g-4">
         <div className="col-lg-8">
-          <div className="skeleton-image mb-3" style={{ height: 400 }} />
+          {/* Galerie d'images */}
+          {images.length > 0 ? (
+            <div className="mb-3">
+              <div
+                style={{
+                  height: 400,
+                  borderRadius: "var(--radius-lg, 12px)",
+                  overflow: "hidden",
+                  background: "var(--color-surface-100, #f5f5f5)",
+                }}
+              >
+                <img
+                  src={getMediaUrl(images[activeImageIndex])}
+                  alt={`${listing.title} — photo ${activeImageIndex + 1}`}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              </div>
+              {images.length > 1 && (
+                <div className="d-flex gap-2 mt-2 overflow-auto">
+                  {images.map((img, idx) => (
+                    <button
+                      key={img.id || idx}
+                      type="button"
+                      onClick={() => setActiveImageIndex(idx)}
+                      style={{
+                        width: 72,
+                        height: 56,
+                        borderRadius: "var(--radius-sm, 6px)",
+                        overflow: "hidden",
+                        border: idx === activeImageIndex ? "2px solid var(--color-primary-600, #6366f1)" : "2px solid transparent",
+                        padding: 0,
+                        cursor: "pointer",
+                        flexShrink: 0,
+                        background: "transparent",
+                      }}
+                    >
+                      <img
+                        src={getMediaUrl(img)}
+                        alt={`Miniature ${idx + 1}`}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="skeleton-image mb-3" style={{ height: 400 }} />
+          )}
 
           <h1 className="h3 mb-2">{listing.title}</h1>
           <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
-            <ListingBadge status={listing.status} />
+            <ListingBadge statusId={listing.announcement_status_id || listing.statusId} />
             <span className="text-secondary small">
-              {typeLabel} &middot; {listing.rooms} chambre{listing.rooms > 1 ? "s" : ""}
+              {typeLabel} &middot; {listing.rooms ?? 0} chambre{(listing.rooms ?? 0) > 1 ? "s" : ""}
             </span>
-            <span className="text-secondary small">
-              {listing.city}{listing.neighborhood ? ` \u00b7 ${listing.neighborhood}` : ""}
-            </span>
+            <span className="text-secondary small">{cityName}</span>
+            {favCount > 0 && (
+              <span className="text-secondary small">★ {favCount} favori{favCount > 1 ? "s" : ""}</span>
+            )}
           </div>
 
           <hr />
 
           <h2 className="h5 mb-3">Description</h2>
-          <p className="text-secondary">{listing.description}</p>
+          <p className="text-secondary" style={{ whiteSpace: "pre-line" }}>{listing.description || "Pas de description."}</p>
 
           <hr />
 
@@ -125,7 +178,45 @@ function ListingDetailPage() {
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
                   <p className="text-secondary small mb-1">Chambres</p>
-                  <p className="fw-bold mb-0">{listing.rooms}</p>
+                  <p className="fw-bold mb-0">{listing.rooms ?? "—"}</p>
+                </div>
+              </div>
+            </div>
+            {listing.bedrooms != null && (
+              <div className="col-sm-6">
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body">
+                    <p className="text-secondary small mb-1">Chambres à coucher</p>
+                    <p className="fw-bold mb-0">{listing.bedrooms}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {listing.bathrooms != null && (
+              <div className="col-sm-6">
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body">
+                    <p className="text-secondary small mb-1">Salles de bain</p>
+                    <p className="fw-bold mb-0">{listing.bathrooms}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {listing.surface_area != null && (
+              <div className="col-sm-6">
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body">
+                    <p className="text-secondary small mb-1">Surface</p>
+                    <p className="fw-bold mb-0">{listing.surface_area} m²</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="col-sm-6">
+              <div className="card border-0 shadow-sm">
+                <div className="card-body">
+                  <p className="text-secondary small mb-1">Meublé</p>
+                  <p className="fw-bold mb-0">{listing.furnished ? "Oui" : "Non"}</p>
                 </div>
               </div>
             </div>
@@ -133,9 +224,7 @@ function ListingDetailPage() {
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
                   <p className="text-secondary small mb-1">Localisation</p>
-                  <p className="fw-bold mb-0">
-                    {listing.city}{listing.neighborhood ? `, ${listing.neighborhood}` : ""}
-                  </p>
+                  <p className="fw-bold mb-0">{cityName}</p>
                 </div>
               </div>
             </div>
@@ -143,13 +232,14 @@ function ListingDetailPage() {
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
                   <p className="text-secondary small mb-1">Publiée le</p>
-                  <p className="fw-bold mb-0">{formatDate(listing.createdAt)}</p>
+                  <p className="fw-bold mb-0">{formatDate(listing.createdAt || listing.created_at)}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Sidebar */}
         <div className="col-lg-4">
           <div className="card border-0 shadow-sm sticky-top" style={{ top: "1rem" }}>
             <div className="card-body">
@@ -159,13 +249,19 @@ function ListingDetailPage() {
 
               <hr />
 
-              {owner && (
+              {ownerInfo && (
                 <div className="d-flex align-items-center gap-2 mb-3">
                   <div className="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style={{ width: 40, height: 40 }}>
-                    <span className="fw-bold small">{owner.name.charAt(0)}</span>
+                    <span className="fw-bold small">
+                      {(ownerInfo.firstname || ownerInfo.name || "?").charAt(0)}
+                    </span>
                   </div>
                   <div>
-                    <p className="fw-bold mb-0 small">{owner.name}</p>
+                    <p className="fw-bold mb-0 small">
+                      {ownerInfo.firstname && ownerInfo.lastname
+                        ? `${ownerInfo.firstname} ${ownerInfo.lastname}`
+                        : ownerInfo.name || "Propriétaire"}
+                    </p>
                     <p className="text-secondary mb-0" style={{ fontSize: "0.75rem" }}>Propriétaire</p>
                   </div>
                 </div>
@@ -177,7 +273,7 @@ function ListingDetailPage() {
                     Connectez-vous pour contacter
                   </Link>
                 ) : user?.role === "tenant" ? (
-                  <button type="button" className="btn btn-success" onClick={handleContact}>
+                  <button type="button" className="btn btn-success" onClick={() => navigate(`${APP_ROUTES.tenantMessages}?listing=${listingId}`)}>
                     Contacter le propriétaire
                   </button>
                 ) : null}
@@ -187,7 +283,7 @@ function ListingDetailPage() {
                     className={`btn ${isFavorite ? "btn-warning" : "btn-outline-warning"}`}
                     onClick={() => toggleFavorite(listingId)}
                   >
-                    {isFavorite ? "\u2605 Retirer des favoris" : "\u2606 Ajouter aux favoris"}
+                    {isFavorite ? "★ Retirer des favoris" : "☆ Ajouter aux favoris"}
                   </button>
                 )}
               </div>
