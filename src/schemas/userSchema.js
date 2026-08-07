@@ -16,7 +16,7 @@ export const loginSchema = z.object({
     .string()
     .min(1, "L'adresse e-mail est requise")
     .email("Adresse e-mail invalide"),
-  password: passwordSchema,
+  password: z.string().min(1, "Le mot de passe est requis"),
 })
 
 export const registerSchema = z
@@ -35,6 +35,10 @@ export const registerSchema = z
       .string()
       .min(1, "L'adresse e-mail est requise")
       .email("Adresse e-mail invalide"),
+    gender: z.enum(["M", "F"], {
+      required_error: "Le genre est requis",
+      invalid_type_error: "Le genre doit être 'M' ou 'F'",
+    }).optional(),
     password: passwordSchema,
     confirmPassword: z.string().min(1, "Confirmez votre mot de passe"),
   })
@@ -42,3 +46,65 @@ export const registerSchema = z
     message: "Les mots de passe ne correspondent pas",
     path: ["confirmPassword"],
   })
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, "L'adresse e-mail est requise")
+    .email("Adresse e-mail invalide"),
+})
+
+export const resetPasswordSchema = z
+  .object({
+    email: z.string().email(),
+    code: z
+      .string()
+      .min(6, "Le code doit contenir 6 chiffres")
+      .max(6, "Le code doit contenir 6 chiffres")
+      .regex(/^\d+$/, "Le code ne doit contenir que des chiffres"),
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, "Confirmez votre mot de passe"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"],
+  })
+
+export const verifyEmailSchema = z.object({
+  code: z
+    .string()
+    .min(6, "Le code doit contenir 6 chiffres")
+    .max(6, "Le code doit contenir 6 chiffres")
+    .regex(/^\d+$/, "Le code ne doit contenir que des chiffres"),
+})
+
+export const updateProfileSchema = z.object({
+  firstname: z
+    .string()
+    .min(3, "Le prénom doit contenir au moins 3 caractères")
+    .max(100, "Le prénom ne peut dépasser 100 caractères")
+    .optional(),
+  lastname: z
+    .string()
+    .min(3, "Le nom doit contenir au moins 3 caractères")
+    .max(100, "Le nom ne peut dépasser 100 caractères")
+    .optional(),
+  gender: z.enum(["M", "F"]).optional(),
+  phone: z.string().max(20).optional().nullable(),
+  cityId: z.number().int().positive().optional().nullable(),
+})
+
+export const updatePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Le mot de passe actuel est requis"),
+    newPassword: passwordSchema,
+    confirmNewPassword: z.string().min(1, "Confirmez votre nouveau mot de passe"),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmNewPassword"],
+  })
+
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, "Le mot de passe est requis pour supprimer le compte"),
+})
