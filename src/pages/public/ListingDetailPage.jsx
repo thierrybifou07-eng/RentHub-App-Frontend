@@ -16,7 +16,7 @@ function ListingDetailPage() {
   const navigate = useNavigate()
   const { isAuthenticated, user } = useAuthStore()
   const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite)
-  const isFavorite = useFavoritesStore((s) => s.isFavorite(listingId))
+  const isFavorite = useFavoritesStore((s) => s.favorites.includes(listingId))
   const [listing, setListing] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -278,13 +278,22 @@ function ListingDetailPage() {
                   </button>
                 ) : null}
                 {isAuthenticated && user?.role === "tenant" && (
-                  <button
-                    type="button"
-                    className={`btn ${isFavorite ? "btn-warning" : "btn-outline-warning"}`}
-                    onClick={() => toggleFavorite(listingId)}
-                  >
-                    {isFavorite ? "★ Retirer des favoris" : "☆ Ajouter aux favoris"}
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className={`btn ${isFavorite ? "btn-warning" : "btn-outline-warning"}`}
+                      onClick={() => toggleFavorite(listingId)}
+                    >
+                      {isFavorite ? "★ Retirer des favoris" : "☆ Ajouter aux favoris"}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline-danger"
+                      onClick={() => alert("Signalement à venir (Phase 6)")}
+                    >
+                      Signaler cette annonce
+                    </button>
+                  </>
                 )}
               </div>
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { APP_ROUTES } from "../../constants/routes"
 import { useFavoritesStore } from "../../stores/favoritesStore"
-import { getListingById } from "../../services/listingsService"
+import { getFavorites } from "../../api/favoritesApi"
 import PageHeader from "../../components/common/PageHeader"
 import ListingCard from "../../components/listings/ListingCard"
 import EmptyState from "../../components/feedback/EmptyState"
@@ -15,18 +15,42 @@ function TenantFavorites() {
 
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
 
   useEffect(() => {
     let active = true
-    Promise.all(favorites.map((id) => getListingById(id)))
-      .then((results) => {
-        if (active) setListings(results.filter(Boolean))
+    setLoading(true)
+    
+    getFavorites({ page, limit: 12 })
+      .then((response) => {
+        if (!active) return
+        // Assuming API returns { status: 'success', data: { items: [], meta: { currentPage, lastPage } } }
+        const data = response.data?.data || response.data
+        const items = data?.items || data || []
+        
+        // If the API returns favorite objects wrapping announcements, extract them
+        const announcements = items.map(item => item.announcement || item)
+        
+        if (page === 1) {
+          setListings(announcements)
+        } else {
+          setListings(prev => [...prev, ...announcements])
+        }
+        
+        const meta = data?.meta || {}
+        setHasMore(meta.currentPage < meta.lastPage)
       })
+      .catch(console.error)
       .finally(() => {
         if (active) setLoading(false)
       })
+      
     return () => { active = false }
-  }, [favorites])
+  }, [page])
+
+  // Retirer de l'affichage si le favori est supprimé localement (optimisation UX)
+  const visibleListings = listings.filter(l => favorites.includes(l.id))
 
   return (
     <div>
@@ -35,27 +59,41 @@ function TenantFavorites() {
         description="Les annonces que vous avez sauvegardées."
       />
 
-      {loading ? (
+      {loading && page === 1 ? (
         <LoadingState message="Chargement de vos favoris..." />
-      ) : listings.length === 0 ? (
+      ) : visibleListings.length === 0 ? (
         <EmptyState
           title="Aucun favori"
           description="Ajoutez des annonces en favori pour les retrouver facilement."
           action={{ to: APP_ROUTES.listings, label: "Parcourir les annonces" }}
         />
       ) : (
-        <div className="row g-4">
-          {listings.map((listing) => (
-            <div key={listing.id} className="col-sm-6 col-lg-4">
-              <ListingCard
-                listing={listing}
-                showFavorite
-                isFavorite={isFavorite(listing.id)}
-                onToggleFavorite={() => toggleFavorite(listing.id)}
-              />
+        <>
+          <div className="row g-4">
+            {visibleListings.map((listing) => (
+              <div key={listing.id} className="col-sm-6 col-lg-4">
+                <ListingCard
+                  listing={listing}
+                  showFavorite
+                  isFavorite={isFavorite(listing.id)}
+                  onToggleFavorite={() => toggleFavorite(listing.id)}
+                />
+              </div>
+            ))}
+          </div>
+          
+          {hasMore && (
+            <div className="text-center mt-5">
+              <button 
+                className="btn btn-outline-primary"
+                onClick={() => setPage(p => p + 1)}
+                disabled={loading}
+              >
+                {loading ? "Chargement..." : "Voir plus d'annonces"}
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       <div className="text-center mt-4">

@@ -1,29 +1,70 @@
 import { create } from "zustand"
-
-const STORAGE_KEY = "renthub-favorites"
+import { getFavorites, addFavorite as apiAddFavorite, removeFavorite as apiRemoveFavorite } from "../api/favoritesApi"
+import { useAuthStore } from "./authStore"
 
 export const useFavoritesStore = create((set, get) => ({
   favorites: [],
 
-  hydrate() {
+  async hydrate() {
+    const isAuthenticated = useAuthStore.getState().isAuthenticated
+    if (isAuthenticated) {
+      await get().fetchFavorites()
+    } else {
+      set({ favorites: [] })
+    }
+  },
+
+  async fetchFavorites() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
-        const favorites = JSON.parse(raw)
-        set({ favorites })
-      }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY)
+      const response = await getFavorites({ limit: 100 }) // Get a large chunk to have the IDs locally
+      // Assuming response.data.items or response.data contains the list of favorite announcements
+      const items = response.data?.items || response.data || []
+      // We extract the announcement IDs. The API might return the announcement object directly, or a favorite object containing an announcement_id or announcement object.
+      // Usually it's `announcement_id` or the `id` of the announcement if the list is just announcements. Let's assume the items are announcement objects with `id` or favorite objects with `announcement_id`.
+      const ids = items.map(item => item.announcement_id || item.id)
+      set({ favorites: ids })
+    } catch (err) {
+      console.error("Failed to fetch favorites:", err)
+      set({ favorites: [] })
+    }
+  },
+
+  async addFavorite(listingId) {
+    const { favorites } = get()
+    if (favorites.includes(listingId)) return
+
+    // Optimistic update
+    set({ favorites: [...favorites, listingId] })
+    try {
+      await apiAddFavorite(listingId)
+    } catch (err) {
+      // Revert on error
+      console.error("Failed to add favorite:", err)
+      set({ favorites: favorites })
+    }
+  },
+
+  async removeFavorite(listingId) {
+    const { favorites } = get()
+    if (!favorites.includes(listingId)) return
+
+    // Optimistic update
+    set({ favorites: favorites.filter(id => id !== listingId) })
+    try {
+      await apiRemoveFavorite(listingId)
+    } catch (err) {
+      // Revert on error
+      console.error("Failed to remove favorite:", err)
+      set({ favorites: favorites })
     }
   },
 
   toggleFavorite(listingId) {
-    const { favorites } = get()
-    const next = favorites.includes(listingId)
-      ? favorites.filter((id) => id !== listingId)
-      : [...favorites, listingId]
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-    set({ favorites: next })
+    if (get().isFavorite(listingId)) {
+      return get().removeFavorite(listingId)
+    } else {
+      return get().addFavorite(listingId)
+    }
   },
 
   isFavorite(listingId) {
