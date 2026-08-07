@@ -6,15 +6,15 @@ export async function getAnnouncements(params = {}) {
   return response
 }
 
-// GET /announcements/my-announcements (propriétaire/agence)
+// GET /announcements/me (propriétaire/agence)
 export async function getMyAnnouncements(params = {}) {
-  const response = await apiClient.get("/announcements/my-announcements", { params })
+  const response = await apiClient.get("/announcements/me", { params })
   return response
 }
 
-// GET /announcements/pending (admin - liste des annonces en attente)
+// GET /announcements/admin/pending (admin - liste des annonces en attente)
 export async function getPendingAnnouncements() {
-  const response = await apiClient.get("/announcements/pending")
+  const response = await apiClient.get("/announcements/admin/pending")
   return response
 }
 
@@ -32,7 +32,7 @@ export async function createAnnouncement(data) {
   return response
 }
 
-// PUT /announcements/:id (propriétaire/agence/admin)
+// PUT /announcements/:id (propriétaire/agence)
 export async function updateAnnouncement(id, data) {
   const isFormData = data instanceof FormData
   const config = isFormData ? { headers: { "Content-Type": "multipart/form-data" } } : {}
@@ -46,26 +46,26 @@ export async function deleteAnnouncement(id) {
   return response
 }
 
-// POST /announcements/:id/archive (propriétaire/agence)
+// PATCH /announcements/:id/archive (propriétaire/agence)
 export async function archiveAnnouncement(id) {
-  const response = await apiClient.post(`/announcements/${id}/archive`)
+  const response = await apiClient.patch(`/announcements/${id}/archive`)
   return response
 }
 
-// POST /announcements/:id/resubmit (propriétaire/agence)
+// PATCH /announcements/:id/resubmit (propriétaire/agence)
 export async function resubmitAnnouncement(id) {
-  const response = await apiClient.post(`/announcements/${id}/resubmit`)
+  const response = await apiClient.patch(`/announcements/${id}/resubmit`)
   return response
 }
 
-// POST /announcements/:id/approve (admin)
+// PUT /announcements/admin/:id/approve (admin)
 export async function approveAnnouncement(id) {
-  const response = await apiClient.post(`/announcements/${id}/approve`)
+  const response = await apiClient.put(`/announcements/admin/${id}/approve`)
   return response
 }
 
-// POST /announcements/:id/reject (admin)
+// PUT /announcements/admin/:id/reject (admin)
 export async function rejectAnnouncement(id, reason) {
-  const response = await apiClient.post(`/announcements/${id}/reject`, { reason })
+  const response = await apiClient.put(`/announcements/admin/${id}/reject`, { reason })
   return response
 }
