@@ -45,7 +45,7 @@ function ListingCard({ listing, showFavorite, isFavorite, onToggleFavorite }) {
           >
             <h3 className="h6 fw-bold mb-0 listing-card-title">{listing.title}</h3>
           </Link>
-          <ListingBadge status={listing.status} />
+          <ListingBadge statusId={listing.announcement_status_id || listing.statusId || listing.status} />
         </div>
 
         <ListingLocation city={listing.city} neighborhood={listing.neighborhood} />

@@ -1,19 +1,12 @@
-import { LISTING_STATUS } from "../../constants/listingOptions"
+import { getAnnouncementStatusLabel, getAnnouncementStatusTheme } from "../../constants/apiStatuses"
 
-const STATUS_VARIANT = {
-  draft: "secondary",
-  pending: "info",
-  published: "success",
-  archived: "dark",
-  rejected: "danger",
-}
+function ListingBadge({ statusId }) {
+  const label = getAnnouncementStatusLabel(statusId)
+  const theme = getAnnouncementStatusTheme(statusId)
 
-function ListingBadge({ status }) {
-  const variant = STATUS_VARIANT[status] || "secondary"
-  const label = LISTING_STATUS[status] || status
-
+  // Utilisation de badge-pill défini dans global.css
   return (
-    <span className={`badge text-bg-${variant} listing-badge`}>
+    <span className={`badge-pill badge-pill-${theme}`}>
       {label}
     </span>
   )
