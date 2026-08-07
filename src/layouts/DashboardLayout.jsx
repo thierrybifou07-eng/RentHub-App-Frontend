@@ -22,6 +22,7 @@ const NAV_SECTIONS = {
     { to: APP_ROUTES.adminModeration,  label: "Modération",      icon: "🔍" },
     { to: APP_ROUTES.adminUsers,       label: "Utilisateurs",    icon: "👥" },
     { to: APP_ROUTES.adminReports,     label: "Signalements",    icon: "🚨" },
+    { to: APP_ROUTES.adminSubscriptions, label: "Abonnements",   icon: "💳" },
   ],
 }
 
@@ -55,6 +56,7 @@ function DashboardLayout() {
   const unreadCount = useConversationsStore(s => s.unreadCount)
   const fetchUnreadCount = useConversationsStore(s => s.fetchUnreadCount)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [adminPending, setAdminPending] = useState({ announcements: 0, reports: 0, subscriptions: 0 })
 
   // Fetch unread messages periodically
   useEffect(() => {
@@ -64,9 +66,34 @@ function DashboardLayout() {
     return () => clearInterval(interval)
   }, [user, fetchUnreadCount])
 
-  const links        = user ? NAV_SECTIONS[user.role]   || [] : []
-  const sectionLabel = user ? SECTION_LABELS[user.role] || "" : ""
-  const colors       = user ? SECTION_COLORS[user.role] || SECTION_COLORS.tenant : SECTION_COLORS.tenant
+  // Fetch admin pending counts periodically
+  useEffect(() => {
+    const role = user?.role?.toLowerCase()
+    if (role !== "admin") return
+
+    let active = true
+    const fetchAdminCounts = async () => {
+      try {
+        const { getPendingCounts } = await import("../api/adminApi")
+        const data = await getPendingCounts()
+        if (active) setAdminPending(data)
+      } catch (err) {
+        // silent
+      }
+    }
+    
+    fetchAdminCounts()
+    const interval = setInterval(fetchAdminCounts, 60000)
+    return () => {
+      active = false
+      clearInterval(interval)
+    }
+  }, [user])
+
+  const userRole = user?.role?.toLowerCase() || "tenant"
+  const links        = user ? NAV_SECTIONS[userRole]   || [] : []
+  const sectionLabel = user ? SECTION_LABELS[userRole] || "" : ""
+  const colors       = user ? SECTION_COLORS[userRole] || SECTION_COLORS.tenant : SECTION_COLORS.tenant
 
   // Fermer la sidebar mobile au changement de route
   useEffect(() => {
@@ -166,6 +193,21 @@ function DashboardLayout() {
                   {link.label === "Messages" && unreadCount > 0 && (
                     <span className="badge bg-danger rounded-pill ms-auto px-2 py-1" style={{ fontSize: "0.7rem" }}>
                       {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                  {link.label === "Modération" && adminPending.announcements > 0 && (
+                    <span className="badge bg-primary rounded-pill ms-auto px-2 py-1" style={{ fontSize: "0.7rem" }}>
+                      {adminPending.announcements > 99 ? "99+" : adminPending.announcements}
+                    </span>
+                  )}
+                  {link.label === "Signalements" && adminPending.reports > 0 && (
+                    <span className="badge bg-warning text-dark rounded-pill ms-auto px-2 py-1" style={{ fontSize: "0.7rem" }}>
+                      {adminPending.reports > 99 ? "99+" : adminPending.reports}
+                    </span>
+                  )}
+                  {link.label === "Abonnements" && adminPending.subscriptions > 0 && (
+                    <span className="badge bg-info text-dark rounded-pill ms-auto px-2 py-1" style={{ fontSize: "0.7rem" }}>
+                      {adminPending.subscriptions > 99 ? "99+" : adminPending.subscriptions}
                     </span>
                   )}
                 </Link>

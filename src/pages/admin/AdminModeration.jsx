@@ -1,92 +1,88 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { getUserById } from "../../models/user.js"
 import ListingBadge from "../../components/listings/ListingBadge"
 import EmptyState from "../../components/feedback/EmptyState"
-import * as adminService from "../../services/adminService.js"
+import PageHeader from "../../components/common/PageHeader"
+import LoadingState from "../../components/feedback/LoadingState"
+import { getModerationListings, approveListing, rejectListing, deleteListing } from "../../services/adminService"
 
 export default function AdminModeration() {
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("all")
+  const [actionLoading, setActionLoading] = useState(null)
 
   useEffect(() => {
     let active = true
-    ;(async () => {
-      try {
-        const data = await adminService.getModerationListings()
-        if (active) setListings(data)
-      } finally {
-        if (active) setLoading(false)
-      }
-    })()
-    return () => {
-      active = false
-    }
+    loadListings(active)
+    return () => { active = false }
   }, [])
 
-  const refresh = async () => {
+  async function loadListings(active = true) {
     setLoading(true)
-    const data = await adminService.getModerationListings()
-    setListings(data)
-    setLoading(false)
+    try {
+      const data = await getModerationListings()
+      if (active) setListings(data.items || data || [])
+    } catch (err) {
+      console.error(err)
+    } finally {
+      if (active) setLoading(false)
+    }
   }
 
   const handleApprove = async (id) => {
-    await adminService.approveListing(id)
-    await refresh()
+    setActionLoading(id)
+    try {
+      await approveListing(id)
+      await loadListings()
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   const handleReject = async (id) => {
-    if (!window.confirm("Rejeter cette annonce ?")) return
-    await adminService.rejectListing(id)
-    await refresh()
+    const reason = prompt("Raison du rejet de l'annonce :")
+    if (reason === null) return
+    setActionLoading(id)
+    try {
+      await rejectListing(id, reason || "Non conforme aux règles")
+      await loadListings()
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   const handleDelete = async (id) => {
     if (!window.confirm("Supprimer définitivement cette annonce ?")) return
-    await adminService.deleteListing(id)
-    await refresh()
+    setActionLoading(id)
+    try {
+      await deleteListing(id)
+      await loadListings()
+    } finally {
+      setActionLoading(null)
+    }
   }
 
-  const filtered =
-    filter === "all"
-      ? listings
-      : listings.filter((l) => l.status === filter)
+  const filtered = filter === "all"
+    ? listings
+    : listings.filter((l) => l.status?.code === filter || l.status === filter)
 
   if (loading && listings.length === 0) {
-    return (
-      <div className="container py-4">
-        <div className="placeholder-glow">
-          <span className="placeholder col-4 mb-3"></span>
-          <span className="placeholder col-12 mb-2" style={{ height: 320 }}></span>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Chargement des annonces à modérer..." />
   }
 
   return (
-    <div className="container py-4">
-      <header className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h1 className="h3 mb-1">Modération des annonces</h1>
-          <p className="text-muted mb-0">
-            Approuvez, rejetez ou supprimez les annonces signalées.
-          </p>
-        </div>
-        <Link
-          to="/admin/dashboard"
-          className="btn btn-sm btn-outline-secondary"
-        >
-          Retour
-        </Link>
-      </header>
+    <div>
+      <PageHeader 
+        title="Modération des annonces" 
+        description="Approuvez, rejetez ou supprimez les annonces en attente." 
+      />
 
-      <ul className="nav nav-pills mb-3">
+      <ul className="nav nav-pills mb-4">
         {[
           { key: "all", label: "Toutes" },
-          { key: "pending", label: "En attente" },
-          { key: "rejected", label: "Rejetées" },
+          { key: "PENDING", label: "En attente" },
+          { key: "REJECTED", label: "Rejetées" },
         ].map((t) => (
           <li key={t.key} className="nav-item">
             <button
@@ -103,64 +99,76 @@ export default function AdminModeration() {
       {filtered.length === 0 ? (
         <EmptyState message="Aucune annonce à modérer pour le moment." />
       ) : (
-        <div className="table-responsive">
-          <table className="table align-middle">
-            <thead className="table-light">
-              <tr>
-                <th>Annonce</th>
-                <th>Propriétaire</th>
-                <th>Ville</th>
-                <th>Prix</th>
-                <th>Statut</th>
-                <th className="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((listing) => {
-                const owner = getUserById(listing.ownerId)
-                return (
-                  <tr key={listing.id}>
-                    <td className="fw-semibold">{listing.title}</td>
-                    <td>{owner ? owner.name : "Inconnu"}</td>
-                    <td>{listing.city}</td>
-                    <td>{listing.price.toLocaleString("fr-FR")}&nbsp;FCFA</td>
-                    <td>
-                      <ListingBadge status={listing.status} />
-                    </td>
-                    <td className="text-end">
-                      {listing.status === "pending" && (
-                        <div className="btn-group btn-group-sm">
+        <div className="card border-0 shadow-sm">
+          <div className="table-responsive">
+            <table className="table align-middle table-hover mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th>Annonce</th>
+                  <th>Propriétaire</th>
+                  <th>Localisation</th>
+                  <th>Prix</th>
+                  <th>Statut</th>
+                  <th className="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((listing) => {
+                  const ownerName = listing.owner?.name || listing.owner?.email || "Inconnu"
+                  const cityName = listing.city?.name || listing.city || "Inconnue"
+                  const statusCode = listing.status?.code || listing.status
+                  
+                  return (
+                    <tr key={listing.id}>
+                      <td className="fw-semibold">
+                        <Link to={`/annonces/${listing.id}`} target="_blank">
+                          {listing.title}
+                        </Link>
+                      </td>
+                      <td>{ownerName}</td>
+                      <td>{cityName}</td>
+                      <td>{listing.price.toLocaleString("fr-FR")}&nbsp;FCFA</td>
+                      <td>
+                        <ListingBadge status={statusCode} />
+                      </td>
+                      <td className="text-end">
+                        {statusCode === "PENDING" && (
+                          <div className="btn-group btn-group-sm">
+                            <button
+                              type="button"
+                              className="btn btn-success"
+                              onClick={() => handleApprove(listing.id)}
+                              disabled={actionLoading === listing.id}
+                            >
+                              Approuver
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger"
+                              onClick={() => handleReject(listing.id)}
+                              disabled={actionLoading === listing.id}
+                            >
+                              Rejeter
+                            </button>
+                          </div>
+                        )}
+                        {statusCode === "REJECTED" && (
                           <button
                             type="button"
-                            className="btn btn-success"
-                            onClick={() => handleApprove(listing.id)}
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleDelete(listing.id)}
+                            disabled={actionLoading === listing.id}
                           >
-                            Approuver
+                            Supprimer
                           </button>
-                          <button
-                            type="button"
-                            className="btn btn-outline-danger"
-                            onClick={() => handleReject(listing.id)}
-                          >
-                            Rejeter
-                          </button>
-                        </div>
-                      )}
-                      {listing.status === "rejected" && (
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={() => handleDelete(listing.id)}
-                        >
-                          Supprimer
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

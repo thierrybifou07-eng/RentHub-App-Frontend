@@ -1,167 +1,177 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useAuthStore } from "../../stores/authStore"
-import * as adminService from "../../services/adminService.js"
+import { getStats, getPendingCounts, getRecentActivity } from "../../api/adminApi"
 import StatCard from "../../components/common/StatCard"
+import PageHeader from "../../components/common/PageHeader"
+import LoadingState from "../../components/feedback/LoadingState"
+import ErrorState from "../../components/feedback/ErrorState"
+import { APP_ROUTES } from "../../constants/routes"
 
 export default function AdminDashboard() {
   const user = useAuthStore((s) => s.user)
-  const logout = useAuthStore((s) => s.logout)
-
+  
   const [stats, setStats] = useState(null)
+  const [pending, setPending] = useState(null)
+  const [activity, setActivity] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     let active = true
-    ;(async () => {
+    async function loadDashboard() {
       try {
-        const data = await adminService.getDashboardStats()
-        if (active) setStats(data)
+        const [statsData, pendingData, activityData] = await Promise.all([
+          getStats(),
+          getPendingCounts(),
+          getRecentActivity()
+        ])
+        if (active) {
+          setStats(statsData)
+          setPending(pendingData)
+          setActivity(activityData?.items || activityData || [])
+        }
+      } catch (err) {
+        if (active) setError(err.message || "Erreur de chargement du tableau de bord")
       } finally {
         if (active) setLoading(false)
       }
-    })()
-    return () => {
-      active = false
     }
+    loadDashboard()
+    return () => { active = false }
   }, [])
 
   if (!user) return null
 
+  if (loading) return <LoadingState message="Chargement de l'espace administrateur..." />
+  if (error) return <ErrorState message={error} />
+
   const statCards = [
     {
-      icon: "\uf007",
-      label: "Utilisateurs",
-      value: stats ? stats.users : null,
+      icon: "\uf0c0",
+      label: "Utilisateurs totaux",
+      value: stats?.users || 0,
       color: "text-primary",
-      href: "/admin/users",
+      href: APP_ROUTES.adminUsers,
     },
     {
-      icon: "\uf15c",
-      label: "Annonces publiées",
-      value: stats ? stats.publishedListings : null,
+      icon: "\uf015",
+      label: "Annonces actives",
+      value: stats?.publishedListings || 0,
       color: "text-success",
-      href: "/admin/moderation",
+      href: APP_ROUTES.adminModeration,
     },
     {
       icon: "\uf071",
-      label: "Signalements",
-      value: stats ? stats.pendingReports : null,
+      label: "Signalements en cours",
+      value: stats?.pendingReports || 0,
       color: "text-warning",
-      href: "/admin/reports",
+      href: APP_ROUTES.adminReports,
     },
     {
-      icon: "\uf27b",
-      label: "Conversations actives",
-      value: stats ? stats.activeConversations : null,
+      icon: "\uf155",
+      label: "Abonnements actifs",
+      value: stats?.activeSubscriptions || 0,
       color: "text-info",
-      href: "/owner/messages",
+      href: APP_ROUTES.adminSubscriptions,
     },
   ]
 
   return (
-    <div className="container py-4">
-      <header className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h1 className="h3 mb-1">Espace administrateur</h1>
-          <p className="text-muted mb-0">
-            Bienvenue, {user.name || "Admin"} ! Voici un aperçu de
-            l'activité.
-          </p>
-        </div>
-        <button
-          type="button"
-          className="btn btn-sm btn-outline-secondary"
-          onClick={logout}
-        >
-          Déconnexion
-        </button>
-      </header>
+    <div>
+      <PageHeader 
+        title="Espace Administrateur" 
+        description={`Bienvenue ${user.name || "Admin"}. Voici la vue d'ensemble de RentHub.`} 
+      />
 
-      <div className="row g-3 mb-4">
+      <div className="row g-3 mb-5">
         {statCards.map((c) => (
-          <div key={c.label} className="col-6 col-lg-3">
-            {loading ? (
-              <div className="card h-100">
-                <div className="card-body">
-                  <div className="placeholder-glow">
-                    <span className="placeholder col-4"></span>
-                    <span className="placeholder col-8"></span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <Link to={c.href} className="text-decoration-none">
-                <StatCard
-                  icon={c.icon}
-                  label={c.label}
-                  value={c.value}
-                  color={c.color}
-                />
-              </Link>
-            )}
+          <div key={c.label} className="col-sm-6 col-xl-3">
+            <Link to={c.href} className="text-decoration-none">
+              <StatCard
+                icon={c.icon}
+                label={c.label}
+                value={c.value}
+                color={c.color}
+              />
+            </Link>
           </div>
         ))}
       </div>
 
-      <div className="row g-3">
-        <div className="col-md-4">
-          <div className="card h-100 border-0 shadow-sm">
-            <div className="card-body text-center">
-              <span
-                className="d-inline-block fs-1 mb-2"
-                dangerouslySetInnerHTML={{ __html: "&#xf085;" }}
-              />
-              <h5 className="card-title">Modération</h5>
-              <p className="card-text text-muted small">
-                Validez ou rejetez les annonces en attente.
-              </p>
-              <Link
-                to="/admin/moderation"
-                className="btn btn-sm btn-primary"
-              >
-                Accéder
-              </Link>
+      <div className="row g-4">
+        {/* Tâches en attente */}
+        <div className="col-lg-4">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
+              <h5 className="fw-bold mb-0">Tâches en attente</h5>
+            </div>
+            <div className="card-body">
+              <ul className="list-group list-group-flush">
+                <li className="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                  <div>
+                    <h6 className="mb-1">Annonces à valider</h6>
+                    <small className="text-muted">Nouvelles publications</small>
+                  </div>
+                  <span className={`badge rounded-pill ${pending?.announcements > 0 ? "bg-primary" : "bg-secondary"}`}>
+                    {pending?.announcements || 0}
+                  </span>
+                </li>
+                <li className="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                  <div>
+                    <h6 className="mb-1">Signalements</h6>
+                    <small className="text-muted">Alerte modération</small>
+                  </div>
+                  <span className={`badge rounded-pill ${pending?.reports > 0 ? "bg-warning text-dark" : "bg-secondary"}`}>
+                    {pending?.reports || 0}
+                  </span>
+                </li>
+                <li className="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                  <div>
+                    <h6 className="mb-1">Abonnements</h6>
+                    <small className="text-muted">Paiements manuels</small>
+                  </div>
+                  <span className={`badge rounded-pill ${pending?.subscriptions > 0 ? "bg-info text-dark" : "bg-secondary"}`}>
+                    {pending?.subscriptions || 0}
+                  </span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
-        <div className="col-md-4">
-          <div className="card h-100 border-0 shadow-sm">
-            <div className="card-body text-center">
-              <span
-                className="d-inline-block fs-1 mb-2"
-                dangerouslySetInnerHTML={{ __html: "&#xf0c0;" }}
-              />
-              <h5 className="card-title">Utilisateurs</h5>
-              <p className="card-text text-muted small">
-                Gérez les comptes et les rôles.
-              </p>
-              <Link
-                to="/admin/users"
-                className="btn btn-sm btn-success"
-              >
-                Accéder
-              </Link>
+
+        {/* Activité récente */}
+        <div className="col-lg-8">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
+              <h5 className="fw-bold mb-0">Activité Récente</h5>
             </div>
-          </div>
-        </div>
-        <div className="col-md-4">
-          <div className="card h-100 border-0 shadow-sm">
-            <div className="card-body text-center">
-              <span
-                className="d-inline-block fs-1 mb-2"
-                dangerouslySetInnerHTML={{ __html: "&#xf071;" }}
-              />
-              <h5 className="card-title">Signalements</h5>
-              <p className="card-text text-muted small">
-                Consultez et traitez les signalements.
-              </p>
-              <Link
-                to="/admin/reports"
-                className="btn btn-sm btn-warning"
-              >
-                Accéder
-              </Link>
+            <div className="card-body">
+              {activity.length === 0 ? (
+                <p className="text-muted text-center my-4">Aucune activité récente.</p>
+              ) : (
+                <div className="table-responsive">
+                  <table className="table table-borderless align-middle mb-0">
+                    <tbody>
+                      {activity.slice(0, 6).map((item, index) => (
+                        <tr key={index} className="border-bottom">
+                          <td style={{ width: "40px" }}>
+                            <div className="bg-light rounded-circle d-flex align-items-center justify-content-center" style={{ width: "32px", height: "32px" }}>
+                              <span style={{ fontFamily: "FontAwesome" }} className="text-muted small">
+                                {item.type === "USER" ? "\uf007" : item.type === "LISTING" ? "\uf015" : "\uf0f3"}
+                              </span>
+                            </div>
+                          </td>
+                          <td>
+                            <p className="mb-0 small fw-medium">{item.message || item.description}</p>
+                            <small className="text-muted">{new Date(item.createdAt || item.date).toLocaleString("fr-FR")}</small>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         </div>
