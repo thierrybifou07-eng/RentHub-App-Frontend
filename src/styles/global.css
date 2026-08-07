@@ -1,0 +1,110 @@
+@import "./components.css";
+
+:root {
+  color-scheme: light;
+  --renthub-primary: #0f5132;
+  --renthub-primary-dark: #083b25;
+  --renthub-accent: #f59f00;
+  --renthub-surface: #f6f8f5;
+  --renthub-text: #17221c;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  color: var(--renthub-text);
+  background: var(--renthub-surface);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(245, 159, 0, 0.75);
+  outline-offset: 3px;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.hero-section {
+  background:
+    linear-gradient(135deg, rgba(8, 59, 37, 0.95), rgba(15, 81, 50, 0.84)),
+    url("../assets/hero.png") center / cover;
+}
+
+.text-white-75 {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.foundation-card {
+  border-radius: 1.25rem;
+}
+
+.btn {
+  text-decoration: none;
+}
+
+/* ── Skeleton Loader ─────────────────────────────────────── */
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e9ecef 25%, #f1f3f5 50%, #e9ecef 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-line.short {
+  width: 40%;
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 200px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #e9ecef 25%, #f1f3f5 50%, #e9ecef 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-card .card-body {
+  padding: 1rem;
+}
+
+/* ── Dashboard Sidebar ───────────────────────────────────── */
+
+.dashboard-sidebar {
+  width: 260px;
+  min-width: 260px;
+}
+
+@media (max-width: 767.98px) {
+  .dashboard-sidebar {
+    width: 220px;
+    min-width: 220px;
+  }
+}
+
+/* ── Auth Layout ─────────────────────────────────────────── */
+
+.auth-layout {
+  background: var(--renthub-surface);
+}

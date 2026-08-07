@@ -1,0 +1,145 @@
+export const MOCK_LISTINGS = [
+  {
+    id: "listing-1",
+    title: "Studio meublé \u00e0 Akwa",
+    type: "studio",
+    price: 75000,
+    city: "Douala",
+    neighborhood: "Akwa",
+    rooms: 1,
+    status: "published",
+    image: null,
+    description:
+      "Studio meublé de 25 m\u00b2, climatisé, proche du marché central d'Akwa. Idéal pour étudiant ou jeune professionnel. Eau et électricité incluses.",
+    ownerId: "user-2",
+    createdAt: "2025-06-10T10:00:00Z",
+  },
+  {
+    id: "listing-2",
+    title: "Chambre meublée \u00e0 Bastos",
+    type: "room",
+    price: 45000,
+    city: "Yaoundé",
+    neighborhood: "Bastos",
+    rooms: 1,
+    status: "published",
+    image: null,
+    description:
+      "Chambre meublée dans une maison partagée. Accès cuisine et salon. Quartier calme, proche des commerces.",
+    ownerId: "user-3",
+    createdAt: "2025-06-15T08:30:00Z",
+  },
+  {
+    id: "listing-3",
+    title: "Appartement 3 chambres Akwa",
+    type: "apartment",
+    price: 180000,
+    city: "Douala",
+    neighborhood: "Akwa",
+    rooms: 3,
+    status: "published",
+    image: null,
+    description:
+      "Grand appartement de 80 m\u00b2, 3 chambres, 2 salles de bain, salon spacieux. Parking disponible. Quartier résidentiel.",
+    ownerId: "user-2",
+    createdAt: "2025-05-20T14:00:00Z",
+  },
+  {
+    id: "listing-4",
+    title: "Studio Calao",
+    type: "studio",
+    price: 55000,
+    city: "Bafoussam",
+    neighborhood: "Calao",
+    rooms: 1,
+    status: "published",
+    image: null,
+    description:
+      "Studio de 20 m\u00b2, meublé, eau courante. Idéal pour un étudiant \u00e0 l'Université de Dschang - campus Bafoussam.",
+    ownerId: "user-3",
+    createdAt: "2025-06-01T09:00:00Z",
+  },
+  {
+    id: "listing-5",
+    title: "Chambre simple Makepe",
+    type: "room",
+    price: 35000,
+    city: "Douala",
+    neighborhood: "Makepe",
+    rooms: 1,
+    status: "pending",
+    image: null,
+    description:
+      "Chambre simple dans un compound familial. Accès \u00e0 une petite cuisine. Quartier populaire, transport facile.",
+    ownerId: "user-2",
+    createdAt: "2025-07-01T11:00:00Z",
+  },
+  {
+    id: "listing-6",
+    title: "Maison 4 chambres Bastos",
+    type: "house",
+    price: 350000,
+    city: "Yaoundé",
+    neighborhood: "Bastos",
+    rooms: 4,
+    status: "published",
+    image: null,
+    description:
+      "Maison mitoyenne de 150 m\u00b2, 4 chambres, 3 salles de bain, grand salon, cuisine équipée, jardin. Gardien 24h/24.",
+    ownerId: "user-3",
+    createdAt: "2025-04-10T16:00:00Z",
+  },
+  {
+    id: "listing-7",
+    title: "Appartement 2 chambres Limbe",
+    type: "apartment",
+    price: 120000,
+    city: "Limbe",
+    neighborhood: "Bonamoussadi",
+    rooms: 2,
+    status: "archived",
+    image: null,
+    description:
+      "Appartement lumineux avec vue sur la mer. 2 chambres, salon, cuisine, balcon. Proche de la plage de Limbe.",
+    ownerId: "user-3",
+    createdAt: "2025-03-15T10:00:00Z",
+  },
+  {
+    id: "listing-8",
+    title: "Studio meublé Kribi",
+    type: "studio",
+    price: 60000,
+    city: "Kribi",
+    neighborhood: "Kribi Centre",
+    rooms: 1,
+    status: "draft",
+    image: null,
+    description:
+      "Studio cosy de 22 m\u00b2, climatisé, \u00e0 5 minutes \u00e0 pied de la plage. Idéal pour vacances ou télétravail.",
+    ownerId: "user-2",
+    createdAt: "2025-07-10T08:00:00Z",
+  },
+  {
+    id: "listing-9",
+    title: "Local commercial Bonanjo",
+    type: "other",
+    price: 500000,
+    city: "Douala",
+    neighborhood: "Bonanjo",
+    rooms: 2,
+    status: "rejected",
+    image: null,
+    description:
+      "Local commercial de 60 m\u00b2 au centre-ville de Douala. Idéal pour boutique ou bureau.",
+    ownerId: "user-3",
+    createdAt: "2025-07-20T10:00:00Z",
+  },
+]
+
+export function getListingById(id) {
+  return MOCK_LISTINGS.find((l) => l.id === id) || null
+}
+
+export function getListingsByOwner(ownerId) {
+  return MOCK_LISTINGS.filter((l) => l.ownerId === ownerId)
+}
