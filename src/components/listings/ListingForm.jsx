@@ -6,6 +6,7 @@ import { createListing, updateListing } from "../../services/ownerService"
 import { useAuthStore } from "../../stores/authStore"
 import { listingFormSchema } from "../../schemas/listingSchema"
 import { getCities, getPropertyTypes } from "../../api/catalogApi"
+import { uploadAnnouncementImages } from "../../api/mediaApi"
 import FormField from "../forms/FormField"
 import LoadingState from "../feedback/LoadingState"
 
@@ -123,34 +124,27 @@ function ListingForm() {
 
     setSubmitting(true)
     try {
-      let payload
-      
-      // Si des fichiers sont présents, on utilise FormData
-      if (mediaFiles.length > 0) {
-        payload = new FormData()
-        Object.entries(parsed).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && value !== "") {
-            payload.append(key, value)
-          }
-        })
-        mediaFiles.forEach((file) => {
-          payload.append("media", file)
-        })
+      let payload = { ...parsed }
+      // Nettoyer les champs vides pour le payload JSON
+      Object.keys(payload).forEach((key) => {
+        if (payload[key] === "" || payload[key] === undefined) {
+          delete payload[key]
+        }
+      })
+
+      let savedListing
+      if (isEdit) {
+        savedListing = await updateListing(listingId, payload)
       } else {
-        payload = { ...parsed }
-        // Nettoyer les champs vides pour le payload JSON
-        Object.keys(payload).forEach((key) => {
-          if (payload[key] === "" || payload[key] === undefined) {
-            delete payload[key]
-          }
-        })
+        savedListing = await createListing(payload)
       }
 
-      if (isEdit) {
-        await updateListing(listingId, payload)
-      } else {
-        await createListing(payload)
+      const targetListingId = isEdit ? listingId : savedListing?.id || savedListing?.data?.id
+
+      if (mediaFiles.length > 0 && targetListingId) {
+        await uploadAnnouncementImages(targetListingId, mediaFiles)
       }
+
       navigate(APP_ROUTES.ownerListings, { replace: true })
     } catch (err) {
       setGlobalError(err.message || "Une erreur est survenue lors de l'enregistrement.")
