@@ -1,146 +1,195 @@
 import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Link, useNavigate } from "react-router-dom"
-import { APP_ROUTES } from "../../constants/routes"
-import { useAuthStore } from "../../stores/authStore"
 import { registerSchema } from "../../schemas/userSchema"
+import { useAuthStore } from "../../stores/authStore"
+import { APP_ROUTES } from "../../constants/routes"
 import FormField from "../../components/forms/FormField"
 
 function RegisterPage() {
   const navigate = useNavigate()
-  const register = useAuthStore((s) => s.register)
+  const { register: registerApi } = useAuthStore()
 
-  const [firstname, setFirstname] = useState("")
-  const [lastname, setLastname] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [errors, setErrors] = useState({})
   const [globalError, setGlobalError] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
 
-  function validate() {
-    const result = registerSchema.safeParse({
-      firstname,
-      lastname,
-      email,
-      password,
-      confirmPassword,
-    })
-    if (!result.success) {
-      const fieldErrors = {}
-      for (const issue of result.error.issues) {
-        const key = issue.path[0]
-        if (!fieldErrors[key]) fieldErrors[key] = issue.message
-      }
-      setErrors(fieldErrors)
-      return false
-    }
-    setErrors({})
-    return true
-  }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      firstname: "",
+      lastname: "",
+      email: "",
+      gender: "M",
+      password: "",
+      confirmPassword: "",
+    },
+  })
 
-  async function handleSubmit(e) {
-    e.preventDefault()
+  const onSubmit = async (data) => {
     setGlobalError(null)
-    if (!validate()) return
-
-    setSubmitting(true)
     try {
-      await register({ firstname, lastname, email, password, confirmPassword })
-      navigate(APP_ROUTES.login, { replace: true, state: { registered: true } })
-    } catch (err) {
-      setGlobalError(err.message)
-    } finally {
-      setSubmitting(false)
+      await registerApi(data)
+      // On redirige vers la page de connexion, qui affichera un message de succès.
+      // Une fois connectés, ils seront redirigés vers VerifyEmailPage s'ils sont PENDING_VERIFICATION.
+      navigate(APP_ROUTES.login, { replace: true, state: { registered: true, email: data.email } })
+    } catch (error) {
+      setGlobalError(error.message || "Une erreur est survenue lors de l'inscription.")
     }
   }
 
   return (
-    <div>
-      <h1 className="h4 fw-bold mb-1">Inscription</h1>
-      <p className="text-secondary small mb-4">
-        Créez votre compte pour commencer.
+    <div className="page-enter">
+      <h2 style={{ textAlign: "center", marginBottom: "var(--space-2)" }}>Inscription</h2>
+      <p style={{ textAlign: "center", color: "var(--color-text-muted)", marginBottom: "var(--space-6)" }}>
+        Créez votre compte RentHub pour commencer.
       </p>
 
       {globalError && (
-        <div className="alert alert-danger small py-2" role="alert">
-          {globalError}
+        <div
+          className="field-error"
+          style={{
+            marginBottom: "var(--space-4)",
+            padding: "var(--space-3)",
+            background: "var(--color-danger-light)",
+            borderRadius: "var(--radius-md)",
+          }}
+          role="alert"
+        >
+          <span aria-hidden="true">⚠</span> {globalError}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} noValidate>
-        <FormField label="Prénom" htmlFor="register-firstname" error={errors.firstname}>
-          <input
-            type="text"
-            id="register-firstname"
-            className={`form-control ${errors.firstname ? "is-invalid" : ""}`}
-            placeholder="Votre prénom"
-            autoComplete="given-name"
-            value={firstname}
-            onChange={(e) => setFirstname(e.target.value)}
-          />
+      <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+        
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-4)" }}>
+          <FormField
+            label="Prénom"
+            htmlFor="firstname"
+            error={errors.firstname?.message}
+            required
+          >
+            <input
+              id="firstname"
+              type="text"
+              className="input-premium"
+              placeholder="Jean"
+              autoComplete="given-name"
+              disabled={isSubmitting}
+              {...register("firstname")}
+            />
+          </FormField>
+
+          <FormField
+            label="Nom"
+            htmlFor="lastname"
+            error={errors.lastname?.message}
+            required
+          >
+            <input
+              id="lastname"
+              type="text"
+              className="input-premium"
+              placeholder="Dupont"
+              autoComplete="family-name"
+              disabled={isSubmitting}
+              {...register("lastname")}
+            />
+          </FormField>
+        </div>
+
+        <FormField
+          label="Sexe"
+          htmlFor="gender"
+          error={errors.gender?.message}
+        >
+          <select
+            id="gender"
+            className="input-premium"
+            disabled={isSubmitting}
+            {...register("gender")}
+          >
+            <option value="M">Homme</option>
+            <option value="F">Femme</option>
+          </select>
         </FormField>
 
-        <FormField label="Nom" htmlFor="register-lastname" error={errors.lastname}>
+        <FormField
+          label="Adresse e-mail"
+          htmlFor="email"
+          error={errors.email?.message}
+          required
+        >
           <input
-            type="text"
-            id="register-lastname"
-            className={`form-control ${errors.lastname ? "is-invalid" : ""}`}
-            placeholder="Votre nom"
-            autoComplete="family-name"
-            value={lastname}
-            onChange={(e) => setLastname(e.target.value)}
-          />
-        </FormField>
-
-        <FormField label="Adresse e-mail" htmlFor="register-email" error={errors.email}>
-          <input
+            id="email"
             type="email"
-            id="register-email"
-            className={`form-control ${errors.email ? "is-invalid" : ""}`}
-            placeholder="vous@exemple.com"
+            className="input-premium"
+            placeholder="jean.dupont@exemple.com"
             autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            disabled={isSubmitting}
+            {...register("email")}
           />
         </FormField>
 
-        <FormField label="Mot de passe" htmlFor="register-password" error={errors.password}>
+        <FormField
+          label="Mot de passe"
+          htmlFor="password"
+          error={errors.password?.message}
+          required
+        >
           <input
+            id="password"
             type="password"
-            id="register-password"
-            className={`form-control ${errors.password ? "is-invalid" : ""}`}
-            placeholder="8 caractères min., majuscule, chiffre et caractère spécial"
+            className="input-premium"
+            placeholder="Min. 8 caractères, 1 maj, 1 chiffre, 1 spécial"
             autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            disabled={isSubmitting}
+            {...register("password")}
           />
         </FormField>
 
-        <FormField label="Confirmer le mot de passe" htmlFor="register-confirm" error={errors.confirmPassword}>
+        <FormField
+          label="Confirmer le mot de passe"
+          htmlFor="confirmPassword"
+          error={errors.confirmPassword?.message}
+          required
+        >
           <input
+            id="confirmPassword"
             type="password"
-            id="register-confirm"
-            className={`form-control ${errors.confirmPassword ? "is-invalid" : ""}`}
-            placeholder="Veuillez confirmer le mot de passe"
+            className="input-premium"
+            placeholder="Répétez votre mot de passe"
             autoComplete="new-password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            disabled={isSubmitting}
+            {...register("confirmPassword")}
           />
         </FormField>
 
         <button
           type="submit"
-          className="btn btn-success w-100"
-          disabled={submitting}
+          className="btn-primary-gradient"
+          disabled={isSubmitting}
+          style={{ marginTop: "var(--space-2)", position: "relative" }}
         >
-          {submitting ? "Création en cours..." : "Créer mon compte"}
+          {isSubmitting ? (
+            <span className="btn-spinner" />
+          ) : (
+            "Créer mon compte"
+          )}
         </button>
       </form>
 
-      <p className="text-center text-secondary small mt-3 mb-0">
+      <p style={{ textAlign: "center", marginTop: "var(--space-6)", fontSize: "var(--text-sm)" }}>
         Déjà inscrit ?{" "}
-        <Link to={APP_ROUTES.login}>Se connecter</Link>
+        <Link
+          to={APP_ROUTES.login}
+          style={{ color: "var(--color-primary-600)", fontWeight: 600, textDecoration: "none" }}
+        >
+          Se connecter
+        </Link>
       </p>
     </div>
   )
