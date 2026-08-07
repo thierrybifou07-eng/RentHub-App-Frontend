@@ -225,46 +225,59 @@ function DashboardLayout() {
         alignItems: "center",
         gap: 12,
       }}>
-        <div style={{
-          width: 38,
-          height: 38,
-          borderRadius: "var(--radius-full)",
-          background: "var(--gradient-primary)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "white",
-          fontSize: "var(--text-xs)",
-          fontWeight: 700,
-          letterSpacing: "var(--tracking-wider)",
-          flexShrink: 0,
-          boxShadow: "0 2px 8px rgba(15,81,50,0.5)",
-        }}>
-          {getInitials(user)}
-        </div>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <p style={{
-            margin: 0,
+        <Link 
+          to={APP_ROUTES.profile} 
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: 12, 
+            textDecoration: "none",
+            flex: 1,
+            minWidth: 0
+          }}
+          className="sidebar-profile-link"
+        >
+          <div style={{
+            width: 38,
+            height: 38,
+            borderRadius: "var(--radius-full)",
+            background: "var(--gradient-primary)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             color: "white",
-            fontSize: "var(--text-sm)",
-            fontWeight: 600,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}>
-            {user?.name || `${user?.firstname || ""} ${user?.lastname || ""}`.trim()}
-          </p>
-          <p style={{
-            margin: 0,
-            color: "rgba(255,255,255,0.45)",
             fontSize: "var(--text-xs)",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
+            fontWeight: 700,
+            letterSpacing: "var(--tracking-wider)",
+            flexShrink: 0,
+            boxShadow: "0 2px 8px rgba(15,81,50,0.5)",
           }}>
-            {user?.email}
-          </p>
-        </div>
+            {getInitials(user)}
+          </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <p style={{
+              margin: 0,
+              color: "white",
+              fontSize: "var(--text-sm)",
+              fontWeight: 600,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}>
+              {user?.name || `${user?.firstname || ""} ${user?.lastname || ""}`.trim()}
+            </p>
+            <p style={{
+              margin: 0,
+              color: "rgba(255,255,255,0.45)",
+              fontSize: "var(--text-xs)",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}>
+              {user?.email}
+            </p>
+          </div>
+        </Link>
         <button
           type="button"
           onClick={handleLogout}
@@ -388,9 +401,14 @@ function DashboardLayout() {
               🏘️ Accueil
             </Link>
 
-            <div className="topbar-avatar" title={user?.email}>
-              {getInitials(user)}
-            </div>
+            <Link 
+              to={APP_ROUTES.profile} 
+              style={{ textDecoration: "none" }}
+            >
+              <div className="topbar-avatar" title={user?.email}>
+                {getInitials(user)}
+              </div>
+            </Link>
           </div>
         </header>
 
