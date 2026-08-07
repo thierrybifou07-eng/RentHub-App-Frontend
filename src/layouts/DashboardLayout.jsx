@@ -1,98 +1,346 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react"
 import { APP_ROUTES } from "../constants/routes"
 import { useAuthStore } from "../stores/authStore"
 
+/* ── Navigation par rôle ────────────────────────────────────── */
+
 const NAV_SECTIONS = {
   tenant: [
-    { to: APP_ROUTES.tenantDashboard, label: "Tableau de bord" },
-    { to: APP_ROUTES.tenantFavorites, label: "Favoris" },
-    { to: APP_ROUTES.tenantMessages, label: "Messages" },
+    { to: APP_ROUTES.tenantDashboard, label: "Tableau de bord", icon: "🏠" },
+    { to: APP_ROUTES.tenantFavorites, label: "Mes favoris",      icon: "❤️" },
+    { to: APP_ROUTES.tenantMessages,  label: "Messages",         icon: "💬" },
   ],
   owner: [
-    { to: APP_ROUTES.ownerDashboard, label: "Tableau de bord" },
-    { to: APP_ROUTES.ownerListings, label: "Mes annonces" },
-    { to: APP_ROUTES.ownerMessages, label: "Messages" },
+    { to: APP_ROUTES.ownerDashboard, label: "Tableau de bord", icon: "📊" },
+    { to: APP_ROUTES.ownerListings,  label: "Mes annonces",    icon: "🏡" },
+    { to: APP_ROUTES.ownerMessages,  label: "Messages",        icon: "💬" },
   ],
   admin: [
-    { to: APP_ROUTES.adminDashboard, label: "Tableau de bord" },
-    { to: APP_ROUTES.adminModeration, label: "Mod\u00e9ration" },
-    { to: APP_ROUTES.adminUsers, label: "Utilisateurs" },
-    { to: APP_ROUTES.adminReports, label: "Signalements" },
+    { to: APP_ROUTES.adminDashboard,   label: "Vue d'ensemble",  icon: "📈" },
+    { to: APP_ROUTES.adminModeration,  label: "Modération",      icon: "🔍" },
+    { to: APP_ROUTES.adminUsers,       label: "Utilisateurs",    icon: "👥" },
+    { to: APP_ROUTES.adminReports,     label: "Signalements",    icon: "🚨" },
   ],
 }
 
 const SECTION_LABELS = {
   tenant: "Locataire",
-  owner: "Propri\u00e9taire",
-  admin: "Administration",
+  owner:  "Propriétaire",
+  admin:  "Administration",
 }
+
+const SECTION_COLORS = {
+  tenant: { accent: "#10b981", bg: "rgba(16,185,129,0.15)", text: "#a7f3d0" },
+  owner:  { accent: "#f59f00", bg: "rgba(245,159,0,0.15)",  text: "#fde68a" },
+  admin:  { accent: "#3b82f6", bg: "rgba(59,130,246,0.15)", text: "#bfdbfe" },
+}
+
+/* ── Initiales utilisateur ──────────────────────────────────── */
+
+function getInitials(user) {
+  if (!user) return "?"
+  const first = (user.firstname || user.name || "?")[0] || ""
+  const last  = user.lastname ? user.lastname[0] : ""
+  return (first + last).toUpperCase() || "?"
+}
+
+/* ── Composant ──────────────────────────────────────────────── */
 
 function DashboardLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  function handleLogout() {
-    logout()
+  const links        = user ? NAV_SECTIONS[user.role]   || [] : []
+  const sectionLabel = user ? SECTION_LABELS[user.role] || "" : ""
+  const colors       = user ? SECTION_COLORS[user.role] || SECTION_COLORS.tenant : SECTION_COLORS.tenant
+
+  // Fermer la sidebar mobile au changement de route
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [location.pathname])
+
+  async function handleLogout() {
+    await logout()
     navigate(APP_ROUTES.home, { replace: true })
   }
 
-  const links = user ? NAV_SECTIONS[user.role] || [] : []
-  const sectionLabel = user ? SECTION_LABELS[user.role] || "" : ""
+  const sidebarContent = (
+    <>
+      {/* ── Logo ─────────────────────────────────────────────── */}
+      <div style={{
+        padding: "24px 20px 20px",
+        borderBottom: "1px solid rgba(255,255,255,0.07)",
+      }}>
+        <Link
+          to={APP_ROUTES.home}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            textDecoration: "none",
+          }}
+        >
+          <div style={{
+            width: 34,
+            height: 34,
+            borderRadius: "10px",
+            background: "linear-gradient(135deg, #3a9e6f, #0f5132)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 16,
+            flexShrink: 0,
+            boxShadow: "0 4px 12px rgba(15,81,50,0.4)",
+          }}>
+            🏘️
+          </div>
+          <span style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-lg)",
+            fontWeight: 800,
+            color: "white",
+            letterSpacing: "var(--tracking-tight)",
+          }}>
+            RentHub
+          </span>
+        </Link>
+      </div>
+
+      {/* ── Badge rôle ─────────────────────────────────────── */}
+      <div style={{ padding: "14px 20px 8px" }}>
+        <span style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "4px 10px",
+          borderRadius: "var(--radius-full)",
+          background: colors.bg,
+          color: colors.text,
+          fontSize: "var(--text-xs)",
+          fontWeight: 700,
+          letterSpacing: "var(--tracking-wider)",
+          textTransform: "uppercase",
+        }}>
+          <span style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: colors.accent,
+            boxShadow: `0 0 6px ${colors.accent}`,
+          }} />
+          {sectionLabel}
+        </span>
+      </div>
+
+      {/* ── Navigation ─────────────────────────────────────── */}
+      <nav style={{
+        flex: 1,
+        overflowY: "auto",
+        padding: "8px 12px",
+      }}>
+        <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+          {links.map((link) => {
+            const active = location.pathname === link.to
+            return (
+              <li key={link.to}>
+                <Link
+                  to={link.to}
+                  className={`sidebar-nav-link${active ? " active" : ""}`}
+                >
+                  <span className="sidebar-nav-icon">{link.icon}</span>
+                  {link.label}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
+
+      {/* ── Profil utilisateur ─────────────────────────────── */}
+      <div style={{
+        padding: "16px 20px",
+        borderTop: "1px solid rgba(255,255,255,0.07)",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+      }}>
+        <div style={{
+          width: 38,
+          height: 38,
+          borderRadius: "var(--radius-full)",
+          background: "var(--gradient-primary)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "white",
+          fontSize: "var(--text-xs)",
+          fontWeight: 700,
+          letterSpacing: "var(--tracking-wider)",
+          flexShrink: 0,
+          boxShadow: "0 2px 8px rgba(15,81,50,0.5)",
+        }}>
+          {getInitials(user)}
+        </div>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <p style={{
+            margin: 0,
+            color: "white",
+            fontSize: "var(--text-sm)",
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}>
+            {user?.name || `${user?.firstname || ""} ${user?.lastname || ""}`.trim()}
+          </p>
+          <p style={{
+            margin: 0,
+            color: "rgba(255,255,255,0.45)",
+            fontSize: "var(--text-xs)",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}>
+            {user?.email}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          title="Se déconnecter"
+          style={{
+            background: "rgba(255,255,255,0.08)",
+            border: "none",
+            borderRadius: "var(--radius-sm)",
+            color: "rgba(255,255,255,0.55)",
+            padding: "6px 8px",
+            cursor: "pointer",
+            fontSize: 14,
+            transition: "background var(--transition-fast), color var(--transition-fast)",
+            flexShrink: 0,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = "rgba(239,68,68,0.18)"; e.currentTarget.style.color = "#fca5a5" }}
+          onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "rgba(255,255,255,0.55)" }}
+        >
+          ↪
+        </button>
+      </div>
+    </>
+  )
 
   return (
-    <div className="d-flex min-vh-100">
-      <aside className="dashboard-sidebar bg-dark text-white d-flex flex-column">
-        <div className="p-3 border-bottom border-secondary">
-          <Link to={APP_ROUTES.home} className="text-white text-decoration-none fw-bold h5 mb-0">
-            RentHub
-          </Link>
-        </div>
+    <div style={{ display: "flex", minHeight: "100vh", background: "var(--color-bg)" }}>
 
-        <nav className="flex-grow-1 overflow-auto p-3">
-          {sectionLabel && (
-            <h6 className="text-uppercase text-secondary small fw-semibold mb-2">
-              {sectionLabel}
-            </h6>
-          )}
-          <ul className="nav flex-column gap-1">
-            {links.map((link) => {
-              const active = location.pathname === link.to
-              return (
-                <li key={link.to} className="nav-item">
-                  <Link
-                    className={`nav-link rounded px-3 py-2 small ${active ? "bg-success text-white" : "text-white-50"}`}
-                    to={link.to}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        </nav>
+      {/* ── Sidebar desktop ────────────────────────────────── */}
+      <aside className="dashboard-sidebar d-none d-md-flex" style={{ flexDirection: "column" }}>
+        {sidebarContent}
       </aside>
 
-      <div className="d-flex flex-column flex-grow-1">
-        <header className="bg-white border-bottom px-4 py-3 d-flex align-items-center justify-content-between">
-          <span className="fw-semibold">
-            {user ? `${sectionLabel} \u2014 ${user.name}` : "Espace de travail"}
-          </span>
-          <div className="d-flex gap-2">
-            <Link to={APP_ROUTES.home} className="btn btn-outline-secondary btn-sm">
-              Accueil
-            </Link>
-            <button
-              type="button"
-              className="btn btn-outline-danger btn-sm"
-              onClick={handleLogout}
+      {/* ── Overlay mobile ─────────────────────────────────── */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15,23,42,0.55)",
+            zIndex: "var(--z-overlay)",
+            backdropFilter: "blur(4px)",
+            animation: "overlay-enter 200ms ease-out both",
+          }}
+        />
+      )}
+
+      {/* ── Sidebar mobile (slide-in) ─────────────────────── */}
+      <aside
+        className="dashboard-sidebar d-flex d-md-none"
+        style={{
+          flexDirection: "column",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          bottom: 0,
+          zIndex: "var(--z-modal)",
+          transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 300ms cubic-bezier(0.4,0,0.2,1)",
+        }}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* ── Contenu principal ───────────────────────────────── */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+
+        {/* Topbar */}
+        <header className="topbar">
+          {/* Bouton burger mobile */}
+          <button
+            type="button"
+            className="d-md-none"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            style={{
+              background: "none",
+              border: "1px solid var(--color-border)",
+              borderRadius: "var(--radius-sm)",
+              padding: "6px 10px",
+              cursor: "pointer",
+              fontSize: 18,
+              color: "var(--color-text)",
+              transition: "background var(--transition-fast)",
+            }}
+            aria-label="Menu"
+          >
+            ☰
+          </button>
+
+          {/* Breadcrumb / titre page */}
+          <div style={{ flex: 1 }}>
+            <p style={{
+              margin: 0,
+              fontSize: "var(--text-sm)",
+              fontWeight: 600,
+              color: "var(--color-text)",
+            }}>
+              {sectionLabel}
+            </p>
+          </div>
+
+          {/* Actions topbar */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Link
+              to={APP_ROUTES.home}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 14px",
+                borderRadius: "var(--radius-full)",
+                background: "var(--color-primary-50)",
+                color: "var(--color-primary-600)",
+                fontSize: "var(--text-xs)",
+                fontWeight: 600,
+                textDecoration: "none",
+                transition: "background var(--transition-fast)",
+                border: "1px solid var(--color-primary-100)",
+              }}
             >
-              Déconnexion
-            </button>
+              🏘️ Accueil
+            </Link>
+
+            <div className="topbar-avatar" title={user?.email}>
+              {getInitials(user)}
+            </div>
           </div>
         </header>
 
-        <main className="flex-grow-1 p-4">
+        {/* Page content */}
+        <main
+          className="page-enter"
+          style={{ flex: 1, padding: "var(--space-8) var(--space-6)", overflowY: "auto" }}
+        >
           <Outlet />
         </main>
       </div>
