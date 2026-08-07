@@ -26,12 +26,14 @@ import TenantMessages from "../pages/tenant/TenantMessages"
 import OwnerDashboard from "../pages/owner/OwnerDashboard"
 import OwnerListings from "../pages/owner/OwnerListings"
 import OwnerMessages from "../pages/owner/OwnerMessages"
+import OwnerSubscription from "../pages/owner/OwnerSubscription"
 import ListingForm from "../components/listings/ListingForm"
 
 import AdminDashboard from "../pages/admin/AdminDashboard"
 import AdminModeration from "../pages/admin/AdminModeration"
 import AdminUsers from "../pages/admin/AdminUsers"
 import AdminReports from "../pages/admin/AdminReports"
+import AdminSubscriptions from "../pages/admin/AdminSubscriptions"
 
 export const router = createBrowserRouter([
   {
@@ -86,6 +88,7 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.ownerListingNew, element: <ListingForm /> },
               { path: APP_ROUTES.ownerListingEdit, element: <ListingForm /> },
               { path: APP_ROUTES.ownerMessages, element: <OwnerMessages /> },
+              { path: APP_ROUTES.ownerSubscription, element: <OwnerSubscription /> },
             ],
           },
         ],
@@ -100,6 +103,7 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.adminModeration, element: <AdminModeration /> },
               { path: APP_ROUTES.adminUsers, element: <AdminUsers /> },
               { path: APP_ROUTES.adminReports, element: <AdminReports /> },
+              { path: APP_ROUTES.adminSubscriptions, element: <AdminSubscriptions /> },
             ],
           },
         ],

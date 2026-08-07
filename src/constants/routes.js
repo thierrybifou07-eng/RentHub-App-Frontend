@@ -1,25 +1,33 @@
 export const APP_ROUTES = {
+  // Public
   home: "/",
   listings: "/annonces",
-  listingDetail: "/annonces/:listingId",
   login: "/connexion",
   register: "/inscription",
   forgotPassword: "/mot-de-passe-oublie",
   resetPassword: "/reinitialiser-mot-de-passe",
   verifyEmail: "/verifier-email",
+
+  // Shared
   profile: "/profil",
-  tenantDashboard: "/locataire",
+
+  // Tenant
+  tenantDashboard: "/locataire/dashboard",
   tenantFavorites: "/locataire/favoris",
   tenantMessages: "/locataire/messages",
-  ownerDashboard: "/proprietaire",
+
+  // Owner
+  ownerDashboard: "/proprietaire/dashboard",
   ownerListings: "/proprietaire/annonces",
-  ownerListingNew: "/proprietaire/annonces/nouvelle",
-  ownerListingEdit: "/proprietaire/annonces/:listingId/modifier",
   ownerMessages: "/proprietaire/messages",
-  adminDashboard: "/admin",
+  ownerSubscription: "/proprietaire/abonnement",
+
+  // Admin
+  adminDashboard: "/admin/dashboard",
   adminModeration: "/admin/moderation",
   adminUsers: "/admin/utilisateurs",
   adminReports: "/admin/signalements",
+  adminSubscriptions: "/admin/abonnements",
 }
 
 export function getListingDetailPath(listingId) {
