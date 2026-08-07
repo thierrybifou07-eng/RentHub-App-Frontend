@@ -1,19 +1,4 @@
-export const PROPERTY_TYPES = [
-  { value: "room", label: "Chambre" },
-  { value: "studio", label: "Studio" },
-  { value: "apartment", label: "Appartement" },
-  { value: "house", label: "Maison" },
-  { value: "other", label: "Autre bien" },
-]
-
-export const CAMEROON_CITIES = [
-  "Douala",
-  "Yaounde",
-  "Bafoussam",
-  "Bamenda",
-  "Limbe",
-  "Kribi",
-]
+// Removed PROPERTY_TYPES and CAMEROON_CITIES as they are now fetched from catalogApi
 
 export const BUDGET_RANGES = [
   { value: "0-50000", label: "Moins de 50 000 XAF" },

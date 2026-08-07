@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { APP_ROUTES } from "../../constants/routes"
-import { CAMEROON_CITIES, PROPERTY_TYPES } from "../../constants/listingOptions"
+import { getCities, getPropertyTypes } from "../../api/catalogApi"
 import { getAllListings } from "../../services/listingsService"
 import ListingCard from "../../components/listings/ListingCard"
 import LoadingState from "../../components/feedback/LoadingState"
@@ -11,6 +11,8 @@ import EmptyState from "../../components/feedback/EmptyState"
 function HomePage() {
   const navigate = useNavigate()
   const [featuredListings, setFeaturedListings] = useState([])
+  const [cities, setCities] = useState([])
+  const [propertyTypes, setPropertyTypes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -21,10 +23,18 @@ function HomePage() {
     let active = true
     async function load() {
       try {
-        const listings = await getAllListings({ status: "published" })
-        if (active) setFeaturedListings(listings.slice(0, 4))
+        const [listingsRes, citiesRes, typesRes] = await Promise.all([
+          getAllListings({ status: "published" }),
+          getCities(),
+          getPropertyTypes()
+        ])
+        if (active) {
+          setFeaturedListings(listingsRes.slice(0, 4))
+          setCities(citiesRes)
+          setPropertyTypes(typesRes)
+        }
       } catch {
-        if (active) setError("Impossible de charger les annonces.")
+        if (active) setError("Impossible de charger les données.")
       } finally {
         if (active) setLoading(false)
       }
@@ -65,8 +75,8 @@ function HomePage() {
                       aria-label="Ville"
                     >
                       <option value="">Toutes les villes</option>
-                      {CAMEROON_CITIES.map((city) => (
-                        <option key={city} value={city}>{city}</option>
+                      {cities.map((city) => (
+                        <option key={city.id} value={city.id}>{city.name}</option>
                       ))}
                     </select>
                   </div>
@@ -78,8 +88,8 @@ function HomePage() {
                       aria-label="Type de bien"
                     >
                       <option value="">Tous les types</option>
-                      {PROPERTY_TYPES.map((t) => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
+                      {propertyTypes.map((t) => (
+                        <option key={t.id} value={t.id}>{t.label}</option>
                       ))}
                     </select>
                   </div>
