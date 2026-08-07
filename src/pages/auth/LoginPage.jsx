@@ -1,112 +1,160 @@
 import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { APP_ROUTES } from "../../constants/routes"
-import { useAuthStore } from "../../stores/authStore"
 import { loginSchema } from "../../schemas/userSchema"
+import { useAuthStore } from "../../stores/authStore"
+import { APP_ROUTES } from "../../constants/routes"
+import { USER_STATUS } from "../../constants/apiStatuses"
 import FormField from "../../components/forms/FormField"
 
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const login = useAuthStore((s) => s.login)
+  const { login } = useAuthStore()
 
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [errors, setErrors] = useState({})
   const [globalError, setGlobalError] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
 
   const registered = location.state?.registered === true
 
-  function validate() {
-    const result = loginSchema.safeParse({ email, password })
-    if (!result.success) {
-      const fieldErrors = {}
-      for (const issue of result.error.issues) {
-        const key = issue.path[0]
-        if (!fieldErrors[key]) fieldErrors[key] = issue.message
-      }
-      setErrors(fieldErrors)
-      return false
-    }
-    setErrors({})
-    return true
-  }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: location.state?.email || "",
+      password: "",
+    },
+  })
 
-  async function handleSubmit(e) {
-    e.preventDefault()
+  const onSubmit = async (data) => {
     setGlobalError(null)
-    if (!validate()) return
-
-    setSubmitting(true)
     try {
-      const user = await login(email, password)
+      const user = await login(data.email, data.password)
+      
+      // Gestion du cas PENDING_VERIFICATION
+      if (user.userStatus === USER_STATUS.PENDING_VERIFICATION.id || !user.emailVerified) {
+        navigate(APP_ROUTES.verifyEmail, { replace: true })
+        return
+      }
+
+      // Redirection normale selon le rôle
       const dashRoute = APP_ROUTES[`${user.role}Dashboard`] || APP_ROUTES.home
       navigate(dashRoute, { replace: true })
-    } catch (err) {
-      setGlobalError(err.message)
-    } finally {
-      setSubmitting(false)
+    } catch (error) {
+      setGlobalError(error.message || "Identifiants incorrects. Veuillez réessayer.")
     }
   }
 
   return (
-    <div>
-      <h1 className="h4 fw-bold mb-1">Connexion</h1>
-      <p className="text-secondary small mb-4">
+    <div className="page-enter">
+      <h2 style={{ textAlign: "center", marginBottom: "var(--space-2)" }}>Connexion</h2>
+      <p style={{ textAlign: "center", color: "var(--color-text-muted)", marginBottom: "var(--space-6)" }}>
         Accédez à votre espace RentHub.
       </p>
 
       {registered && (
-        <div className="alert alert-success small py-2" role="alert">
-          Votre compte a été créé avec succès. Un code de vérification vous a été envoyé
-          par e-mail : connectez-vous pour continuer.
+        <div
+          style={{
+            marginBottom: "var(--space-4)",
+            padding: "var(--space-3)",
+            background: "var(--color-success-light)",
+            color: "var(--color-success-dark)",
+            borderRadius: "var(--radius-md)",
+            fontSize: "var(--text-sm)",
+          }}
+          role="status"
+        >
+          Votre compte a été créé avec succès. Connectez-vous pour continuer.
         </div>
       )}
 
       {globalError && (
-        <div className="alert alert-danger small py-2" role="alert">
-          {globalError}
+        <div
+          className="field-error"
+          style={{
+            marginBottom: "var(--space-4)",
+            padding: "var(--space-3)",
+            background: "var(--color-danger-light)",
+            borderRadius: "var(--radius-md)",
+          }}
+          role="alert"
+        >
+          <span aria-hidden="true">⚠</span> {globalError}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} noValidate>
-        <FormField label="Adresse e-mail" htmlFor="login-email" error={errors.email}>
+      <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+        <FormField
+          label="Adresse e-mail"
+          htmlFor="email"
+          error={errors.email?.message}
+          required
+        >
           <input
+            id="email"
             type="email"
-            id="login-email"
-            className={`form-control ${errors.email ? "is-invalid" : ""}`}
-            placeholder="votrenom@exemple.com"
+            className="input-premium"
+            placeholder="jean.dupont@exemple.com"
             autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            disabled={isSubmitting}
+            {...register("email")}
           />
         </FormField>
 
-        <FormField label="Mot de passe" htmlFor="login-password" error={errors.password}>
-          <input
-            type="password"
-            id="login-password"
-            className={`form-control ${errors.password ? "is-invalid" : ""}`}
-            placeholder="Entrer un mot de passe valide..."
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </FormField>
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "var(--space-1)" }}>
+            <label htmlFor="password" className="form-label" style={{ margin: 0 }}>
+              Mot de passe <span className="required-star" aria-hidden="true">*</span>
+            </label>
+            <Link
+              to={APP_ROUTES.forgotPassword || "/mot-de-passe-oublie"}
+              style={{ fontSize: "var(--text-xs)", color: "var(--color-primary-600)", textDecoration: "none", fontWeight: 500 }}
+              tabIndex={-1}
+            >
+              Mot de passe oublié ?
+            </Link>
+          </div>
+          <FormField
+            htmlFor="password"
+            error={errors.password?.message}
+          >
+            <input
+              id="password"
+              type="password"
+              className="input-premium"
+              placeholder="Votre mot de passe"
+              autoComplete="current-password"
+              disabled={isSubmitting}
+              {...register("password")}
+            />
+          </FormField>
+        </div>
 
         <button
           type="submit"
-          className="btn btn-success w-100"
-          disabled={submitting}
+          className="btn-primary-gradient"
+          disabled={isSubmitting}
+          style={{ marginTop: "var(--space-2)", position: "relative" }}
         >
-          {submitting ? "Connexion en cours..." : "Se connecter"}
+          {isSubmitting ? (
+            <span className="btn-spinner" />
+          ) : (
+            "Se connecter"
+          )}
         </button>
       </form>
 
-      <p className="text-center text-secondary small mt-3 mb-0">
+      <p style={{ textAlign: "center", marginTop: "var(--space-6)", fontSize: "var(--text-sm)" }}>
         Pas encore de compte ?{" "}
-        <Link to={APP_ROUTES.register}>Créer un compte</Link>
+        <Link
+          to={APP_ROUTES.register}
+          style={{ color: "var(--color-primary-600)", fontWeight: 600, textDecoration: "none" }}
+        >
+          Créer un compte
+        </Link>
       </p>
     </div>
   )
