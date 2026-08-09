@@ -1,15 +1,10 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Link } from "react-router-dom"
 import { getUsers, getUserById, manageUserStatus, manageUserRole, verifyUser } from "../../api/adminApi"
 import EmptyState from "../../components/feedback/EmptyState"
 import PageHeader from "../../components/common/PageHeader"
 import LoadingState from "../../components/feedback/LoadingState"
 
-const ROLE_LABELS = {
-  ADMIN: "Admin",
-  OWNER: "Propriétaire",
-  TENANT: "Locataire",
-}
 
 const ROLE_CLASSES = {
   ADMIN: "bg-dark",
@@ -31,13 +26,7 @@ export default function AdminUsers() {
   const [selectedUser, setSelectedUser] = useState(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
 
-  useEffect(() => {
-    let active = true
-    loadUsers(active)
-    return () => { active = false }
-  }, [search, roleFilter, statusFilter]) // Debounce ideally for search, but simplified here
-
-  async function loadUsers(active = true) {
+  const loadUsers = useCallback(async (active = true) => {
     setLoading(true)
     try {
       const params = {}
@@ -52,7 +41,13 @@ export default function AdminUsers() {
     } finally {
       if (active) setLoading(false)
     }
-  }
+  }, [search, roleFilter, statusFilter])
+
+  useEffect(() => {
+    let active = true
+    loadUsers(active)
+    return () => { active = false }
+  }, [loadUsers]) // Debounce ideally for search, but simplified here
 
   const handleBan = async (id, currentStatus) => {
     const isBanned = currentStatus?.code === "BANNED" || currentStatus === "BANNED"
@@ -97,7 +92,7 @@ export default function AdminUsers() {
     try {
       const data = await getUserById(id)
       setSelectedUser(data)
-    } catch (err) {
+    } catch {
       alert("Erreur lors de la récupération des détails.")
     } finally {
       setLoadingDetail(false)

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { APP_ROUTES } from "../../constants/routes"
 import { useAuthStore } from "../../stores/authStore"
@@ -49,18 +49,18 @@ function TenantMessages() {
         handleSelectConversation(match.id)
       }
     }
-  }, [searchParams, conversations, user, activeConversation])
+  }, [searchParams, conversations, user, activeConversation, handleSelectConversation])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [activeMessages])
 
-  function handleSelectConversation(convId) {
+  const handleSelectConversation = useCallback((convId) => {
     setLoadingMessages(true)
     openConversation(convId).finally(() => setLoadingMessages(false))
     setNewText("")
     setSendError(null)
-  }
+  }, [openConversation])
 
   async function handleSend(e) {
     e.preventDefault()

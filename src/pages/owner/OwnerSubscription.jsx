@@ -12,7 +12,7 @@ import FormField from "../../components/forms/FormField"
 // Idéalement à mettre dans le .env (VITE_STRIPE_PUBLIC_KEY)
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_placeholder")
 
-function StripePaymentForm({ clientSecret, planId, onSuccess, onCancel }) {
+function StripePaymentForm({ clientSecret, onSuccess, onCancel }) {
   const stripe = useStripe()
   const elements = useElements()
   const [error, setError] = useState(null)
@@ -42,7 +42,7 @@ function StripePaymentForm({ clientSecret, planId, onSuccess, onCancel }) {
       } else {
         setError("Le statut du paiement est inattendu.")
       }
-    } catch (err) {
+    } catch {
       setError("Erreur lors de la confirmation du paiement côté serveur.")
     } finally {
       setProcessing(false)
@@ -71,7 +71,6 @@ function StripePaymentForm({ clientSecret, planId, onSuccess, onCancel }) {
 }
 
 function OwnerSubscription() {
-  const { user } = useAuthStore()
   const { plans, currentSubscription, loading, error, fetchPlans, fetchMySubscription } = useSubscriptionsStore()
 
   const [selectedPlanId, setSelectedPlanId] = useState(null)
@@ -271,7 +270,6 @@ function OwnerSubscription() {
                       <Elements stripe={stripePromise} options={{ clientSecret }}>
                         <StripePaymentForm 
                           clientSecret={clientSecret}
-                          planId={plan.id}
                           onSuccess={() => {
                             setActionSuccess("Paiement réussi. Votre abonnement est activé !")
                             setSelectedPlanId(null)

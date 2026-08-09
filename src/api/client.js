@@ -13,7 +13,7 @@ import axios from "axios"
 
 /* ── Configuration ──────────────────────────────────────────────── */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api/v1"
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "10.106.125.241:3000/api/v1"
 const LOGIN_PATH   = "/connexion"
 
 export const STORAGE_KEYS = {

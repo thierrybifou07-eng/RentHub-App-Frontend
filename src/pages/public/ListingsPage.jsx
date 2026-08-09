@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useSearchParams, Link } from "react-router-dom"
 import { APP_ROUTES } from "../../constants/routes"
 import { getCities, getPropertyTypes } from "../../api/catalogApi"

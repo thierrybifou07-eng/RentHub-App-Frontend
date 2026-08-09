@@ -40,7 +40,7 @@ export async function getMe() {
 
 // PUT /auth/me
 export async function updateMe(data) {
-  const body = await apiClient.put("/auth/me", data)
+  const body = await apiClient.patch("/auth/me", data)
   return body.data
 }
 

@@ -77,7 +77,7 @@ export const useAuthStore = create((set, get) => ({
     return user
   },
 
-  async refreshToken() {
+  async refreshAuthToken() {
     const currentRefreshToken = get().refreshToken
     if (!currentRefreshToken) throw new Error("No refresh token available")
     const { token, refreshToken: newRefreshToken, user: rawUser } = await authApi.refresh(currentRefreshToken)

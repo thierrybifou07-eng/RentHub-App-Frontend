@@ -5,7 +5,7 @@ import {
   sendMessage as apiSendMessage
 } from "../api/conversationsApi"
 
-export async function getConversationsByUser(userId) {
+export async function getConversationsByUser() {
   // Le backend s'occupe de filtrer par utilisateur connecté, on passe juste des params si besoin
   const res = await getConversations()
   // Normaliser pour renvoyer le tableau
@@ -17,15 +17,15 @@ export async function getMessagesByConversation(conversationId) {
   return res.items || res || []
 }
 
-export async function sendMessage(conversationId, senderId, text) {
-  // senderId n'est plus utile, le backend sait qui envoie le message via le token
+export async function sendMessage(conversationId, text) {
+  // Le backend sait qui envoie le message via le token
   const res = await apiSendMessage(conversationId, text)
   return res
 }
 
-export async function startConversation(listingId, senderId, receiverId, content) {
+export async function startConversation(listingId, content) {
   // L'API attend announcementId et content. 
-  // senderId/receiverId sont gérés par le backend.
+  // Les IDs sont gérés par le backend.
   const res = await apiStartConversation({ announcementId: listingId, content })
   return res
 }

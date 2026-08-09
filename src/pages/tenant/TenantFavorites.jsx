@@ -20,6 +20,7 @@ function TenantFavorites() {
 
   useEffect(() => {
     let active = true
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     
     getFavorites({ page, limit: 12 })

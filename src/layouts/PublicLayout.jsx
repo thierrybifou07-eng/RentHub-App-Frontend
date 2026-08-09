@@ -129,7 +129,7 @@ function PublicLayout() {
             {isAuthenticated ? (
               <>
                 <Link
-                  to={ROLE_DASHBOARD_ROUTE[user.role] || APP_ROUTES.home}
+                  to={ROLE_DASHBOARD_ROUTE[user?.role] || APP_ROUTES.home}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -147,7 +147,7 @@ function PublicLayout() {
                   onMouseEnter={e => { e.currentTarget.style.background = "var(--color-primary-100)"; e.currentTarget.style.borderColor = "var(--color-primary-300)" }}
                   onMouseLeave={e => { e.currentTarget.style.background = "var(--color-primary-50)"; e.currentTarget.style.borderColor = "var(--color-primary-100)" }}
                 >
-                  {ROLE_DASHBOARD_LABEL[user.role] || "Mon espace"}
+                  {ROLE_DASHBOARD_LABEL[user?.role] || "Mon espace"}
                 </Link>
 
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -270,7 +270,7 @@ function PublicLayout() {
             {isAuthenticated ? (
               <>
                 <Link
-                  to={ROLE_DASHBOARD_ROUTE[user.role] || APP_ROUTES.home}
+                  to={ROLE_DASHBOARD_ROUTE[user?.role] || APP_ROUTES.home}
                   style={{
                     padding: "10px 16px",
                     borderRadius: "var(--radius-md)",
@@ -283,7 +283,7 @@ function PublicLayout() {
                     textAlign: "center",
                   }}
                 >
-                  {ROLE_DASHBOARD_LABEL[user.role] || "Mon espace"}
+                  {ROLE_DASHBOARD_LABEL[user?.role] || "Mon espace"}
                 </Link>
                 <button
                   type="button"

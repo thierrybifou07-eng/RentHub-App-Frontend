@@ -1,15 +1,15 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { forgotPasswordSchema } from "../../schemas/userSchema"
 import * as authApi from "../../api/authApi"
 import { APP_ROUTES } from "../../constants/routes"
 import FormField from "../../components/forms/FormField"
 
 function ForgotPasswordPage() {
-  const [isSuccess, setIsSuccess] = useState(false)
   const [globalError, setGlobalError] = useState(null)
+  const navigate = useNavigate()
 
   const {
     register,
@@ -26,31 +26,11 @@ function ForgotPasswordPage() {
     setGlobalError(null)
     try {
       await authApi.forgotPassword(data.email)
-      setIsSuccess(true)
+      navigate(APP_ROUTES.resetPassword, { state: { email: data.email } })
     } catch (error) {
       setGlobalError(error.message || "Une erreur est survenue lors de l'envoi de l'email.")
     }
   }
-
-  if (isSuccess) {
-    return (
-      <div className="text-center page-enter">
-        <div style={{ fontSize: "3rem", marginBottom: "var(--space-4)" }}>✅</div>
-        <h2 style={{ marginBottom: "var(--space-3)" }}>Vérifiez votre boîte mail</h2>
-        <p style={{ color: "var(--color-text-muted)", marginBottom: "var(--space-6)" }}>
-          Si un compte est associé à cette adresse e-mail, nous vous avons envoyé un lien pour réinitialiser votre mot de passe.
-        </p>
-        <Link
-          to={APP_ROUTES.login}
-          className="btn-primary-gradient"
-          style={{ textDecoration: "none", display: "inline-block" }}
-        >
-          Retour à la connexion
-        </Link>
-      </div>
-    )
-  }
-
   return (
     <div className="page-enter">
       <h2 style={{ textAlign: "center", marginBottom: "var(--space-2)" }}>Mot de passe oublié</h2>

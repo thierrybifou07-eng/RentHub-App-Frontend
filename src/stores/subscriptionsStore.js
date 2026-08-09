@@ -37,31 +37,19 @@ export const useSubscriptionsStore = create((set, get) => ({
   },
 
   subscribe: async (data) => {
-    try {
-      const newSub = await subscriptionsApi.subscribe(data)
-      await get().fetchMySubscription()
-      return newSub
-    } catch (err) {
-      throw err
-    }
+    const newSub = await subscriptionsApi.subscribe(data)
+    await get().fetchMySubscription()
+    return newSub
   },
 
   createPaymentIntent: async (planId) => {
-    try {
-      const result = await subscriptionsApi.createPaymentIntent({ planId })
-      return result
-    } catch (err) {
-      throw err
-    }
+    const result = await subscriptionsApi.createPaymentIntent({ planId })
+    return result
   },
 
   confirmPayment: async (paymentIntentId) => {
-    try {
-      const result = await subscriptionsApi.confirmPayment({ paymentIntentId })
-      await get().fetchMySubscription()
-      return result
-    } catch (err) {
-      throw err
-    }
+    const result = await subscriptionsApi.confirmPayment({ paymentIntentId })
+    await get().fetchMySubscription()
+    return result
   }
 }))

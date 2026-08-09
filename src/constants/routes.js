@@ -28,6 +28,11 @@ export const APP_ROUTES = {
   adminUsers: "/admin/utilisateurs",
   adminReports: "/admin/signalements",
   adminSubscriptions: "/admin/abonnements",
+
+  // Missing routes
+  listingDetail: "/annonces/:listingId",
+  ownerListingNew: "/proprietaire/annonces/nouveau",
+  ownerListingEdit: "/proprietaire/annonces/:id/modifier",
 }
 
 export function getListingDetailPath(listingId) {
