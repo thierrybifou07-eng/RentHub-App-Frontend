@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { APP_ROUTES } from "../constants/routes"
 import { useAuthStore } from "../stores/authStore"
 
@@ -25,6 +25,26 @@ function PublicLayout() {
   const location  = useLocation()
   const [scrolled,     setScrolled]     = useState(false)
   const [mobileOpen,   setMobileOpen]   = useState(false)
+  const closeTimer = useRef(null)
+
+  // Hover menu mobile : ouverture au survol du burger, fermeture à la sortie.
+  // Délai de grâce de 150ms pour éviter le clignotement entre burger et menu.
+  const openMenu = () => {
+    clearTimeout(closeTimer.current)
+    setMobileOpen(true)
+  }
+  const scheduleMenuClose = () => {
+    clearTimeout(closeTimer.current)
+    closeTimer.current = setTimeout(() => setMobileOpen(false), 150)
+  }
+  const closeMenu = () => {
+    clearTimeout(closeTimer.current)
+    setMobileOpen(false)
+  }
+
+  useEffect(() => {
+    return () => clearTimeout(closeTimer.current)
+  }, [])
 
   // Navbar scroll effect
   useEffect(() => {
@@ -226,7 +246,10 @@ function PublicLayout() {
             type="button"
             className="d-lg-none"
             onClick={() => setMobileOpen(!mobileOpen)}
+            onMouseEnter={openMenu}
+            onMouseLeave={scheduleMenuClose}
             aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-expanded={mobileOpen}
             style={{
               background: "none",
               border: "1px solid var(--color-border)",
@@ -244,16 +267,19 @@ function PublicLayout() {
 
         {/* ── Menu mobile dropdown ──────────────────────────── */}
         {mobileOpen && (
-          <div style={{
-            borderTop: "1px solid var(--color-border)",
-            padding: "var(--space-4)",
-            background: "rgba(255,255,255,0.97)",
-            backdropFilter: "var(--glass-blur-sm)",
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-2)",
-            animation: "slide-in-top 200ms ease-out both",
-          }}>
+          <div
+            onMouseEnter={openMenu}
+            onMouseLeave={closeMenu}
+            style={{
+              borderTop: "1px solid var(--color-border)",
+              padding: "var(--space-4)",
+              background: "rgba(255,255,255,0.97)",
+              backdropFilter: "var(--glass-blur-sm)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-2)",
+              animation: "slide-in-top 200ms ease-out both",
+            }}>
             {NAV_LINKS.map(link => (
               <Link
                 key={link.to}

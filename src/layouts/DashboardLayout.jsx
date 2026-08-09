@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { APP_ROUTES } from "../constants/routes"
 import { useAuthStore } from "../stores/authStore"
 import { useConversationsStore } from "../stores/conversationsStore"
@@ -57,6 +57,26 @@ function DashboardLayout() {
   const fetchUnreadCount = useConversationsStore(s => s.fetchUnreadCount)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [adminPending, setAdminPending] = useState({ announcements: 0, reports: 0, subscriptions: 0 })
+  const closeTimer = useRef(null)
+
+  // Hover sidebar : ouverture au survol du burger, fermeture à la sortie.
+  // Délai de grâce de 150ms pour éviter le clignotement entre burger et menu.
+  const openSidebar = () => {
+    clearTimeout(closeTimer.current)
+    setSidebarOpen(true)
+  }
+  const scheduleSidebarClose = () => {
+    clearTimeout(closeTimer.current)
+    closeTimer.current = setTimeout(() => setSidebarOpen(false), 150)
+  }
+  const closeSidebar = () => {
+    clearTimeout(closeTimer.current)
+    setSidebarOpen(false)
+  }
+
+  useEffect(() => {
+    return () => clearTimeout(closeTimer.current)
+  }, [])
 
   // Fetch unread messages periodically
   useEffect(() => {
@@ -306,28 +326,13 @@ function DashboardLayout() {
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--color-bg)" }}>
 
       {/* ── Sidebar desktop ────────────────────────────────── */}
-      <aside className="dashboard-sidebar d-none d-md-flex" style={{ flexDirection: "column" }}>
+      <aside className="dashboard-sidebar d-none d-lg-flex" style={{ flexDirection: "column" }}>
         {sidebarContent}
       </aside>
 
-      {/* ── Overlay mobile ─────────────────────────────────── */}
-      {sidebarOpen && (
-        <div
-          onClick={() => setSidebarOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(15,23,42,0.55)",
-            zIndex: "var(--z-overlay)",
-            backdropFilter: "blur(4px)",
-            animation: "overlay-enter 200ms ease-out both",
-          }}
-        />
-      )}
-
-      {/* ── Sidebar mobile (slide-in) ─────────────────────── */}
+      {/* ── Sidebar mobile/tablette (hover slide-in) ─────── */}
       <aside
-        className="dashboard-sidebar d-flex d-md-none"
+        className="dashboard-sidebar d-flex d-lg-none"
         style={{
           flexDirection: "column",
           position: "fixed",
@@ -338,6 +343,8 @@ function DashboardLayout() {
           transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)",
           transition: "transform 300ms cubic-bezier(0.4,0,0.2,1)",
         }}
+        onMouseEnter={openSidebar}
+        onMouseLeave={closeSidebar}
       >
         {sidebarContent}
       </aside>
@@ -347,11 +354,13 @@ function DashboardLayout() {
 
         {/* Topbar */}
         <header className="topbar">
-          {/* Bouton burger mobile */}
+          {/* Bouton burger mobile/tablette (hover + clic secours) */}
           <button
             type="button"
-            className="d-md-none"
+            className="d-lg-none"
             onClick={() => setSidebarOpen(!sidebarOpen)}
+            onMouseEnter={openSidebar}
+            onMouseLeave={scheduleSidebarClose}
             style={{
               background: "none",
               border: "1px solid var(--color-border)",
@@ -363,6 +372,7 @@ function DashboardLayout() {
               transition: "background var(--transition-fast)",
             }}
             aria-label="Menu"
+            aria-expanded={sidebarOpen}
           >
             ☰
           </button>
