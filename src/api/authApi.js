@@ -9,13 +9,13 @@ export async function register(payload) {
 // POST /auth/login
 export async function login(email, password) {
   const body = await apiClient.post("/auth/login", { email, password })
-  return body.data
+  return body.data || body
 }
 
 // POST /auth/refresh
 export async function refresh(refreshToken) {
   const body = await apiClient.post("/auth/refresh", { refreshToken })
-  return body.data
+  return body.data || body
 }
 
 // POST /auth/logout
@@ -35,19 +35,19 @@ export async function logoutAll() {
 // GET /auth/me
 export async function getMe() {
   const body = await apiClient.get("/auth/me")
-  return body.data
+  return body.data || body
 }
 
 // PUT /auth/me
 export async function updateMe(data) {
   const body = await apiClient.patch("/auth/me", data)
-  return body.data
+  return body.data || body
 }
 
 // POST /auth/verify-email
 export async function verifyEmail({ email, code }) {
   const body = await apiClient.post("/auth/verify-email", { email, code })
-  return body.data
+  return body.data || body
 }
 
 // POST /auth/regenerate-code

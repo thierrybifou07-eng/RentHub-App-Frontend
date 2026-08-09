@@ -7,16 +7,16 @@ import LoadingState from "../../components/feedback/LoadingState"
 
 
 const ROLE_CLASSES = {
-  ADMIN: "bg-dark",
-  OWNER: "bg-primary",
-  TENANT: "bg-info text-dark",
+  ROLE_ADMIN: "bg-dark",
+  ROLE_OWNER: "bg-primary",
+  ROLE_TENANT: "bg-info text-dark",
 }
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(null)
-  
+
   // Filters
   const [search, setSearch] = useState("")
   const [roleFilter, setRoleFilter] = useState("")
@@ -33,7 +33,7 @@ export default function AdminUsers() {
       if (search) params.search = search
       if (roleFilter) params.role_id = roleFilter
       if (statusFilter) params.user_status_id = statusFilter
-      
+
       const data = await getUsers(params)
       if (active) setUsers(data.items || data || [])
     } catch (err) {
@@ -50,15 +50,15 @@ export default function AdminUsers() {
   }, [loadUsers]) // Debounce ideally for search, but simplified here
 
   const handleBan = async (id, currentStatus) => {
-    const isBanned = currentStatus?.code === "BANNED" || currentStatus === "BANNED"
+    const isBanned = currentStatus?.code === "SUSPENDED" || currentStatus === "SUSPENDED"
     if (!window.confirm(isBanned ? "Réactiver ce compte ?" : "Suspendre ce compte ?")) return
-    
+
     setActionLoading(id)
     try {
       await manageUserStatus({
         userId: id,
-        currentStatus: isBanned ? "BANNED" : "ACTIVE",
-        newStatus: isBanned ? "ACTIVE" : "BANNED"
+        currentStatus: isBanned ? "SUSPENDED" : "ACTIVE",
+        newStatus: isBanned ? "ACTIVE" : "SUSPENDED"
       })
       await loadUsers()
     } finally {
@@ -75,7 +75,7 @@ export default function AdminUsers() {
       setActionLoading(null)
     }
   }
-  
+
   const handleVerify = async (id) => {
     if (!window.confirm("Marquer cet utilisateur comme vérifié (KYC complet) ?")) return
     setActionLoading(id)
@@ -101,9 +101,9 @@ export default function AdminUsers() {
 
   return (
     <div>
-      <PageHeader 
-        title="Gestion des utilisateurs" 
-        description={`${users.length} compte(s) trouvé(s) avec les filtres actuels.`} 
+      <PageHeader
+        title="Gestion des utilisateurs"
+        description={`${users.length} compte(s) trouvé(s) avec les filtres actuels.`}
       />
 
       <div className="card border-0 shadow-sm mb-4">
@@ -121,16 +121,16 @@ export default function AdminUsers() {
             <div className="col-md-3">
               <select className="form-select" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
                 <option value="">Tous les rôles</option>
-                <option value="TENANT">Locataires</option>
-                <option value="OWNER">Propriétaires</option>
-                <option value="ADMIN">Admins</option>
+                <option value="ROLE_TENANT">Locataires</option>
+                <option value="ROLE_OWNER">Propriétaires</option>
+                <option value="ROLE_ADMIN">Admins</option>
               </select>
             </div>
             <div className="col-md-3">
               <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                 <option value="">Tous les statuts</option>
                 <option value="ACTIVE">Actif</option>
-                <option value="BANNED">Suspendu</option>
+                <option value="SUSPENDED">Suspendu</option>
                 <option value="PENDING_VERIFICATION">En attente email</option>
               </select>
             </div>
@@ -158,10 +158,10 @@ export default function AdminUsers() {
               </thead>
               <tbody>
                 {users.map((u) => {
-                  const roleCode = u.role?.code || u.role || "TENANT"
+                  const roleCode = u.role?.code || u.role || "ROLE_TENANT"
                   const statusCode = u.status?.code || u.status || "ACTIVE"
-                  const isBanned = statusCode === "BANNED"
-                  
+                  const isBanned = statusCode === "SUSPENDED"
+
                   return (
                     <tr key={u.id}>
                       <td>
@@ -180,9 +180,9 @@ export default function AdminUsers() {
                           onChange={(e) => handleRoleChange(u.id, roleCode, e.target.value)}
                           disabled={actionLoading === u.id}
                         >
-                          <option value="TENANT">Locataire</option>
-                          <option value="OWNER">Propriétaire</option>
-                          <option value="ADMIN">Admin</option>
+                          <option value="ROLE_TENANT">Locataire</option>
+                          <option value="ROLE_OWNER">Propriétaire</option>
+                          <option value="ROLE_ADMIN">Admin</option>
                         </select>
                       </td>
                       <td>
@@ -223,7 +223,7 @@ export default function AdminUsers() {
                             onClick={() => handleBan(u.id, statusCode)}
                             disabled={actionLoading === u.id}
                           >
-                            {isBanned ? "Réactiver" : "Bannir"}
+                            {isBanned ? "Réactiver" : "Suspendre"}
                           </button>
                         </div>
                       </td>

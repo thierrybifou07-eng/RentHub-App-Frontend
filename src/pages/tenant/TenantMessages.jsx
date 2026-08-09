@@ -39,6 +39,13 @@ function TenantMessages() {
     return () => { active = false }
   }, [user, fetchConversations])
 
+  const handleSelectConversation = useCallback((convId) => {
+    setLoadingMessages(true)
+    openConversation(convId).finally(() => setLoadingMessages(false))
+    setNewText("")
+    setSendError(null)
+  }, [openConversation])
+
   useEffect(() => {
     if (!user || conversations.length === 0) return
     const listingParam = searchParams.get("listing")
@@ -55,12 +62,7 @@ function TenantMessages() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [activeMessages])
 
-  const handleSelectConversation = useCallback((convId) => {
-    setLoadingMessages(true)
-    openConversation(convId).finally(() => setLoadingMessages(false))
-    setNewText("")
-    setSendError(null)
-  }, [openConversation])
+
 
   async function handleSend(e) {
     e.preventDefault()

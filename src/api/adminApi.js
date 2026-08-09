@@ -36,8 +36,8 @@ export async function manageUserRole({ userId, currentRole, newRole }) {
   return response.data || response
 }
 
-export async function verifyUser(id) {
-  const response = await apiClient.post(`/admin/users/${id}/verify`)
+export async function verifyUser(userId) {
+  const response = await apiClient.patch(`/admin/users/${userId}/verify`)
   return response.data || response
 }
 
