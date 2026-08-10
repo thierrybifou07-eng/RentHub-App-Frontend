@@ -22,31 +22,29 @@ function TenantFavorites() {
     let active = true
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
-    
+
     getFavorites({ page, limit: 12 })
       .then((response) => {
         if (!active) return
         // Assuming API returns { status: 'success', data: { items: [], meta: { currentPage, lastPage } } }
-        const data = response.data?.data || response.data
-        const items = data?.items || data || []
-        
+        const items = response || []
         // If the API returns favorite objects wrapping announcements, extract them
-        const announcements = items.map(item => item.announcement || item)
-        
+        const announcements = items.map(item => item.Announcement)
+
         if (page === 1) {
           setListings(announcements)
         } else {
           setListings(prev => [...prev, ...announcements])
         }
-        
-        const meta = data?.meta || {}
+
+        const meta = items?.meta || {}
         setHasMore(meta.currentPage < meta.lastPage)
       })
       .catch(console.error)
       .finally(() => {
         if (active) setLoading(false)
       })
-      
+
     return () => { active = false }
   }, [page])
 
@@ -82,10 +80,10 @@ function TenantFavorites() {
               </div>
             ))}
           </div>
-          
+
           {hasMore && (
             <div className="text-center mt-5">
-              <button 
+              <button
                 className="btn btn-outline-primary"
                 onClick={() => setPage(p => p + 1)}
                 disabled={loading}

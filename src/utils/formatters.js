@@ -5,6 +5,10 @@ export function formatXAF(amount) {
   }).format(amount)
 }
 
+export function formatName(person) {
+  return `${person.firstname} ${person.lastname}`
+}
+
 export function formatDate(dateStr) {
   return new Intl.DateTimeFormat("fr-FR", {
     day: "numeric",

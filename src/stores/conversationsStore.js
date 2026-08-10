@@ -11,8 +11,7 @@ export const useConversationsStore = create((set, get) => ({
   async fetchConversations(params = {}) {
     try {
       const data = await getConversations(params)
-      const items = data?.items || data || []
-      set({ conversations: items })
+      set({ conversations: data || [] })
     } catch (err) {
       console.error("Failed to fetch conversations:", err)
     }
@@ -34,12 +33,12 @@ export const useConversationsStore = create((set, get) => ({
     // Set active conversation from list if possible
     const conv = get().conversations.find(c => c.id === conversationId)
     set({ activeConversation: conv || { id: conversationId }, activeMessages: [] })
-    
+
     try {
       const data = await getMessages(conversationId)
-      const messages = data?.items || data || []
+      const messages = data || []
       set({ activeMessages: messages })
-      
+
       // Update unread count as the API marks them read
       get().fetchUnreadCount()
     } catch (err) {
@@ -49,10 +48,10 @@ export const useConversationsStore = create((set, get) => ({
 
   async sendMessage(conversationId, content) {
     try {
-      const newMsg = await sendMessage(conversationId, content)
+      const msgData = await sendMessage(conversationId, content)
       // Optimistic or real append
-      const msgData = newMsg?.data || newMsg
-      set(state => ({
+/*       const msgData = newMsg?.data || newMsg
+ */      set(state => ({
         activeMessages: [...state.activeMessages, msgData]
       }))
       return msgData

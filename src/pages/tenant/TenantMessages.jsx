@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Link, useSearchParams } from "react-router-dom"
-import { APP_ROUTES } from "../../constants/routes"
+import { APP_ROUTES, getListingDetailPath } from "../../constants/routes"
 import { useAuthStore } from "../../stores/authStore"
 import { useConversationsStore } from "../../stores/conversationsStore"
 import { messageFormSchema } from "../../schemas/messageSchema"
-import { formatRelativeTime } from "../../utils/formatters"
+import { formatRelativeTime, formatName } from "../../utils/formatters"
 import PageHeader from "../../components/common/PageHeader"
 import EmptyState from "../../components/feedback/EmptyState"
 import LoadingState from "../../components/feedback/LoadingState"
@@ -27,7 +27,7 @@ function TenantMessages() {
   const [newText, setNewText] = useState("")
   const [sendError, setSendError] = useState(null)
   const [sending, setSending] = useState(false)
-  
+
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
@@ -110,9 +110,9 @@ function TenantMessages() {
                 </div>
                 <div className="list-group list-group-flush" style={{ maxHeight: 480, overflowY: "auto" }}>
                   {conversations.map((conv) => {
-                    const title = conv.announcement?.title || conv.listing?.title || "Annonce"
-                    const participant = conv.owner?.name || conv.otherParticipant?.name || "Propriétaire"
-                    const lastMsg = conv.last_message || conv.lastMessage
+                    const title = conv.Announcement.title
+                    const participant = formatName(conv.owner)
+                    const lastMsg = conv
                     return (
                       <button
                         key={conv.id}
@@ -126,7 +126,7 @@ function TenantMessages() {
                           </span>
                           {lastMsg && (
                             <small className="text-secondary text-nowrap ms-2">
-                              {formatRelativeTime(lastMsg.created_at || lastMsg.createdAt)}
+                              {formatRelativeTime(lastMsg.last_message_at)}
                             </small>
                           )}
                         </div>
@@ -152,11 +152,14 @@ function TenantMessages() {
                 ) : (
                   <div className="d-flex flex-column" style={{ minHeight: 480 }}>
                     <div className="px-3 py-2 border-bottom">
-                      <h3 className="h6 fw-bold mb-0">
-                        {activeConversation.announcement?.title || activeConversation.listing?.title || "Annonce"}
-                      </h3>
+                      <Link to={getListingDetailPath(activeConversation.announcement_id)}>
+                        <h3 className="h6 fw-bold mb-0">
+                          {activeConversation.Announcement?.title || "Annonce"}
+                        </h3>
+                      </Link>
+
                       <small className="text-secondary">
-                        {activeConversation.owner?.name || activeConversation.otherParticipant?.name || "Propriétaire"}
+                        {formatName(activeConversation.owner) || "Propriétaire"}
                         {activeConversation.announcement?.city?.name ? ` \u00b7 ${activeConversation.announcement.city.name}` : ""}
                       </small>
                     </div>
@@ -172,9 +175,11 @@ function TenantMessages() {
                             key={msg.id}
                             className={`message-bubble ${msg.sender_id === user.id || msg.senderId === user.id ? "own" : "other"}`}
                           >
-                            {(msg.sender_id !== user.id && msg.senderId !== user.id) && (
-                              <div className="message-sender">{msg.sender?.name || msg.senderName || "Propriétaire"}</div>
-                            )}
+                         {/*    {
+                              (msg.sender_id !== user.id && msg.senderId !== user.id) && (
+                                <div className="message-sender">{formatName(msg.sender) || "Propriétaire"}</div>
+                              )
+                            } */}
                             <p className="message-text">{msg.content || msg.text}</p>
                             <div className="message-time">{formatRelativeTime(msg.created_at || msg.createdAt)}</div>
                           </div>
