@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "../../stores/authStore"
 import { getMyMedia, uploadAvatar, deleteAvatar } from "../../api/mediaApi"
 import { getCities } from "../../api/catalogApi"
+import { resolveMediaUrl } from "../../utils/mediaUrl"
 import FormField from "../../components/forms/FormField"
 import { APP_ROUTES } from "../../constants/routes"
 
@@ -55,13 +56,10 @@ function ProfilePage() {
       .then(([citiesData, mediaData]) => {
         if (!active) return
         setCities(citiesData)
-        // mediaData might be an array of media, or an object. Let's assume it returns an array of media or an object containing the avatar.
-        // If it's a list, find the one where type === "AVATAR" or similar.
-        const avatarMedia = Array.isArray(mediaData) 
-          ? mediaData.find(m => m.collection_name === "avatar")
-          : mediaData?.avatar
+        const mediaList = Array.isArray(mediaData) ? mediaData : mediaData?.data || []
+        const avatarMedia = mediaList.find((m) => m.MediaType?.code === "USER_AVATAR" || m.mediaType?.code === "USER_AVATAR")
         if (avatarMedia) {
-          setAvatarUrl(avatarMedia.url || avatarMedia.original_url)
+          setAvatarUrl(resolveMediaUrl(avatarMedia))
         }
       })
       .catch(console.error)

@@ -4,14 +4,13 @@ import { APP_ROUTES } from "../../constants/routes"
 import { getAnnouncementById } from "../../api/announcementsApi"
 import { startConversation } from "../../api/conversationsApi"
 import { formatXAF, formatDate } from "../../utils/formatters"
+import { resolveMediaUrl } from "../../utils/mediaUrl"
 import { useAuthStore } from "../../stores/authStore"
 import { useFavoritesStore } from "../../stores/favoritesStore"
 import ListingBadge from "../../components/listings/ListingBadge"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import ReportModal from "../../components/reports/ReportModal"
-
-const IMG_BASE = import.meta.env.VITE_API_MEDIA_URL || import.meta.env.VITE_API_BASE_URL?.replace("/api/v1", "") || ""
 
 function ListingDetailPage() {
   const { listingId } = useParams()
@@ -23,6 +22,7 @@ function ListingDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
+  const [failedImages, setFailedImages] = useState([])
 
   const [showReportModal, setShowReportModal] = useState(false)
   const [hasReported, setHasReported] = useState(false)
@@ -59,11 +59,13 @@ function ListingDetailPage() {
       setError(null)
       try {
         const result = await getAnnouncementById(listingId)
-        const data = result.data || result
+        const data = result?.data?.announcement || result?.announcement || result?.data || null
         if (!data) {
           if (active) setError("Annonce introuvable.")
           return
         }
+        const owner = result?.data?.owner || result?.owner || null
+        if (owner) data.owner = owner
         if (active) setListing(data)
       } catch (err) {
         if (active) setError(err.status === 404 ? "Annonce introuvable." : "Erreur lors du chargement de l'annonce.")
@@ -96,15 +98,12 @@ function ListingDetailPage() {
   const typeLabel = listing.PropertyType?.label || listing.propertyType?.label || listing.type || "—"
   const cityName = listing.City?.name || listing.city?.name || listing.city || "—"
   const media = listing.Media || listing.media || []
-  const images = media.filter((m) => m.MediaType?.code === "IMAGE" || m.mediaType?.code === "IMAGE" || m.type === "image" || !m.type)
+  const images = media.filter((m) => m.MediaType?.code === "ANNOUNCEMENT_IMAGE" || m.mediaType?.code === "ANNOUNCEMENT_IMAGE" || m.type === "image")
   const ownerInfo = listing.User || listing.owner || null
   const favCount = listing.favoritesCount || listing.favorites_count || 0
 
-  function getMediaUrl(m) {
-    const path = m.url || m.path || m.file_path
-    if (!path) return null
-    if (path.startsWith("http")) return path
-    return `${IMG_BASE}/${path.replace(/^\//, "")}`
+  function markImageFailed(id) {
+    setFailedImages((prev) => (prev.includes(id) ? prev : [...prev, id]))
   }
 
   return (
@@ -136,11 +135,16 @@ function ListingDetailPage() {
                   background: "var(--color-surface-100, #f5f5f5)",
                 }}
               >
-                <img
-                  src={getMediaUrl(images[activeImageIndex])}
-                  alt={`${listing.title} — photo ${activeImageIndex + 1}`}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
+                {!failedImages.includes(images[activeImageIndex]?.id) ? (
+                  <img
+                    src={resolveMediaUrl(images[activeImageIndex])}
+                    alt={`${listing.title} — photo ${activeImageIndex + 1}`}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    onError={() => markImageFailed(images[activeImageIndex]?.id)}
+                  />
+                ) : (
+                  <div className="skeleton-image" style={{ height: 400, borderRadius: 0 }} />
+                )}
               </div>
               {images.length > 1 && (
                 <div className="d-flex gap-2 mt-2 overflow-auto">
@@ -161,11 +165,16 @@ function ListingDetailPage() {
                         background: "transparent",
                       }}
                     >
-                      <img
-                        src={getMediaUrl(img)}
-                        alt={`Miniature ${idx + 1}`}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
+                      {!failedImages.includes(img.id) ? (
+                        <img
+                          src={resolveMediaUrl(img)}
+                          alt={`Miniature ${idx + 1}`}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                          onError={() => markImageFailed(img.id)}
+                        />
+                      ) : (
+                        <div className="skeleton-image" style={{ width: 68, height: 52, borderRadius: 0 }} />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -305,8 +314,8 @@ function ListingDetailPage() {
                 ) : user?.role === "tenant" ? (
                   <form onSubmit={handleContact} className="d-flex flex-column gap-2 mb-2">
                     {contactError && <div className="alert alert-danger p-2 small mb-0">{contactError}</div>}
-                    <textarea 
-                      className="form-control" 
+                    <textarea
+                      className="form-control"
                       rows={3}
                       placeholder="Votre message au propriétaire..."
                       value={contactText}
@@ -348,26 +357,26 @@ function ListingDetailPage() {
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="text-center mt-5">
-        <Link to={APP_ROUTES.listings} className="btn btn-outline-success btn-sm">
-          &larr; Retour aux annonces
-        </Link>
-      </div>
+        <div className="text-center mt-5">
+          <Link to={APP_ROUTES.listings} className="btn btn-outline-success btn-sm">
+            &larr; Retour aux annonces
+          </Link>
+        </div>
 
-      {showReportModal && (
-        <ReportModal
-          announcementId={listingId}
-          onClose={() => setShowReportModal(false)}
-          onSuccess={() => {
-            setShowReportModal(false)
-            setHasReported(true)
-            // Optionnel : un petit toast ou alert de confirmation
-            alert("Votre signalement a été envoyé à l'équipe de modération.")
-          }}
-        />
-      )}
+        {showReportModal && (
+          <ReportModal
+            announcementId={listingId}
+            onClose={() => setShowReportModal(false)}
+            onSuccess={() => {
+              setShowReportModal(false)
+              setHasReported(true)
+              // Optionnel : un petit toast ou alert de confirmation
+              alert("Votre signalement a été envoyé à l'équipe de modération.")
+            }}
+          />
+        )}
+      </div>
     </div>
   )
 }

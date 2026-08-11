@@ -2,16 +2,19 @@ import ListingBadge from "./ListingBadge"
 import ListingPrice from "./ListingPrice"
 import ListingLocation from "./ListingLocation"
 import { getListingDetailPath } from "../../constants/routes"
+import { getPrimaryMediaUrl } from "../../utils/mediaUrl"
 import { Link } from "react-router-dom"
 
 function ListingCard({ listing, showFavorite, isFavorite, onToggleFavorite }) {
+  const imageUrl = getPrimaryMediaUrl(listing.Media) || listing.image
+
   return (
     <article className="card border-0 shadow-sm h-100 listing-card position-relative">
       <Link to={getListingDetailPath(listing.id)} className="text-decoration-none">
         <div className="listing-card-image">
-          {listing.image ? (
+          {imageUrl ? (
             <img
-              src={listing.image}
+              src={imageUrl}
               alt={listing.title}
               className="card-img-top"
               loading="lazy"

@@ -21,7 +21,7 @@ export async function getPendingAnnouncements() {
 // GET /announcements/:id (public)
 export async function getAnnouncementById(id) {
   const response = await apiClient.get(`/announcements/${id}`)
-  return response
+  return response.data
 }
 
 // POST /announcements (propriétaire/agence - supporte FormData)
