@@ -13,40 +13,50 @@ function persistAuth(token, refreshToken, user) {
 
 function normalizeUser(raw) {
   if (!raw) return null
+  const roleId = raw.role_id ?? raw.roleId ?? null
+  const role = roleId != null ? getRoleKey(roleId) : raw.role || "user"
   return {
     id: raw.id,
     firstname: raw.firstname,
     lastname: raw.lastname,
     name: raw.name || `${raw.firstname || ""} ${raw.lastname || ""}`.trim(),
     email: raw.email,
-    role: getRoleKey(raw.role_id),
-    roleId: raw.role_id,
-    emailVerified: Boolean(raw.email_verified_at),
-    verifiedAt: raw.email_verified_at,
+    role,
+    roleId,
+    emailVerified: Boolean(raw.email_verified_at ?? raw.emailVerified),
+    verifiedAt: raw.email_verified_at ?? raw.verifiedAt ?? null,
     phone: raw.phone,
     gender: raw.gender,
-    cityId: raw.city_id,
-    userStatus: raw.user_status_id,
+    cityId: raw.city_id ?? raw.cityId ?? null,
+    userStatus: raw.user_status_id ?? raw.userStatus ?? null,
   }
 }
 
+function readStoredSession() {
+  try {
+    const token = localStorage.getItem(STORAGE_KEYS.token)
+    const refreshToken = localStorage.getItem(STORAGE_KEYS.refreshToken)
+    const userJson = localStorage.getItem(STORAGE_KEYS.user)
+    if (token && userJson) {
+      const user = normalizeUser(JSON.parse(userJson))
+      if (user) return { user, token, refreshToken, isAuthenticated: true }
+    }
+  } catch { /* ignore */ }
+  return { user: null, token: null, refreshToken: null, isAuthenticated: false }
+}
+
 export const useAuthStore = create((set, get) => ({
-  user: null,
-  token: null,
-  refreshToken: null,
-  isAuthenticated: false,
+  ...readStoredSession(),
 
   hydrate() {
-    try {
-      const token = localStorage.getItem(STORAGE_KEYS.token)
-      const refreshToken = localStorage.getItem(STORAGE_KEYS.refreshToken)
-      const userJson = localStorage.getItem(STORAGE_KEYS.user)
-      if (token && userJson) {
-        const user = normalizeUser(JSON.parse(userJson))
-        set({ user, token, refreshToken, isAuthenticated: true })
-      }
-    } catch {
-      clearStoredAuth()
+    const next = readStoredSession()
+    const current = get()
+    if (
+      next.isAuthenticated !== current.isAuthenticated ||
+      next.token !== current.token ||
+      next.user?.id !== current.user?.id
+    ) {
+      set(next)
     }
   },
 
