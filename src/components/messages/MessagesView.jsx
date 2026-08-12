@@ -79,12 +79,18 @@ function MessagesView({ variant = "tenant" }) {
     setSendError(null)
   }, [openConversation])
 
-  // Auto-ouverture depuis ?listing= (ex. navigation via une notification)
+  // Auto-ouverture depuis ?listing= ou ?conversation= (ex. navigation via une notification)
   useEffect(() => {
     if (!user || conversations.length === 0 || activeConversation) return
     const listingParam = searchParams.get("listing")
-    if (!listingParam) return
-    const match = conversations.find((c) => c.announcement_id === listingParam || c.announcement?.id === listingParam)
+    const conversationParam = searchParams.get("conversation")
+    if (!listingParam && !conversationParam) return
+    let match
+    if (listingParam) {
+      match = conversations.find((c) => c.announcement_id === listingParam || c.announcement?.id === listingParam)
+    } else {
+      match = conversations.find((c) => String(c.id) === String(conversationParam))
+    }
     if (!match) return
     const { openConversation: open } = useConversationsStore.getState()
     open(match.id).then(() => {

@@ -1,5 +1,6 @@
 import { connectSocket, disconnectSocket, onSocketEvent } from "./socketService"
 import { useConversationsStore } from "../stores/conversationsStore"
+import { useNotificationsStore } from "../stores/notificationsStore"
 
 let wired = false
 
@@ -13,6 +14,7 @@ function wireEvents() {
   onSocketEvent("connect", () => {
     useConversationsStore.getState().fetchUnreadCount()
     useConversationsStore.getState().fetchConversations()
+    useNotificationsStore.getState().fetchUnreadCount()
   })
 
   onSocketEvent("message:new", (payload) => {
@@ -22,6 +24,10 @@ function wireEvents() {
   onSocketEvent("conversation:new", () => {
     useConversationsStore.getState().fetchConversations()
     useConversationsStore.getState().fetchUnreadCount()
+  })
+
+  onSocketEvent("notification:new", (payload) => {
+    useNotificationsStore.getState().handleIncomingNotification(payload)
   })
 }
 

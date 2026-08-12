@@ -4,6 +4,7 @@ import { APP_ROUTES } from "../constants/routes"
 import { useAuthStore } from "../stores/authStore"
 import { useConversationsStore } from "../stores/conversationsStore"
 import { startRealtime, stopRealtime } from "../services/realtime"
+import NotificationBell from "../components/notifications/NotificationBell"
 
 /* ── Navigation par rôle ────────────────────────────────────── */
 
@@ -415,6 +416,8 @@ function DashboardLayout() {
             >
               🏘️ Accueil
             </Link>
+
+            <NotificationBell />
 
             <Link 
               to={APP_ROUTES.profile} 
