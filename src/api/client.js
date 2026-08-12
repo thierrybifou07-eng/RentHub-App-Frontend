@@ -95,6 +95,9 @@ export function getStoredUser() {
 export function clearStoredAuth() {
   try {
     Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key))
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("renthub:auth-cleared"))
+    }
   } catch { /* ignore */ }
 }
 
@@ -102,6 +105,9 @@ export function persistTokens(token, refreshToken) {
   try {
     localStorage.setItem(STORAGE_KEYS.token, token)
     if (refreshToken) localStorage.setItem(STORAGE_KEYS.refreshToken, refreshToken)
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("renthub:token-changed", { detail: { token } }))
+    }
   } catch { /* ignore */ }
 }
 

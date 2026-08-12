@@ -9,6 +9,9 @@ function persistAuth(token, refreshToken, user) {
     localStorage.setItem(STORAGE_KEYS.refreshToken, refreshToken)
   }
   localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user))
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("renthub:token-changed", { detail: { token } }))
+  }
 }
 
 function normalizeUser(raw) {

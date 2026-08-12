@@ -50,6 +50,32 @@ export const useConversationsStore = create((set, get) => ({
     set({ activeConversation: null, activeMessages: [] })
   },
 
+  /**
+   * Message reçu en temps réel (événement "message:new").
+   * Si la conversation est ouverte : append (sans doublon).
+   * Sinon : on rafraîchit la liste + le compteur non-lus.
+   */
+  handleIncomingMessage({ conversationId, message }) {
+    if (!message) return
+    const state = get()
+    const isActive =
+      state.activeConversation &&
+      String(state.activeConversation.id) === String(conversationId)
+
+    if (isActive) {
+      const exists = state.activeMessages.some(
+        (m) => String(m.id) === String(message.id)
+      )
+      if (!exists) {
+        set({ activeMessages: [...state.activeMessages, message] })
+      }
+      get().fetchUnreadCount()
+    } else {
+      get().fetchUnreadCount()
+      get().fetchConversations()
+    }
+  },
+
   async sendMessage(conversationId, content) {
     try {
       const msgData = await sendMessage(conversationId, content)

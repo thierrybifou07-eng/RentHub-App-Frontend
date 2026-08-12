@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { APP_ROUTES } from "../constants/routes"
 import { useAuthStore } from "../stores/authStore"
 import { useConversationsStore } from "../stores/conversationsStore"
+import { startRealtime, stopRealtime } from "../services/realtime"
 
 /* ── Navigation par rôle ────────────────────────────────────── */
 
@@ -80,7 +81,11 @@ function DashboardLayout() {
 
   // Fetch unread messages periodically
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      stopRealtime()
+      return
+    }
+    startRealtime()
     fetchUnreadCount()
     const interval = setInterval(fetchUnreadCount, 30000)
     return () => clearInterval(interval)
