@@ -46,6 +46,10 @@ export const useConversationsStore = create((set, get) => ({
     }
   },
 
+  closeConversation() {
+    set({ activeConversation: null, activeMessages: [] })
+  },
+
   async sendMessage(conversationId, content) {
     try {
       const msgData = await sendMessage(conversationId, content)

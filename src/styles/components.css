@@ -546,6 +546,40 @@
 
 /* ── Message Thread ───────────────────────────────────────────── */
 
+.thread-inner {
+  min-height: 480px;
+}
+
+.conversation-list {
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+/* Mobile : master/detail — la conversation sélectionnée remplace la liste */
+@media (max-width: 767.98px) {
+  .messages-layout.has-active-conversation .conversations-pane {
+    display: none;
+  }
+  .messages-layout:not(.has-active-conversation) .thread-pane {
+    display: none;
+  }
+  .thread-pane {
+    height: calc(100dvh - 190px);
+  }
+  .thread-inner {
+    min-height: 0;
+    height: 100%;
+  }
+  .thread-inner .message-thread {
+    max-height: none;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+  .conversation-list {
+    max-height: calc(100dvh - 240px);
+  }
+}
+
 .message-thread {
   display: flex;
   flex-direction: column;
