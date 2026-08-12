@@ -1,49 +1,12 @@
 import { create } from "zustand"
 import { getConversations, getUnreadCount, getMessages, sendMessage } from "../api/conversationsApi"
 import { useAuthStore } from "./authStore"
-import { io } from "socket.io-client"
-
-const SOCKET_URL = import.meta.env.VITE_API_NETWORK_BASE_URL || "http://localhost:3000"
 
 export const useConversationsStore = create((set, get) => ({
   conversations: [],
   unreadCount: 0,
   activeConversation: null,
   activeMessages: [],
-  socket: null,
-
-  connectSocket: (userId) => {
-    if (get().socket) return;
-    
-    const socket = io(SOCKET_URL);
-    
-    socket.on("connect", () => {
-      socket.emit("authenticate", userId);
-    });
-
-    socket.on("new_message", (message) => {
-      const { activeConversation, activeMessages } = get();
-      
-      const convId = message.conversation_id || message.conversationId;
-      if (activeConversation && activeConversation.id === convId) {
-        set({ activeMessages: [...activeMessages, message] });
-        get().fetchUnreadCount();
-      } else {
-        get().fetchUnreadCount();
-        get().fetchConversations();
-      }
-    });
-
-    set({ socket });
-  },
-
-  disconnectSocket: () => {
-    const { socket } = get();
-    if (socket) {
-      socket.disconnect();
-      set({ socket: null });
-    }
-  },
 
   async fetchConversations(params = {}) {
     try {
@@ -81,10 +44,6 @@ export const useConversationsStore = create((set, get) => ({
     } catch (err) {
       console.error("Failed to load messages:", err)
     }
-  },
-
-  closeConversation() {
-    set({ activeConversation: null, activeMessages: [] })
   },
 
   async sendMessage(conversationId, content) {
