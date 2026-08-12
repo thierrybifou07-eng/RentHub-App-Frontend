@@ -13,8 +13,43 @@ import axios from "axios"
 
 /* ── Configuration ──────────────────────────────────────────────── */
 
-const API_BASE_URL = /* import.meta.env.VITE_API_BASE_URL || */ import.meta.env.VITE_API_NETWORK_BASE_URL
+/**
+ * Résolution de l'URL de base de l'API :
+ *   1. VITE_API_BASE_URL si défini (override explicite, ex. production)
+ *   2. VITE_API_NETWORK_BASE_URL si défini (override réseau)
+ *   3. Auto-détection : même hôte que la page (localhost ou IP du PC),
+ *      port 3000 — fonctionne en dev sur PC ET sur téléphone via l'IP.
+ */
+function resolveApiBaseUrl() {
+  const explicit =
+    import.meta.env.VITE_API_BASE_URL ||
+    import.meta.env.VITE_API_NETWORK_BASE_URL
+  if (explicit) return explicit
+
+  const hostname =
+    typeof window !== "undefined" ? window.location.hostname : "localhost"
+  const protocol =
+    typeof window !== "undefined" && window.location.protocol === "https:"
+      ? "https"
+      : "http"
+  return `${protocol}://${hostname}:3000/api/v1`
+}
+
+const API_BASE_URL = resolveApiBaseUrl()
 const LOGIN_PATH   = "/connexion"
+
+/**
+ * URL WebSocket dérivée de l'URL de l'API (http → ws, sans le préfixe /api/v1).
+ * Ex. http://localhost:3000/api/v1 → ws://localhost:3000
+ */
+export function getWsBaseUrl() {
+  const url = new URL(API_BASE_URL)
+  url.protocol = url.protocol === "https:" ? "wss:" : "ws:"
+  url.pathname = ""
+  url.search = ""
+  url.hash = ""
+  return url.toString().replace(/\/$/, "")
+}
 
 export const STORAGE_KEYS = {
   token:        "renthub-token",
