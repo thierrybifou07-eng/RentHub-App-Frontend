@@ -19,6 +19,7 @@ function TenantMessages() {
     activeMessages,
     fetchConversations,
     openConversation,
+    closeConversation,
     sendMessage,
   } = useConversationsStore()
 
@@ -102,7 +103,7 @@ function TenantMessages() {
         <div className="card border-0 shadow-sm">
           <div className="card-body p-0">
             <div className="row g-0">
-              <div className="col-md-4 border-end">
+              <div className={`col-md-4 border-end ${activeConversation ? "d-none d-md-block" : "d-block"}`}>
                 <div className="p-3 border-bottom">
                   <h2 className="h6 fw-bold mb-0">
                     {conversations.length} conversation{conversations.length > 1 ? "s" : ""}
@@ -144,24 +145,33 @@ function TenantMessages() {
                 </div>
               </div>
 
-              <div className="col-md-8">
+              <div className={`col-md-8 ${!activeConversation ? "d-none d-md-block" : "d-block"}`}>
                 {!activeConversation ? (
                   <div className="d-flex align-items-center justify-content-center h-100 text-secondary py-5">
                     <p className="mb-0">Sélectionnez une conversation pour la lire.</p>
                   </div>
                 ) : (
                   <div className="d-flex flex-column" style={{ minHeight: 480 }}>
-                    <div className="px-3 py-2 border-bottom">
-                      <Link to={getListingDetailPath(activeConversation.announcement_id)}>
-                        <h3 className="h6 fw-bold mb-0">
-                          {activeConversation.Announcement?.title || "Annonce"}
-                        </h3>
-                      </Link>
-
-                      <small className="text-secondary">
-                        {formatName(activeConversation.owner) || "Propriétaire"}
-                        {activeConversation.announcement?.city?.name ? ` \u00b7 ${activeConversation.announcement.city.name}` : ""}
-                      </small>
+                    <div className="px-3 py-2 border-bottom d-flex align-items-center">
+                      <button 
+                        type="button" 
+                        className="btn btn-sm btn-light d-md-none me-2" 
+                        onClick={closeConversation}
+                        aria-label="Retour aux conversations"
+                      >
+                        &larr;
+                      </button>
+                      <div>
+                        <Link to={getListingDetailPath(activeConversation.announcement_id)}>
+                          <h3 className="h6 fw-bold mb-0">
+                            {activeConversation.Announcement?.title || "Annonce"}
+                          </h3>
+                        </Link>
+                        <small className="text-secondary">
+                          {formatName(activeConversation.owner) || "Propriétaire"}
+                          {activeConversation.announcement?.city?.name ? ` \u00b7 ${activeConversation.announcement.city.name}` : ""}
+                        </small>
+                      </div>
                     </div>
 
                     <div className="message-thread flex-grow-1 p-3" style={{ overflowY: "auto" }}>

@@ -57,7 +57,19 @@ function DashboardLayout() {
   const fetchUnreadCount = useConversationsStore(s => s.fetchUnreadCount)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [adminPending, setAdminPending] = useState({ announcements: 0, reports: 0, subscriptions: 0 })
+  const [notifOpen, setNotifOpen] = useState(false)
   const closeTimer = useRef(null)
+  const notifRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setNotifOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   // Hover sidebar : ouverture au survol du burger, fermeture à la sortie.
   // Délai de grâce de 150ms pour éviter le clignotement entre burger et menu.
@@ -78,10 +90,14 @@ function DashboardLayout() {
     return () => clearTimeout(closeTimer.current)
   }, [])
 
-  // Fetch unread messages periodically
+  // Fetch unread messages periodically and connect WebSocket
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      useConversationsStore.getState().disconnectSocket()
+      return
+    }
     fetchUnreadCount()
+    useConversationsStore.getState().connectSocket(user.id)
     const interval = setInterval(fetchUnreadCount, 30000)
     return () => clearInterval(interval)
   }, [user, fetchUnreadCount])
@@ -391,6 +407,69 @@ function DashboardLayout() {
 
           {/* Actions topbar */}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="position-relative" ref={notifRef}>
+              <button
+                type="button"
+                onClick={() => setNotifOpen(!notifOpen)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 20,
+                  position: "relative",
+                  cursor: "pointer",
+                  padding: "4px 8px"
+                }}
+              >
+                🔔
+                {unreadCount > 0 && (
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: "0.6rem" }}>
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              
+              {notifOpen && (
+                <div className="dropdown-menu show shadow-sm" style={{ position: 'absolute', right: 0, top: '100%', minWidth: '320px', padding: '0.5rem 0' }}>
+                  <h6 className="dropdown-header fw-bold">Notifications</h6>
+                  {unreadCount > 0 && (
+                    <Link 
+                      className="dropdown-item d-flex align-items-center gap-3 py-2 border-bottom" 
+                      to={userRole === 'owner' ? APP_ROUTES.ownerMessages : APP_ROUTES.tenantMessages}
+                      onClick={() => setNotifOpen(false)}
+                    >
+                      <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style={{ width: 32, height: 32, flexShrink: 0 }}>
+                        💬
+                      </div>
+                      <div className="text-wrap small">
+                        <span className="fw-bold">{unreadCount}</span> nouveau{unreadCount > 1 ? 'x' : ''} message{unreadCount > 1 ? 's' : ''} non lu{unreadCount > 1 ? 's' : ''}
+                      </div>
+                    </Link>
+                  )}
+                  {userRole === 'owner' && (
+                    <a className="dropdown-item d-flex align-items-center gap-3 py-2 border-bottom" href="#" onClick={e => e.preventDefault()}>
+                      <div className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style={{ width: 32, height: 32, flexShrink: 0 }}>✓</div>
+                      <div className="text-wrap small">
+                        L'annonce <strong>"Villa sur la côte"</strong> a été approuvée (exemple).
+                      </div>
+                    </a>
+                  )}
+                  {userRole === 'tenant' && (
+                    <a className="dropdown-item d-flex align-items-center gap-3 py-2 border-bottom" href="#" onClick={e => e.preventDefault()}>
+                      <div className="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" style={{ width: 32, height: 32, flexShrink: 0 }}>❤️</div>
+                      <div className="text-wrap small">
+                        Nouveau bien ajouté à vos favoris récemment (exemple).
+                      </div>
+                    </a>
+                  )}
+                  {unreadCount === 0 && (
+                     <div className="px-3 py-4 text-center text-secondary small">
+                        Aucune nouvelle notification
+                     </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             <Link
               to={APP_ROUTES.home}
               style={{
