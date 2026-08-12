@@ -4,7 +4,7 @@ import { APP_ROUTES } from "../../constants/routes"
 import { useAuthStore } from "../../stores/authStore"
 import { useConversationsStore } from "../../stores/conversationsStore"
 import { messageFormSchema } from "../../schemas/messageSchema"
-import { formatRelativeTime } from "../../utils/formatters"
+import { formatName, formatRelativeTime } from "../../utils/formatters"
 import PageHeader from "../../components/common/PageHeader"
 import EmptyState from "../../components/feedback/EmptyState"
 import LoadingState from "../../components/feedback/LoadingState"
@@ -26,7 +26,7 @@ function OwnerMessages() {
   const [newText, setNewText] = useState("")
   const [sendError, setSendError] = useState(null)
   const [sending, setSending] = useState(false)
-  
+
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
@@ -67,7 +67,6 @@ function OwnerMessages() {
       setSending(false)
     }
   }
-
   return (
     <div>
       <PageHeader
@@ -94,10 +93,10 @@ function OwnerMessages() {
                   </h2>
                 </div>
                 <div className="list-group list-group-flush" style={{ maxHeight: 480, overflowY: "auto" }}>
-                  {conversations.map((conv) => {
-                    const title = conv.announcement?.title || conv.listing?.title || "Annonce"
-                    const participant = conv.tenant?.name || conv.otherParticipant?.name || "Locataire"
-                    const lastMsg = conv.last_message || conv.lastMessage
+                  {conversations.map((conv) => {                    
+                    const title = conv.Announcement?.title || "Annonce"
+                    const participant = formatName(conv.tenant) || "Locataire"
+                    const lastMsg = conv.last_message
                     return (
                       <button
                         key={conv.id}
@@ -111,7 +110,7 @@ function OwnerMessages() {
                           </span>
                           {lastMsg && (
                             <small className="text-secondary text-nowrap ms-2">
-                              {formatRelativeTime(lastMsg.created_at || lastMsg.createdAt)}
+                              {formatRelativeTime(conv.updatedAt)}
                             </small>
                           )}
                         </div>
@@ -120,7 +119,7 @@ function OwnerMessages() {
                         </p>
                         {lastMsg && (
                           <p className={`mb-0 small text-truncate ${conv.unread_count > 0 ? 'fw-bold text-dark' : ''}`} style={{ maxWidth: "90%" }}>
-                            {lastMsg.content || lastMsg.text}
+                            {lastMsg}
                           </p>
                         )}
                       </button>
@@ -138,10 +137,10 @@ function OwnerMessages() {
                   <div className="d-flex flex-column" style={{ minHeight: 480 }}>
                     <div className="px-3 py-2 border-bottom">
                       <h3 className="h6 fw-bold mb-0">
-                        {activeConversation.announcement?.title || activeConversation.listing?.title || "Annonce"}
+                        {activeConversation.Announcement?.title || "Annonce"}
                       </h3>
                       <small className="text-secondary">
-                        {activeConversation.tenant?.name || activeConversation.otherParticipant?.name || "Locataire"}
+                        {formatName(activeConversation.tenant) || "Locataire"}
                         {activeConversation.announcement?.city?.name ? ` \u00b7 ${activeConversation.announcement.city.name}` : ""}
                       </small>
                     </div>
@@ -155,13 +154,13 @@ function OwnerMessages() {
                         activeMessages.map((msg) => (
                           <div
                             key={msg.id}
-                            className={`message-bubble ${msg.sender_id === user.id || msg.senderId === user.id ? "own" : "other"}`}
+                            className={`message-bubble ${msg.sender_id === user.id ? "own" : "other"}`}
                           >
-                            {(msg.sender_id !== user.id && msg.senderId !== user.id) && (
-                              <div className="message-sender">{msg.sender?.name || msg.senderName || "Locataire"}</div>
+                            {(msg.sender_id !== user.id) && (
+                              <div className="message-sender">{formatName(msg.sender) || "Locataire"}</div>
                             )}
                             <p className="message-text">{msg.content || msg.text}</p>
-                            <div className="message-time">{formatRelativeTime(msg.created_at || msg.createdAt)}</div>
+                            <div className="message-time">{formatRelativeTime(msg.updatedAt)}</div>
                           </div>
                         ))
                       )}

@@ -18,14 +18,16 @@ function OwnerDashboard() {
   useEffect(() => {
     if (!user) return
     let active = true
+          console.log('Here is the user',user)
+
     Promise.all([
-      getOwnerListings(user.id),
+      getOwnerListings({}),
       getConversationsByUser(user.id),
     ]).then(([listings, convs]) => {
       if (active) {
         setListingCount(listings.length)
         setPublishedCount(
-          listings.filter((l) => l.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id).length
+          listings.filter((l) => l.status_id === ANNOUNCEMENT_STATUS.ACTIVE.id).length
         )
         setConversationCount(convs.length)
       }

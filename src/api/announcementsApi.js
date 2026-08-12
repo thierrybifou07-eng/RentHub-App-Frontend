@@ -8,7 +8,7 @@ export async function getAnnouncements(params = {}) {
 
 // GET /announcements/me (propriétaire/agence)
 export async function getMyAnnouncements(params = {}) {
-  const response = await apiClient.get("/announcements/me", { params })
+  const response = await apiClient.get("/announcements/me", { params })  
   return response
 }
 

@@ -1,9 +1,9 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_NETWORK_BASE_URL || ""
+const API_BASE_URL = /* import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_NETWORK_BASE_URL ||  */import.meta.env.VITE_API_MEDIA_NETWORK_URL || ""
 
 const MEDIA_BASE_URL =
-  import.meta.env.VITE_API_MEDIA_URL ||
+  import.meta.env.VITE_API_MEDIA_NETWORK_URL/*  ||
   API_BASE_URL.replace(/\/api\/v1\/?$/, "") ||
-  ""
+  "" */
 
 const UPLOADS_MARKER = "public/uploads/"
 

@@ -112,7 +112,7 @@ function TenantMessages() {
                   {conversations.map((conv) => {
                     const title = conv.Announcement.title
                     const participant = formatName(conv.owner)
-                    const lastMsg = conv
+                    const lastMsg = conv.last_message                    
                     return (
                       <button
                         key={conv.id}
@@ -126,7 +126,7 @@ function TenantMessages() {
                           </span>
                           {lastMsg && (
                             <small className="text-secondary text-nowrap ms-2">
-                              {formatRelativeTime(lastMsg.last_message_at)}
+                              {formatRelativeTime(conv.updatedAt)}
                             </small>
                           )}
                         </div>
@@ -135,7 +135,7 @@ function TenantMessages() {
                         </p>
                         {lastMsg && (
                           <p className={`mb-0 small text-truncate ${conv.unread_count > 0 ? 'fw-bold text-dark' : ''}`} style={{ maxWidth: "90%" }}>
-                            {lastMsg.content || lastMsg.text}
+                            {lastMsg}
                           </p>
                         )}
                       </button>

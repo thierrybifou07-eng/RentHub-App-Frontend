@@ -20,7 +20,7 @@ function OwnerListings() {
   useEffect(() => {
     if (!user) return
     let active = true
-    getOwnerListings(user.id).then((result) => {
+    getOwnerListings({}).then((result) => {
       if (active) {
         setListings(result)
         setLoading(false)
@@ -47,7 +47,7 @@ function OwnerListings() {
     if (currentStatusId === ANNOUNCEMENT_STATUS.ACTIVE.id) {
       newStatusId = ANNOUNCEMENT_STATUS.ARCHIVED.id
     } else if (
-      currentStatusId === ANNOUNCEMENT_STATUS.ARCHIVED.id || 
+      currentStatusId === ANNOUNCEMENT_STATUS.ARCHIVED.id ||
       currentStatusId === ANNOUNCEMENT_STATUS.REJECTED.id
     ) {
       newStatusId = ANNOUNCEMENT_STATUS.PENDING_REVIEW.id
@@ -121,38 +121,37 @@ function OwnerListings() {
                       </td>
                       <td className="small">{getTypeLabel(listing.property_type_id)}</td>
                       <td className="small">
-                        {listing.city?.name || listing.city_id}
+                        {listing.City?.name}
                       </td>
                       <td className="text-end fw-bold text-success small">
                         {formatXAF(listing.price)} XAF
                       </td>
                       <td className="text-center">
-                        <ListingBadge statusId={listing.announcement_status_id} />
+                        <ListingBadge statusId={listing.status_id} />
                       </td>
                       <td className="text-end pe-3">
                         <div className="d-flex gap-1 justify-content-end">
                           <button
                             type="button"
                             className="btn btn-outline-primary btn-sm"
-                            onClick={() => navigate(`${APP_ROUTES.ownerListingEdit.replace(":listingId", "")}${listing.id}`)}
+                            onClick={() => navigate(`${APP_ROUTES.ownerListingEdit.replace(":id", listing.id)}`)}
                           >
                             Modifier
                           </button>
-                          {(listing.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id || 
+                          {(listing.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id ||
                             listing.announcement_status_id === ANNOUNCEMENT_STATUS.ARCHIVED.id ||
                             listing.announcement_status_id === ANNOUNCEMENT_STATUS.REJECTED.id) && (
-                            <button
-                              type="button"
-                              className={`btn btn-sm ${
-                                listing.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id 
-                                  ? "btn-outline-warning" 
-                                  : "btn-outline-success"
-                              }`}
-                              onClick={() => handleStatusToggle(listing.id, listing.announcement_status_id)}
-                            >
-                              {listing.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id ? "Archiver" : "Publier"}
-                            </button>
-                          )}
+                              <button
+                                type="button"
+                                className={`btn btn-sm ${listing.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id
+                                    ? "btn-outline-warning"
+                                    : "btn-outline-success"
+                                  }`}
+                                onClick={() => handleStatusToggle(listing.id, listing.announcement_status_id)}
+                              >
+                                {listing.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id ? "Archiver" : "Publier"}
+                              </button>
+                            )}
                           <button
                             type="button"
                             className="btn btn-outline-danger btn-sm"
