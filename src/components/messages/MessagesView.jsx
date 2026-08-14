@@ -232,9 +232,6 @@ function MessagesView({ variant = "tenant" }) {
                             key={msg.id}
                             className={`message-bubble ${isOwnMessage(msg) ? "own" : "other"}`}
                           >
-                            {!isOwnMessage(msg) && (
-                              <div className="message-sender">{formatName(msg.sender) || cfg.senderFallback}</div>
-                            )}
                             <p className="message-text">{msg.content || msg.text}</p>
                             <div className="message-time">{formatRelativeTime(msg.created_at || msg.createdAt || msg.updatedAt)}</div>
                           </div>

@@ -22,8 +22,7 @@ import axios from "axios"
  */
 function resolveApiBaseUrl() {
   const explicit =
-    import.meta.env.VITE_API_BASE_URL ||
-    import.meta.env.VITE_API_NETWORK_BASE_URL
+    import.meta.env.VITE_API_BASE_URL
   if (explicit) return explicit
 
   const hostname =
@@ -176,7 +175,6 @@ function isAuthEndpoint(url = "") {
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  headers: { "Content-Type": "application/json" },
   timeout: 30_000,
 })
 

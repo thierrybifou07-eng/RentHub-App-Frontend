@@ -7,7 +7,6 @@ import { formatXAF, formatDate } from "../../utils/formatters"
 import { resolveMediaUrl } from "../../utils/mediaUrl"
 import { useAuthStore } from "../../stores/authStore"
 import { useFavoritesStore } from "../../stores/favoritesStore"
-import ListingBadge from "../../components/listings/ListingBadge"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import ReportModal from "../../components/reports/ReportModal"
@@ -186,9 +185,9 @@ function ListingDetailPage() {
 
           <h1 className="h3 mb-2">{listing.title}</h1>
           <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
-            <ListingBadge statusId={listing.announcement_status_id || listing.statusId} />
-            <span className="text-secondary small">
-              {typeLabel} &middot; {listing.rooms ?? 0} chambre{(listing.rooms ?? 0) > 1 ? "s" : ""}
+{/*             <ListingBadge statusId={listing.status_id} />
+ */}            <span className="text-secondary small">
+              {typeLabel} &middot; {listing.rooms ?? 0} pièce{(listing.rooms ?? 0) > 1 ? "s" : ""}
             </span>
             <span className="text-secondary small">{cityName}</span>
             {favCount > 0 && (
@@ -216,7 +215,7 @@ function ListingDetailPage() {
             <div className="col-sm-6">
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
-                  <p className="text-secondary small mb-1">Chambres</p>
+                  <p className="text-secondary small mb-1">Pièces</p>
                   <p className="fw-bold mb-0">{listing.rooms ?? "—"}</p>
                 </div>
               </div>
