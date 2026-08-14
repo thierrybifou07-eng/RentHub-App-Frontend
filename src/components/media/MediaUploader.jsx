@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { getMediaUrl } from "../../utils/formatters" // We need to add this or use existing
+import { resolveMediaUrl } from "../../utils/mediaUrl"
 
 export default function MediaUploader({
   existingMedia = [],
@@ -147,7 +147,7 @@ export default function MediaUploader({
               return (
                 <div key={index} className="position-relative border rounded overflow-hidden shadow-sm" style={{ width: "120px", height: "120px", backgroundColor: "#f8f9fa" }}>
                   {isVideo ? (
-                    <video src={file.preview} className="w-100 h-100 object-fit-cover" muted />
+                    <video src={file.preview} className="w-100 h-100 object-fit-cover" controls preload="metadata" />
                   ) : (
                     <img src={file.preview} alt="Nouveau" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   )}

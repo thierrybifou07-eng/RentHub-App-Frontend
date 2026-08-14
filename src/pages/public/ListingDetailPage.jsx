@@ -98,6 +98,8 @@ function ListingDetailPage() {
   const cityName = listing.City?.name || listing.city?.name || listing.city || "—"
   const media = listing.Media || listing.media || []
   const images = media.filter((m) => m.MediaType?.code === "ANNOUNCEMENT_IMAGE" || m.mediaType?.code === "ANNOUNCEMENT_IMAGE" || m.type === "image")
+  const videos = media.filter((m) => m.MediaType?.code === "ANNOUNCEMENT_VIDEO" || m.mediaType?.code === "ANNOUNCEMENT_VIDEO" || m.type === "video")
+  const allMedia = [...images, ...videos]
   const ownerInfo = listing.User || listing.owner || null
   const favCount = listing.favoritesCount || listing.favorites_count || 0
 
@@ -123,8 +125,8 @@ function ListingDetailPage() {
 
       <div className="row g-4">
         <div className="col-lg-8">
-          {/* Galerie d'images */}
-          {images.length > 0 ? (
+          {/* Galerie d'images et vidéos */}
+          {allMedia.length > 0 ? (
             <div className="mb-3">
               <div
                 style={{
@@ -134,22 +136,32 @@ function ListingDetailPage() {
                   background: "var(--color-surface-100, #f5f5f5)",
                 }}
               >
-                {!failedImages.includes(images[activeImageIndex]?.id) ? (
-                  <img
-                    src={resolveMediaUrl(images[activeImageIndex])}
-                    alt={`${listing.title} — photo ${activeImageIndex + 1}`}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    onError={() => markImageFailed(images[activeImageIndex]?.id)}
-                  />
+                {!failedImages.includes(allMedia[activeImageIndex]?.id) ? (
+                  allMedia[activeImageIndex]?.MediaType?.code === "ANNOUNCEMENT_VIDEO" || allMedia[activeImageIndex]?.mediaType?.code === "ANNOUNCEMENT_VIDEO" || allMedia[activeImageIndex]?.type === "video" ? (
+                    <video
+                      src={resolveMediaUrl(allMedia[activeImageIndex])}
+                      controls
+                      preload="metadata"
+                      style={{ width: "100%", height: "100%", objectFit: "contain", backgroundColor: "#000" }}
+                      onError={() => markImageFailed(allMedia[activeImageIndex]?.id)}
+                    />
+                  ) : (
+                    <img
+                      src={resolveMediaUrl(allMedia[activeImageIndex])}
+                      alt={`${listing.title} — photo ${activeImageIndex + 1}`}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={() => markImageFailed(allMedia[activeImageIndex]?.id)}
+                    />
+                  )
                 ) : (
                   <div className="skeleton-image" style={{ height: 400, borderRadius: 0 }} />
                 )}
               </div>
-              {images.length > 1 && (
+              {allMedia.length > 1 && (
                 <div className="d-flex gap-2 mt-2 overflow-auto">
-                  {images.map((img, idx) => (
+                  {allMedia.map((item, idx) => (
                     <button
-                      key={img.id || idx}
+                      key={item.id || idx}
                       type="button"
                       onClick={() => setActiveImageIndex(idx)}
                       style={{
@@ -164,13 +176,19 @@ function ListingDetailPage() {
                         background: "transparent",
                       }}
                     >
-                      {!failedImages.includes(img.id) ? (
-                        <img
-                          src={resolveMediaUrl(img)}
-                          alt={`Miniature ${idx + 1}`}
-                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                          onError={() => markImageFailed(img.id)}
-                        />
+                      {!failedImages.includes(item.id) ? (
+                        item?.MediaType?.code === "ANNOUNCEMENT_VIDEO" || item?.mediaType?.code === "ANNOUNCEMENT_VIDEO" || item?.type === "video" ? (
+                          <div className="w-100 h-100 bg-dark d-flex align-items-center justify-content-center text-white" style={{ fontSize: "1.2rem" }}>
+                            ▶
+                          </div>
+                        ) : (
+                          <img
+                            src={resolveMediaUrl(item)}
+                            alt={`Miniature ${idx + 1}`}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            onError={() => markImageFailed(item.id)}
+                          />
+                        )
                       ) : (
                         <div className="skeleton-image" style={{ width: 68, height: 52, borderRadius: 0 }} />
                       )}
