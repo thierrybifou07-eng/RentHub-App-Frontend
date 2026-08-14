@@ -6,9 +6,10 @@ import { createListing, updateListing } from "../../services/ownerService"
 import { useAuthStore } from "../../stores/authStore"
 import { listingFormSchema } from "../../schemas/listingSchema"
 import { getCities, getPropertyTypes } from "../../api/catalogApi"
-import { uploadAnnouncementImages } from "../../api/mediaApi"
+import { uploadAnnouncementImages, uploadAnnouncementVideos, deleteMedia } from "../../api/mediaApi"
 import FormField from "../forms/FormField"
 import LoadingState from "../feedback/LoadingState"
+import MediaUploader from "../media/MediaUploader"
 
 const EMPTY_FORM = {
   title: "",
@@ -30,7 +31,12 @@ function ListingForm() {
   const isEdit = Boolean(listingId)
 
   const [form, setForm] = useState(EMPTY_FORM)
-  const [mediaFiles, setMediaFiles] = useState([])
+  
+  // Nouveaux médias sélectionnés
+  const [newMediaFiles, setNewMediaFiles] = useState({ images: [], videos: [] })
+  
+  // Médias existants (pour le mode édition)
+  const [existingMedia, setExistingMedia] = useState([])
   
   const [cities, setCities] = useState([])
   const [propertyTypes, setPropertyTypes] = useState([])
@@ -38,6 +44,7 @@ function ListingForm() {
   const [loadingListing, setLoadingListing] = useState(isEdit)
   const [errors, setErrors] = useState({})
   const [globalError, setGlobalError] = useState(null)
+  const [globalSuccess, setGlobalSuccess] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
   // Chargement du catalogue
@@ -80,6 +87,11 @@ function ListingForm() {
         furnished: Boolean(listing.furnished),
         description: listing.description || "",
       })
+      
+      if (listing.media && Array.isArray(listing.media)) {
+        setExistingMedia(listing.media)
+      }
+      
       setLoadingListing(false)
     }).catch(() => {
       if (active) {
@@ -93,12 +105,6 @@ function ListingForm() {
   function setField(name, value) {
     setForm((prev) => ({ ...prev, [name]: value }))
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }))
-  }
-
-  function handleFileChange(e) {
-    if (e.target.files) {
-      setMediaFiles(Array.from(e.target.files))
-    }
   }
 
   function validate() {
@@ -116,9 +122,22 @@ function ListingForm() {
     return result.data
   }
 
+  const handleDeleteExistingMedia = async (mediaId) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce média ?")) return
+    
+    try {
+      await deleteMedia(mediaId)
+      setExistingMedia(prev => prev.filter(m => m.id !== mediaId))
+    } catch (err) {
+      console.error(err)
+      alert("Erreur lors de la suppression du média.")
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setGlobalError(null)
+    setGlobalSuccess(null)
     const parsed = validate()
     if (!parsed) return
 
@@ -141,14 +160,40 @@ function ListingForm() {
 
       const targetListingId = isEdit ? listingId : savedListing?.id || savedListing?.data?.id
 
-      if (mediaFiles.length > 0 && targetListingId) {
-        await uploadAnnouncementImages(targetListingId, mediaFiles)
+      if (targetListingId) {
+        let mediaErrors = []
+        
+        // Upload des images
+        if (newMediaFiles.images.length > 0) {
+          try {
+            await uploadAnnouncementImages(targetListingId, newMediaFiles.images)
+          } catch (imgErr) {
+            mediaErrors.push("images")
+            console.error("Image upload failed", imgErr)
+          }
+        }
+        
+        // Upload des vidéos
+        if (newMediaFiles.videos.length > 0) {
+          try {
+            await uploadAnnouncementVideos(targetListingId, newMediaFiles.videos)
+          } catch (vidErr) {
+            mediaErrors.push("vidéos")
+            console.error("Video upload failed", vidErr)
+          }
+        }
+        
+        if (mediaErrors.length > 0) {
+          setGlobalSuccess(`L'annonce a bien été enregistrée, mais certains médias (${mediaErrors.join(', ')}) n'ont pas pu être uploadés.`)
+          // On ne redirige pas immédiatement pour laisser l'utilisateur lire l'erreur
+          setSubmitting(false)
+          return
+        }
       }
 
       navigate(APP_ROUTES.ownerListings, { replace: true })
     } catch (err) {
       setGlobalError(err.message || "Une erreur est survenue lors de l'enregistrement.")
-    } finally {
       setSubmitting(false)
     }
   }
@@ -173,6 +218,17 @@ function ListingForm() {
       {globalError && (
         <div className="alert alert-danger small py-2" role="alert">
           {globalError}
+        </div>
+      )}
+      
+      {globalSuccess && (
+        <div className="alert alert-warning small py-2" role="alert">
+          {globalSuccess}
+          <div className="mt-2">
+            <button className="btn btn-sm btn-outline-dark" onClick={() => navigate(APP_ROUTES.ownerListings)}>
+              Retourner à mes annonces
+            </button>
+          </div>
         </div>
       )}
 
@@ -328,25 +384,13 @@ function ListingForm() {
 
         <div className="card border-0 shadow-sm mb-4">
           <div className="card-body">
-            <h5 className="mb-3 border-bottom pb-2">Médias</h5>
-            <FormField label="Images (max 10)" htmlFor="listing-media">
-              <input
-                type="file"
-                id="listing-media"
-                className="form-control"
-                multiple
-                accept="image/*"
-                onChange={handleFileChange}
-              />
-              <div className="form-text">
-                Vous pouvez sélectionner plusieurs images (jpeg, png, webp, gif). Max 10 Mo par image.
-              </div>
-            </FormField>
-            {mediaFiles.length > 0 && (
-              <p className="small text-success mt-2 mb-0">
-                {mediaFiles.length} fichier(s) sélectionné(s) prêt(s) à être envoyé(s).
-              </p>
-            )}
+            <MediaUploader
+              existingMedia={existingMedia}
+              onDeleteExisting={handleDeleteExistingMedia}
+              onChange={setNewMediaFiles}
+              maxImages={10}
+              maxVideos={3}
+            />
           </div>
         </div>
 
