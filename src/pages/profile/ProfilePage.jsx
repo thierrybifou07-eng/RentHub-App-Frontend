@@ -115,7 +115,16 @@ function ProfilePage() {
     setLoading(p => ({ ...p, profile: true }))
     setMessages(p => ({ ...p, profile: null }))
     try {
-      await updateProfile(profileForm)
+      // Nettoyage : les champs vides sont envoyés en null (jamais en chaîne vide)
+      const payload = {}
+      for (const [key, value] of Object.entries(profileForm)) {
+        if (typeof value === "string" && value.trim() === "") {
+          payload[key] = null
+        } else {
+          payload[key] = value
+        }
+      }
+      await updateProfile(payload)
       setMessages(p => ({ ...p, profile: { type: "success", text: "Profil mis à jour avec succès." } }))
     } catch (err) {
       setMessages(p => ({ ...p, profile: { type: "danger", text: err.message || "Erreur lors de la mise à jour." } }))

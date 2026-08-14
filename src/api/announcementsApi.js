@@ -26,17 +26,14 @@ export async function getAnnouncementById(id) {
 
 // POST /announcements (propriétaire/agence - supporte FormData)
 export async function createAnnouncement(data) {
-  const isFormData = data instanceof FormData
-  const config = isFormData ? { headers: { "Content-Type": "multipart/form-data" } } : {}
-  const response = await apiClient.post("/announcements", data, config)
+  // Pour un FormData, on laisse axios définir le Content-Type (avec boundary)
+  const response = await apiClient.post("/announcements", data)
   return response
 }
 
 // PUT /announcements/:id (propriétaire/agence)
 export async function updateAnnouncement(id, data) {
-  const isFormData = data instanceof FormData
-  const config = isFormData ? { headers: { "Content-Type": "multipart/form-data" } } : {}
-  const response = await apiClient.put(`/announcements/${id}`, data, config)
+  const response = await apiClient.put(`/announcements/${id}`, data)
   return response
 }
 

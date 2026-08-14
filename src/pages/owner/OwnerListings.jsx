@@ -42,9 +42,12 @@ function OwnerListings() {
 
   async function handleStatusToggle(listingId, currentStatusId) {
     setActionError(null)
-    // If active -> archive. If archived/rejected -> resubmit (pending review)
+    // If active/rented -> archive. If archived/rejected -> resubmit (pending review)
     let newStatusId
-    if (currentStatusId === ANNOUNCEMENT_STATUS.ACTIVE.id) {
+    if (
+      currentStatusId === ANNOUNCEMENT_STATUS.ACTIVE.id ||
+      currentStatusId === ANNOUNCEMENT_STATUS.RENTED.id
+    ) {
       newStatusId = ANNOUNCEMENT_STATUS.ARCHIVED.id
     } else if (
       currentStatusId === ANNOUNCEMENT_STATUS.ARCHIVED.id ||
@@ -131,25 +134,33 @@ function OwnerListings() {
                       </td>
                       <td className="text-end pe-3">
                         <div className="d-flex gap-1 justify-content-end">
-                          <button
-                            type="button"
-                            className="btn btn-outline-primary btn-sm"
-                            onClick={() => navigate(`${APP_ROUTES.ownerListingEdit.replace(":id", listing.id)}`)}
-                          >
-                            Modifier
-                          </button>
-                          {(listing.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id ||
-                            listing.announcement_status_id === ANNOUNCEMENT_STATUS.ARCHIVED.id ||
-                            listing.announcement_status_id === ANNOUNCEMENT_STATUS.REJECTED.id) && (
+                          {listing.status_id === ANNOUNCEMENT_STATUS.PENDING_REVIEW.id && (
+                            <button
+                              type="button"
+                              className="btn btn-outline-primary btn-sm"
+                              onClick={() => navigate(`${APP_ROUTES.ownerListingEdit.replace(":id", listing.id)}`)}
+                            >
+                              Modifier
+                            </button>
+                          )}
+                          {(listing.status_id === ANNOUNCEMENT_STATUS.ACTIVE.id ||
+                            listing.status_id === ANNOUNCEMENT_STATUS.RENTED.id) && (
                               <button
                                 type="button"
-                                className={`btn btn-sm ${listing.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id
-                                    ? "btn-outline-warning"
-                                    : "btn-outline-success"
-                                  }`}
-                                onClick={() => handleStatusToggle(listing.id, listing.announcement_status_id)}
+                                className="btn btn-sm btn-outline-warning"
+                                onClick={() => handleStatusToggle(listing.id, listing.status_id)}
                               >
-                                {listing.announcement_status_id === ANNOUNCEMENT_STATUS.ACTIVE.id ? "Archiver" : "Publier"}
+                                Archiver
+                              </button>
+                            )}
+                          {(listing.status_id === ANNOUNCEMENT_STATUS.ARCHIVED.id ||
+                            listing.status_id === ANNOUNCEMENT_STATUS.REJECTED.id) && (
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-success"
+                                onClick={() => handleStatusToggle(listing.id, listing.status_id)}
+                              >
+                                Publier
                               </button>
                             )}
                           <button

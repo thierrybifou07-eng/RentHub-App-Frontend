@@ -38,7 +38,7 @@ export async function getMe() {
   return body.data || body
 }
 
-// PUT /auth/me
+// PATCH /auth/me
 export async function updateMe(data) {
   const body = await apiClient.patch("/auth/me", data)
   return body.data || body
@@ -73,9 +73,9 @@ export async function resetPassword({ email, code, password, confirmPassword }) 
   return body
 }
 
-// POST /auth/update-password
+// PATCH /auth/me/password
 export async function updatePassword({ currentPassword, newPassword, confirmNewPassword }) {
-  const body = await apiClient.post("/auth/update-password", {
+  const body = await apiClient.patch("/auth/me/password", {
     currentPassword,
     newPassword,
     confirmNewPassword,
@@ -83,9 +83,9 @@ export async function updatePassword({ currentPassword, newPassword, confirmNewP
   return body
 }
 
-// DELETE /auth/delete-account
+// DELETE /auth/me
 export async function deleteAccount(password) {
-  const body = await apiClient.delete("/auth/delete-account", {
+  const body = await apiClient.delete("/auth/me", {
     data: { password }
   })
   return body

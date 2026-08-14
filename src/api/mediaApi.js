@@ -1,8 +1,8 @@
 import apiClient from "./client"
 
-// GET /media/me — Récupérer les médias de l'utilisateur connecté
+// GET /media — Récupérer les médias de l'utilisateur connecté
 export async function getMyMedia() {
-  const response = await apiClient.get("/media/me")
+  const response = await apiClient.get("/media")
   return response.data || response
 }
 

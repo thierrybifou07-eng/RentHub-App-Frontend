@@ -31,7 +31,8 @@ export async function getAllListings(filters = {}) {
 export async function getListingById(id) {
   try {
     const response = await fetchAnnouncement(id)
-    return response.data
+    // L'API renvoie { announcement, owner } ; on extrait l'annonce
+    return response?.announcement || response || null
   } catch (error) {
     if (error.response?.status === 404) return null
     throw error
