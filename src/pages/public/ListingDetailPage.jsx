@@ -10,7 +10,7 @@ import { useFavoritesStore } from "../../stores/favoritesStore"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import ReportModal from "../../components/reports/ReportModal"
-import { Star } from "lucide-react"
+import { Star, ChevronLeft } from "lucide-react"
 
 function ListingDetailPage() {
   const { listingId } = useParams()
@@ -126,6 +126,17 @@ function ListingDetailPage() {
 
       <div className="row g-4">
         <div className="col-lg-8">
+          {/* Bouton retour */}
+          <div className="mb-3">
+            <Link
+              to={APP_ROUTES.listings}
+              className="btn btn-outline-success btn-sm"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+            >
+              <ChevronLeft size={16} /> Retour aux annonces
+            </Link>
+          </div>
+
           {/* Galerie d'images et vidéos */}
           {allMedia.length > 0 ? (
             <div className="mb-3">
@@ -378,12 +389,6 @@ function ListingDetailPage() {
               )}
             </div>
           </div>
-        </div>
-
-        <div className="text-center mt-5">
-          <Link to={APP_ROUTES.listings} className="btn btn-outline-success btn-sm">
-            &larr; Retour aux annonces
-          </Link>
         </div>
 
         {showReportModal && (
