@@ -133,7 +133,7 @@ function OwnerListings() {
                     <tr key={listing.id}>
                       <td className="ps-3 fw-semibold">
                         <Link
-                          to={`${APP_ROUTES.listings.replace(":listingId", "")}${listing.id}`}
+                          to={APP_ROUTES.ownerListingDetail.replace(":id", listing.id)}
                           className="text-decoration-none"
                         >
                           {listing.title}
@@ -151,6 +151,12 @@ function OwnerListings() {
                       </td>
                       <td className="text-end pe-3">
                         <div className="d-flex gap-1 justify-content-end">
+                          <Link
+                            to={APP_ROUTES.ownerListingDetail.replace(":id", listing.id)}
+                            className="btn btn-outline-secondary btn-sm"
+                          >
+                            Aperçu
+                          </Link>
                           {listing.status_id === ANNOUNCEMENT_STATUS.PENDING_REVIEW.id && (
                             <button
                               type="button"

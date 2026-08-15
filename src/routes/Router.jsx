@@ -32,6 +32,7 @@ import OwnerMessages from "../pages/owner/OwnerMessages"
 import OwnerSubscription from "../pages/owner/OwnerSubscription"
 import CreateListingPage from "../pages/owner/CreateListingPage"
 import EditListingPage from "../pages/owner/EditListingPage"
+import OwnerListingDetailPage from "../pages/owner/OwnerListingDetailPage"
 
 import AdminDashboard from "../pages/admin/AdminDashboard"
 import AdminModeration from "../pages/admin/AdminModeration"
@@ -93,6 +94,7 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.ownerDashboard, element: <OwnerDashboard /> },
               { path: APP_ROUTES.ownerListings, element: <OwnerListings /> },
               { path: APP_ROUTES.ownerListingNew, element: <CreateListingPage /> },
+              { path: APP_ROUTES.ownerListingDetail, element: <OwnerListingDetailPage /> },
               { path: APP_ROUTES.ownerListingEdit, element: <EditListingPage /> },
               { path: APP_ROUTES.ownerMessages, element: <OwnerMessages /> },
               { path: APP_ROUTES.ownerSubscription, element: <OwnerSubscription /> },
