@@ -118,8 +118,8 @@ export default function AdminSubscriptions() {
               </thead>
               <tbody>
                 {filtered.map((sub) => {
-                  const ownerName = sub.user?.name || sub.user?.email || "Inconnu"
-                  const planName = sub.plan?.name || "Inconnu"
+                  const ownerName = sub.user ? `${sub.user.firstname} ${sub.user.lastname}` : "Inconnu"
+                  const planName = sub.SubscriptionPlan?.label || sub.plan?.label || "Inconnu"
                   const statusCode = sub.status?.code || sub.status
                   
                   return (

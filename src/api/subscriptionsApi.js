@@ -1,15 +1,15 @@
 import apiClient from "./client"
 
-// GET /catalog/plans — Récupérer les forfaits (plans)
+// GET /subscriptions/plans — Récupérer les forfaits (plans)
 export async function getPlans() {
-  const response = await apiClient.get("/catalog/plans")
+  const response = await apiClient.get("/subscriptions/plans")
   return response.data || response || []
 }
 
-// POST /subscriptions — Souscription manuelle (avec référence optionnelle)
+// POST /subscriptions/subscribe — Souscription manuelle (avec référence optionnelle)
 export async function subscribe(data) {
   // data: { planId, paymentReference }
-  const response = await apiClient.post("/subscriptions", data)
+  const response = await apiClient.post("/subscriptions/subscribe", data)
   return response.data || response
 }
 
@@ -42,27 +42,27 @@ export async function confirmPayment(data) {
 
 // --- ADMIN ---
 
-// GET /admin/subscriptions
+// GET /subscriptions/admin
 export async function getAdminSubscriptions(params = {}) {
   const query = new URLSearchParams(params).toString()
-  const response = await apiClient.get(`/admin/subscriptions?${query}`)
+  const response = await apiClient.get(`/subscriptions/admin?${query}`)
   return response.data || response
 }
 
-// GET /admin/subscriptions/:id
+// GET /subscriptions/admin/:id
 export async function getAdminSubscriptionById(id) {
-  const response = await apiClient.get(`/admin/subscriptions/${id}`)
+  const response = await apiClient.get(`/subscriptions/admin/${id}`)
   return response.data || response
 }
 
-// POST /admin/subscriptions/:id/activate
+// PATCH /subscriptions/admin/:id/activate
 export async function activateSubscription(id, adminNote) {
-  const response = await apiClient.post(`/admin/subscriptions/${id}/activate`, { adminNote })
+  const response = await apiClient.patch(`/subscriptions/admin/${id}/activate`, { adminNote })
   return response.data || response
 }
 
-// POST /admin/subscriptions/:id/reject
+// PATCH /subscriptions/admin/:id/reject
 export async function rejectSubscription(id, adminNote) {
-  const response = await apiClient.post(`/admin/subscriptions/${id}/reject`, { adminNote })
+  const response = await apiClient.patch(`/subscriptions/admin/${id}/reject`, { adminNote })
   return response.data || response
 }
