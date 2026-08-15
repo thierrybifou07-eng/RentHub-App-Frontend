@@ -1,13 +1,23 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { useAuthStore } from "../../stores/authStore"
-import { getStats, getPendingCounts, getRecentActivity } from "../../api/adminApi"
+import { getStats, getPendingCounts, getRecentActivity, getStatsEvolution } from "../../api/adminApi"
 import StatCard from "../../components/common/StatCard"
 import PageHeader from "../../components/common/PageHeader"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import { APP_ROUTES } from "../../constants/routes"
 import { Bell, CreditCard, Home, Siren, User, Users } from "lucide-react"
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts"
 
 export default function AdminDashboard() {
   const user = useAuthStore((s) => s.user)
@@ -15,6 +25,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null)
   const [pending, setPending] = useState(null)
   const [activity, setActivity] = useState([])
+  const [evolution, setEvolution] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -22,14 +33,16 @@ export default function AdminDashboard() {
     let active = true
     async function loadDashboard() {
       try {
-        const [statsData, pendingData, activityData] = await Promise.all([
+        const [statsData, pendingData, activityData, evolutionData] = await Promise.all([
           getStats(),
           getPendingCounts(),
-          getRecentActivity()
+          getRecentActivity(),
+          getStatsEvolution(),
         ])
         if (active) {
           setStats(statsData)
           setPending(pendingData)
+          setEvolution(evolutionData)
           setActivity([
             ...(activityData?.announcements || []).map((a) => ({
               type: "LISTING",
@@ -59,6 +72,23 @@ export default function AdminDashboard() {
     loadDashboard()
     return () => { active = false }
   }, [])
+
+  const evolutionData = useMemo(() => {
+    const byDay = {}
+    const pushSeries = (series, key) => {
+      for (const row of series || []) {
+        const date = String(row.date || "").slice(0, 10)
+        if (!date) continue
+        if (!byDay[date]) byDay[date] = { date, users: 0, announcements: 0, reports: 0, subscriptions: 0 }
+        byDay[date][key] = Number(row.count) || 0
+      }
+    }
+    pushSeries(evolution?.users, "users")
+    pushSeries(evolution?.announcements, "announcements")
+    pushSeries(evolution?.reports, "reports")
+    pushSeries(evolution?.subscriptions, "subscriptions")
+    return Object.values(byDay).sort((a, b) => a.date.localeCompare(b.date))
+  }, [evolution])
 
   if (!user) return null
 
@@ -96,6 +126,11 @@ export default function AdminDashboard() {
     },
   ]
 
+  const formatDay = (value) => {
+    const [, m, d] = String(value).split("-")
+    return d ? `${d}/${m}` : value
+  }
+
   return (
     <div>
       <PageHeader 
@@ -117,6 +152,37 @@ export default function AdminDashboard() {
           </div>
         ))}
       </div>
+
+      {evolutionData.length > 0 && (
+        <div className="card border-0 shadow-sm mb-4">
+          <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
+            <h5 className="fw-bold mb-0">Évolution sur 30 jours</h5>
+          </div>
+          <div className="card-body">
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={evolutionData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border, #e5e7eb)" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={formatDay}
+                  tick={{ fontSize: 11 }}
+                  minTickGap={24}
+                />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                <Tooltip
+                  labelFormatter={(value) => formatDay(value)}
+                  formatter={(value, name) => [value, name]}
+                />
+                <Legend />
+                <Line type="monotone" dataKey="users" name="Utilisateurs" stroke="#6366f1" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="announcements" name="Annonces" stroke="#10b981" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="reports" name="Signalements" stroke="#f59f00" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="subscriptions" name="Abonnements" stroke="#3b82f6" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       <div className="row g-4">
         {/* Tâches en attente */}
