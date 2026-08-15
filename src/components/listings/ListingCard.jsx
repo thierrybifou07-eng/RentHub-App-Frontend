@@ -3,6 +3,7 @@ import ListingPrice from "./ListingPrice"
 import ListingLocation from "./ListingLocation"
 import { getListingDetailPath } from "../../constants/routes"
 import { getPrimaryMediaUrl } from "../../utils/mediaUrl"
+import { Star } from "lucide-react"
 import { Link } from "react-router-dom"
 
 function ListingCard({ listing, showFavorite, isFavorite, onToggleFavorite }) {
@@ -36,7 +37,11 @@ function ListingCard({ listing, showFavorite, isFavorite, onToggleFavorite }) {
           }}
           aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
         >
-          {isFavorite ? "\u2605" : "\u2606"}
+          {isFavorite ? (
+            <Star size={18} fill="currentColor" />
+          ) : (
+            <Star size={18} />
+          )}
         </button>
       )}
 

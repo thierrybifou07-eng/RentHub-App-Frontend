@@ -26,10 +26,17 @@ function TenantFavorites() {
     getFavorites({ page, limit: 12 })
       .then((response) => {
         if (!active) return
-        // Assuming API returns { status: 'success', data: { items: [], meta: { currentPage, lastPage } } }
-        const items = response || []
-        // If the API returns favorite objects wrapping announcements, extract them
-        const announcements = items.map(item => item.Announcement)
+        // L'API peut retourner un tableau, { items }, { data: [...] } ou { data: { items, meta } }
+        const unwrap = (r) => {
+          if (Array.isArray(r)) return { items: r, meta: {} }
+          if (Array.isArray(r?.data)) return { items: r.data, meta: r.meta || {} }
+          if (Array.isArray(r?.data?.items)) return { items: r.data.items, meta: r.data.meta || r.meta || {} }
+          if (Array.isArray(r?.items)) return { items: r.items, meta: r.meta || {} }
+          return { items: [], meta: {} }
+        }
+        const { items: rawItems, meta } = unwrap(response)
+        // Si l'API retourne des objets favori enveloppant l'annonce, on les extrait
+        const announcements = rawItems.map(item => item.Announcement || item.announcement || item)
 
         if (page === 1) {
           setListings(announcements)
@@ -37,7 +44,6 @@ function TenantFavorites() {
           setListings(prev => [...prev, ...announcements])
         }
 
-        const meta = items?.meta || {}
         setHasMore(meta.currentPage < meta.lastPage)
       })
       .catch(console.error)
@@ -49,7 +55,7 @@ function TenantFavorites() {
   }, [page])
 
   // Retirer de l'affichage si le favori est supprimé localement (optimisation UX)
-  const visibleListings = listings.filter(l => favorites.includes(l.id))
+  const visibleListings = listings.filter(l => favorites.includes(String(l.id)))
 
   return (
     <div>

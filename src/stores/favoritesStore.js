@@ -2,6 +2,24 @@ import { create } from "zustand"
 import { getFavorites, addFavorite as apiAddFavorite, removeFavorite as apiRemoveFavorite } from "../api/favoritesApi"
 import { useAuthStore } from "./authStore"
 
+function extractFavoriteId(item) {
+  const id =
+    item?.announcement_id ??
+    item?.announcementId ??
+    item?.announcement?.id ??
+    item?.Announcement?.id ??
+    item?.id
+  return String(id)
+}
+
+function unwrapItems(response) {
+  if (Array.isArray(response)) return response
+  if (Array.isArray(response?.items)) return response.items
+  if (Array.isArray(response?.data)) return response.data
+  if (Array.isArray(response?.data?.items)) return response.data.items
+  return []
+}
+
 export const useFavoritesStore = create((set, get) => ({
   favorites: [],
 
@@ -16,12 +34,9 @@ export const useFavoritesStore = create((set, get) => ({
 
   async fetchFavorites() {
     try {
-      const response = await getFavorites({ limit: 100 }) // Get a large chunk to have the IDs locally
-      // Assuming response.data.items or response.data contains the list of favorite announcements
-      const items = response || []
-      // We extract the announcement IDs. The API might return the announcement object directly, or a favorite object containing an announcement_id or announcement object.
-      // Usually it's `announcement_id` or the `id` of the announcement if the list is just announcements. Let's assume the items are announcement objects with `id` or favorite objects with `announcement_id`.
-      const ids = items.map(item => item.announcement_id)      
+      const response = await getFavorites({ limit: 100 })
+      const items = unwrapItems(response)
+      const ids = items.map(extractFavoriteId).filter(Boolean)
       set({ favorites: ids })
     } catch (err) {
       console.error("Failed to fetch favorites:", err)
@@ -30,11 +45,12 @@ export const useFavoritesStore = create((set, get) => ({
   },
 
   async addFavorite(listingId) {
+    const normalized = String(listingId)
     const { favorites } = get()
-    if (favorites.includes(listingId)) return
+    if (favorites.includes(normalized)) return
 
     // Optimistic update
-    set({ favorites: [...favorites, listingId] })
+    set({ favorites: [...favorites, normalized] })
     try {
       await apiAddFavorite(listingId)
     } catch (err) {
@@ -45,11 +61,12 @@ export const useFavoritesStore = create((set, get) => ({
   },
 
   async removeFavorite(listingId) {
+    const normalized = String(listingId)
     const { favorites } = get()
-    if (!favorites.includes(listingId)) return
+    if (!favorites.includes(normalized)) return
 
     // Optimistic update
-    set({ favorites: favorites.filter(id => id !== listingId) })
+    set({ favorites: favorites.filter(id => id !== normalized) })
     try {
       await apiRemoveFavorite(listingId)
     } catch (err) {
@@ -68,6 +85,6 @@ export const useFavoritesStore = create((set, get) => ({
   },
 
   isFavorite(listingId) {
-    return get().favorites.includes(listingId)
+    return get().favorites.includes(String(listingId))
   },
 }))

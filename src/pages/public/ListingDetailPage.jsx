@@ -18,7 +18,7 @@ function ListingDetailPage() {
   const navigate = useNavigate()
   const { isAuthenticated, user } = useAuthStore()
   const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite)
-  const isFavorite = useFavoritesStore((s) => s.favorites.includes(listingId))
+  const isFavorite = useFavoritesStore((s) => s.favorites.includes(String(listingId)))
   const fetchConversations = useConversationsStore((s) => s.fetchConversations)
   const conversations = useConversationsStore((s) => s.conversations)
   const [listing, setListing] = useState(null)
