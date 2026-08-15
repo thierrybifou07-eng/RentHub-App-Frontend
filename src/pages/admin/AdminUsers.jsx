@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react"
-import { Link } from "react-router-dom"
 import { getUsers, getUserById, manageUserStatus, manageUserRole, verifyUser } from "../../api/adminApi"
 import EmptyState from "../../components/feedback/EmptyState"
 import PageHeader from "../../components/common/PageHeader"
@@ -11,6 +10,18 @@ const ROLE_CLASSES = {
   ROLE_ADMIN: "bg-dark",
   ROLE_OWNER: "bg-primary",
   ROLE_TENANT: "bg-info text-dark",
+}
+
+const ROLE_ID_BY_CODE = {
+  ROLE_TENANT: 4,
+  ROLE_OWNER: 5,
+  ROLE_ADMIN: 2,
+}
+
+const STATUS_ID_BY_CODE = {
+  ACTIVE: 1,
+  SUSPENDED: 3,
+  PENDING_VERIFICATION: 4,
 }
 
 export default function AdminUsers() {
@@ -32,8 +43,8 @@ export default function AdminUsers() {
     try {
       const params = {}
       if (search) params.search = search
-      if (roleFilter) params.role_id = roleFilter
-      if (statusFilter) params.user_status_id = statusFilter
+      if (roleFilter) params.role_id = ROLE_ID_BY_CODE[roleFilter]
+      if (statusFilter) params.user_status_id = STATUS_ID_BY_CODE[statusFilter]
 
       const data = await getUsers(params)
       if (active) setUsers(data.items || data || [])
