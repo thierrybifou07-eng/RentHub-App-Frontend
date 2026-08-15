@@ -42,6 +42,7 @@ export default function AdminUsers() {
     setLoading(true)
     try {
       const params = {}
+      params.limit = 100
       if (search) params.search = search
       if (roleFilter) params.role_id = ROLE_ID_BY_CODE[roleFilter]
       if (statusFilter) params.user_status_id = STATUS_ID_BY_CODE[statusFilter]
