@@ -7,6 +7,7 @@ import ListingCard from "../../components/listings/ListingCard"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import EmptyState from "../../components/feedback/EmptyState"
+import AnimatedCounter, { Reveal } from "../../components/common/AnimatedCounter"
 import { BookOpen, Mail, Search } from "lucide-react"
 
 function HomePage() {
@@ -119,14 +120,38 @@ function HomePage() {
         </div>
       </section>
 
+      {/* ── Compteurs animés ──────────────────────────────────── */}
+      <section className="home-stats">
+        <div className="container">
+          <div className="row g-4 text-center">
+            <Reveal className="col-6 col-lg-3" delay={0}>
+              <p className="home-stats-value"><AnimatedCounter value={1500} suffix="+" /></p>
+              <span className="home-stats-label">Annonces actives</span>
+            </Reveal>
+            <Reveal className="col-6 col-lg-3" delay={100}>
+              <p className="home-stats-value"><AnimatedCounter value={3500} suffix="+" /></p>
+              <span className="home-stats-label">Locataires</span>
+            </Reveal>
+            <Reveal className="col-6 col-lg-3" delay={200}>
+              <p className="home-stats-value"><AnimatedCounter value={98} suffix="%" /></p>
+              <span className="home-stats-label">Clients satisfaits</span>
+            </Reveal>
+            <Reveal className="col-6 col-lg-3" delay={300}>
+              <p className="home-stats-value"><AnimatedCounter value={24} suffix="/7" /></p>
+              <span className="home-stats-label">Support disponible</span>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
       <section className="py-5">
         <div className="container">
-          <div className="d-flex justify-content-between align-items-center mb-4">
+          <Reveal className="d-flex justify-content-between align-items-center mb-4">
             <h2 className="h4 fw-bold mb-0">Annonces en vedette</h2>
             <Link to={APP_ROUTES.listings} className="btn btn-outline-success btn-sm">
               Voir toutes les annonces
             </Link>
-          </div>
+          </Reveal>
 
           {loading && <LoadingState message="Chargement des annonces..." />}
           {error && <ErrorState message={error} />}
@@ -138,10 +163,10 @@ function HomePage() {
           )}
           {!loading && !error && featuredListings.length > 0 && (
             <div className="row g-4">
-              {featuredListings.map((listing) => (
-                <div key={listing.id} className="col-md-6 col-lg-3">
+              {featuredListings.map((listing, idx) => (
+                <Reveal key={listing.id} className="col-md-6 col-lg-3" delay={idx * 80}>
                   <ListingCard listing={listing} />
-                </div>
+                </Reveal>
               ))}
             </div>
           )}
@@ -151,7 +176,7 @@ function HomePage() {
       <section className="py-5 bg-white">
         <div className="container">
           <div className="row g-4">
-            <div className="col-md-4">
+            <Reveal className="col-md-4" delay={0}>
               <article className="card h-100 border-0 shadow-sm">
                 <div className="card-body text-center">
                   <div className="display-6 mb-2"><Search size={44} /></div>
@@ -161,8 +186,8 @@ function HomePage() {
                   </p>
                 </div>
               </article>
-            </div>
-            <div className="col-md-4">
+            </Reveal>
+            <Reveal className="col-md-4" delay={100}>
               <article className="card h-100 border-0 shadow-sm">
                 <div className="card-body text-center">
                   <div className="display-6 mb-2"><BookOpen size={44} /></div>
@@ -172,8 +197,8 @@ function HomePage() {
                   </p>
                 </div>
               </article>
-            </div>
-            <div className="col-md-4">
+            </Reveal>
+            <Reveal className="col-md-4" delay={200}>
               <article className="card h-100 border-0 shadow-sm">
                 <div className="card-body text-center">
                   <div className="display-6 mb-2"><Mail size={44} /></div>
@@ -183,7 +208,7 @@ function HomePage() {
                   </p>
                 </div>
               </article>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>
