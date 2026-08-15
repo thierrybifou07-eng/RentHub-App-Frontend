@@ -8,6 +8,7 @@ import PageHeader from "../../components/common/PageHeader"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import FormField from "../../components/forms/FormField"
+import { Check } from "lucide-react"
 
 // Idéalement à mettre dans le .env (VITE_STRIPE_PUBLIC_KEY)
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_placeholder")
@@ -197,8 +198,8 @@ function OwnerSubscription() {
                 </p>
                 
                 <ul className="list-unstyled flex-grow-1 small mb-4">
-                  <li className="mb-2">✔️ {plan.durationDays} jours de validité</li>
-                  {plan.features?.map((f, i) => <li key={i} className="mb-2">✔️ {f}</li>)}
+                  <li className="mb-2"><Check size={15} className="me-2 text-success" />{plan.durationDays} jours de validité</li>
+                  {plan.features?.map((f, i) => <li key={i} className="mb-2"><Check size={15} className="me-2 text-success" />{f}</li>)}
                 </ul>
 
                 {activePlan?.id === plan.id && currentSubscription?.status === "ACTIVE" ? (

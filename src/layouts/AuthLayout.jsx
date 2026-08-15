@@ -1,5 +1,6 @@
 import { Link, Outlet } from "react-router-dom"
 import { APP_ROUTES } from "../constants/routes"
+import { ArrowLeft, Building2 } from "lucide-react"
 
 function AuthLayout() {
   return (
@@ -80,7 +81,7 @@ function AuthLayout() {
               fontSize: 20,
               boxShadow: "0 8px 24px rgba(15,81,50,0.30)",
             }}>
-              🏘️
+              <Building2 size={22} color="#fff" />
             </div>
             <span style={{
               fontFamily: "var(--font-display)",
@@ -127,7 +128,7 @@ function AuthLayout() {
             onMouseEnter={e => { e.currentTarget.style.color = "var(--color-primary-500)" }}
             onMouseLeave={e => { e.currentTarget.style.color = "var(--color-text-muted)" }}
           >
-            ← Retour à l'accueil
+            <ArrowLeft size={14} /> Retour à l'accueil
           </Link>
         </p>
       </div>

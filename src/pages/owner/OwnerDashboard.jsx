@@ -6,6 +6,7 @@ import { getOwnerListings } from "../../services/ownerService"
 import { getConversationsByUser } from "../../services/messagingService"
 import PageHeader from "../../components/common/PageHeader"
 import StatCard from "../../components/common/StatCard"
+import { CircleCheck, ClipboardList, Mail, TrendingUp } from "lucide-react"
 
 import { ANNOUNCEMENT_STATUS } from "../../constants/apiStatuses"
 
@@ -44,13 +45,13 @@ function OwnerDashboard() {
 
       <div className="row g-4 mb-4">
         <div className="col-md-4">
-          <StatCard icon="&#128203;" value={listingCount} label="Annonces" />
+          <StatCard icon={ClipboardList} value={listingCount} label="Annonces" />
         </div>
         <div className="col-md-4">
-          <StatCard icon="&#9989;" value={publishedCount} label="Publiées" />
+          <StatCard icon={CircleCheck} value={publishedCount} label="Publiées" />
         </div>
         <div className="col-md-4">
-          <StatCard icon="&#9993;" value={conversationCount} label="Conversations" />
+          <StatCard icon={Mail} value={conversationCount} label="Conversations" />
         </div>
       </div>
 
@@ -58,7 +59,7 @@ function OwnerDashboard() {
         <div className="col-md-4">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body text-center">
-              <div className="display-6 mb-2">&#128203;</div>
+              <div className="display-6 mb-2"><ClipboardList size={44} /></div>
               <h2 className="h6">Mes annonces</h2>
               <p className="text-secondary small">
                 Créez, modifiez et publiez vos annonces.
@@ -73,7 +74,7 @@ function OwnerDashboard() {
         <div className="col-md-4">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body text-center">
-              <div className="display-6 mb-2">&#9993;</div>
+              <div className="display-6 mb-2"><Mail size={44} /></div>
               <h2 className="h6">Messages</h2>
               <p className="text-secondary small">
                 Répondez aux demandes des locataires.
@@ -88,7 +89,7 @@ function OwnerDashboard() {
         <div className="col-md-4">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body text-center">
-              <div className="display-6 mb-2">&#128200;</div>
+              <div className="display-6 mb-2"><TrendingUp size={44} /></div>
               <h2 className="h6">Activité</h2>
               <p className="text-secondary small">
                 {publishedCount} annonce{publishedCount > 1 ? "s" : ""} active{publishedCount > 1 ? "s" : ""} sur le marché.

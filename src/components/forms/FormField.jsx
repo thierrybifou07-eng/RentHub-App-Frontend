@@ -10,6 +10,8 @@
  *  children — l'élément input/select/textarea
  */
 
+import { TriangleAlert } from "lucide-react"
+
 function FormField({ label, htmlFor, error, hint, required = false, children }) {
   return (
     <div className="form-field">
@@ -26,7 +28,7 @@ function FormField({ label, htmlFor, error, hint, required = false, children }) 
 
       {error && (
         <div className="field-error" role="alert" aria-live="polite">
-          <span aria-hidden="true">⚠</span>
+          <TriangleAlert size={14} aria-hidden="true" />
           {error}
         </div>
       )}

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom"
+import { Building2, Heart } from "lucide-react"
 import { APP_ROUTES } from "../../constants/routes"
 
 const COMPANY_LINKS = [
@@ -73,7 +74,7 @@ function AppFooter() {
               alignItems: "center",
               justifyContent: "center",
               fontSize: 14,
-            }}>🏘️</span>
+            }}><Building2 size={16} color="#fff" /></span>
             <span style={{
               fontFamily: "var(--font-display)",
               fontSize: "var(--text-lg)",
@@ -105,8 +106,8 @@ function AppFooter() {
         <p style={{ margin: 0, fontSize: "var(--text-xs)" }}>
           © {new Date().getFullYear()} RentHub — Location immobilière au Cameroun. Tous droits réservés.
         </p>
-        <p style={{ margin: 0, fontSize: "var(--text-xs)", color: "rgba(255,255,255,0.30)" }}>
-          Fait avec ❤️ au Cameroun
+        <p style={{ margin: 0, fontSize: "var(--text-xs)", color: "rgba(255,255,255,0.30)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+          Fait avec <Heart size={12} fill="currentColor" /> au Cameroun
         </p>
       </div>
     </footer>

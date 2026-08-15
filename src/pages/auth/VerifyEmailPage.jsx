@@ -7,6 +7,7 @@ import { useAuthStore } from "../../stores/authStore"
 import * as authApi from "../../api/authApi"
 import { APP_ROUTES } from "../../constants/routes"
 import FormField from "../../components/forms/FormField"
+import { CircleCheck, TriangleAlert } from "lucide-react"
 
 function VerifyEmailPage() {
   const navigate = useNavigate()
@@ -81,7 +82,7 @@ function VerifyEmailPage() {
           }}
           role="alert"
         >
-          <span aria-hidden="true">⚠</span> {globalError}
+          <TriangleAlert size={16} aria-hidden="true" /> {globalError}
         </div>
       )}
 
@@ -99,7 +100,7 @@ function VerifyEmailPage() {
           }}
           role="status"
         >
-          <span aria-hidden="true">✅</span> {successMessage}
+          <CircleCheck size={18} aria-hidden="true" /> {successMessage}
         </div>
       )}
 

@@ -3,6 +3,7 @@ import GeneralSection from "./GeneralSection"
 import DetailsSection from "./DetailsSection"
 import MediaSection from "./MediaSection"
 import { WIZARD_STEPS } from "./listingFormShared"
+import { ArrowLeft, ArrowRight } from "lucide-react"
 
 export default function ListingWizardShell({
   title,
@@ -28,6 +29,7 @@ export default function ListingWizardShell({
   onBackToList,
 }) {
   const isLastStep = wizardStep === WIZARD_STEPS.length - 1
+  const CurrentStepIcon = WIZARD_STEPS[wizardStep]?.icon
 
   return (
     <div>
@@ -60,7 +62,7 @@ export default function ListingWizardShell({
         <div className="card border-0 shadow-sm mb-4">
           <div className="card-body">
             <h5 className="mb-3 border-bottom pb-2">
-              {WIZARD_STEPS[wizardStep].icon} {WIZARD_STEPS[wizardStep].label}
+              <CurrentStepIcon size={18} className="me-1" /> {WIZARD_STEPS[wizardStep].label}
             </h5>
 
             {wizardStep === 0 && (
@@ -100,7 +102,7 @@ export default function ListingWizardShell({
                 onClick={handleWizardBack}
                 disabled={submitting}
               >
-                ← Retour
+                <ArrowLeft size={16} className="me-1" /> Retour
               </button>
             )}
           </div>
@@ -121,7 +123,7 @@ export default function ListingWizardShell({
                 className="btn btn-primary"
                 onClick={handleWizardNext}
               >
-                Suivant →
+                Suivant <ArrowRight size={16} className="ms-1" />
               </button>
             ) : (
               <button

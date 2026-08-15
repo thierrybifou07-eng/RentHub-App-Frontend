@@ -4,6 +4,7 @@ import { getUsers, getUserById, manageUserStatus, manageUserRole, verifyUser } f
 import EmptyState from "../../components/feedback/EmptyState"
 import PageHeader from "../../components/common/PageHeader"
 import LoadingState from "../../components/feedback/LoadingState"
+import { CircleCheck } from "lucide-react"
 
 
 const ROLE_CLASSES = {
@@ -192,7 +193,7 @@ export default function AdminUsers() {
                       </td>
                       <td>
                         {u.verified_at || u.verifiedAt ? (
-                          <span className="text-success fw-bold">✓ Oui</span>
+                          <span className="text-success fw-bold"><CircleCheck size={14} className="me-1" />Oui</span>
                         ) : (
                           <span className="text-muted">Non</span>
                         )}

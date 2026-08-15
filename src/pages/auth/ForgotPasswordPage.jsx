@@ -6,6 +6,7 @@ import { forgotPasswordSchema } from "../../schemas/userSchema"
 import * as authApi from "../../api/authApi"
 import { APP_ROUTES } from "../../constants/routes"
 import FormField from "../../components/forms/FormField"
+import { TriangleAlert } from "lucide-react"
 
 function ForgotPasswordPage() {
   const [globalError, setGlobalError] = useState(null)
@@ -49,7 +50,7 @@ function ForgotPasswordPage() {
           }}
           role="alert"
         >
-          <span aria-hidden="true">⚠</span> {globalError}
+          <TriangleAlert size={16} aria-hidden="true" /> {globalError}
         </div>
       )}
 

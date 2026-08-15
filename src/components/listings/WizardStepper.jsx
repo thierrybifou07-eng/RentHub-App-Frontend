@@ -1,9 +1,12 @@
+import { Check } from "lucide-react"
+
 export default function WizardStepper({ steps, currentStep }) {
   return (
     <div className="d-flex align-items-center justify-content-center mb-4 gap-0">
       {steps.map((step, idx) => {
         const isActive = idx === currentStep
         const isDone = idx < currentStep
+        const StepIcon = step.icon
         return (
           <div key={step.key} className="d-flex align-items-center">
             <div className="text-center" style={{ minWidth: 90 }}>
@@ -24,7 +27,7 @@ export default function WizardStepper({ steps, currentStep }) {
                   boxShadow: isActive ? "0 0 0 4px rgba(13,110,253,.25)" : "none",
                 }}
               >
-                {isDone ? "✓" : step.icon}
+                {isDone ? <Check size={20} /> : <StepIcon size={20} />}
               </div>
               <p
                 className="mb-0 mt-1 small"

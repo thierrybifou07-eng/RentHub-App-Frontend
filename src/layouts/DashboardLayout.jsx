@@ -5,26 +5,41 @@ import { useAuthStore } from "../stores/authStore"
 import { useConversationsStore } from "../stores/conversationsStore"
 import { startRealtime, stopRealtime } from "../services/realtime"
 import NotificationBell from "../components/notifications/NotificationBell"
+import {
+  BarChart3,
+  Building2,
+  CreditCard,
+  Heart,
+  Home,
+  House,
+  LogOut,
+  Menu,
+  MessageCircle,
+  Search,
+  Siren,
+  TrendingUp,
+  Users,
+} from "lucide-react"
 
 /* ── Navigation par rôle ────────────────────────────────────── */
 
 const NAV_SECTIONS = {
   tenant: [
-    { to: APP_ROUTES.tenantDashboard, label: "Tableau de bord", icon: "🏠" },
-    { to: APP_ROUTES.tenantFavorites, label: "Mes favoris",      icon: "❤️" },
-    { to: APP_ROUTES.tenantMessages,  label: "Messages",         icon: "💬" },
+    { to: APP_ROUTES.tenantDashboard, label: "Tableau de bord", icon: Home },
+    { to: APP_ROUTES.tenantFavorites, label: "Mes favoris",      icon: Heart },
+    { to: APP_ROUTES.tenantMessages,  label: "Messages",         icon: MessageCircle },
   ],
   owner: [
-    { to: APP_ROUTES.ownerDashboard, label: "Tableau de bord", icon: "📊" },
-    { to: APP_ROUTES.ownerListings,  label: "Mes annonces",    icon: "🏡" },
-    { to: APP_ROUTES.ownerMessages,  label: "Messages",        icon: "💬" },
+    { to: APP_ROUTES.ownerDashboard, label: "Tableau de bord", icon: BarChart3 },
+    { to: APP_ROUTES.ownerListings,  label: "Mes annonces",    icon: House },
+    { to: APP_ROUTES.ownerMessages,  label: "Messages",        icon: MessageCircle },
   ],
   admin: [
-    { to: APP_ROUTES.adminDashboard,   label: "Vue d'ensemble",  icon: "📈" },
-    { to: APP_ROUTES.adminModeration,  label: "Modération",      icon: "🔍" },
-    { to: APP_ROUTES.adminUsers,       label: "Utilisateurs",    icon: "👥" },
-    { to: APP_ROUTES.adminReports,     label: "Signalements",    icon: "🚨" },
-    { to: APP_ROUTES.adminSubscriptions, label: "Abonnements",   icon: "💳" },
+    { to: APP_ROUTES.adminDashboard,   label: "Vue d'ensemble",  icon: TrendingUp },
+    { to: APP_ROUTES.adminModeration,  label: "Modération",      icon: Search },
+    { to: APP_ROUTES.adminUsers,       label: "Utilisateurs",    icon: Users },
+    { to: APP_ROUTES.adminReports,     label: "Signalements",    icon: Siren },
+    { to: APP_ROUTES.adminSubscriptions, label: "Abonnements",   icon: CreditCard },
   ],
 }
 
@@ -159,7 +174,7 @@ function DashboardLayout() {
             flexShrink: 0,
             boxShadow: "0 4px 12px rgba(15,81,50,0.4)",
           }}>
-            🏘️
+            <Building2 size={18} color="#fff" />
           </div>
           <span style={{
             fontFamily: "var(--font-display)",
@@ -214,7 +229,9 @@ function DashboardLayout() {
                   to={link.to}
                   className={`sidebar-nav-link${active ? " active" : ""}`}
                 >
-                  <span className="sidebar-nav-icon">{link.icon}</span>
+                  <span className="sidebar-nav-icon">
+                    <link.icon size={16} />
+                  </span>
                   {link.label}
                   {link.label === "Messages" && unreadCount > 0 && (
                     <span className="badge bg-danger rounded-pill ms-auto px-2 py-1" style={{ fontSize: "0.7rem" }}>
@@ -322,7 +339,7 @@ function DashboardLayout() {
           onMouseEnter={e => { e.currentTarget.style.background = "rgba(239,68,68,0.18)"; e.currentTarget.style.color = "#fca5a5" }}
           onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "rgba(255,255,255,0.55)" }}
         >
-          ↪
+          <LogOut size={16} />
         </button>
       </div>
     </>
@@ -380,7 +397,7 @@ function DashboardLayout() {
             aria-label="Menu"
             aria-expanded={sidebarOpen}
           >
-            ☰
+            <Menu size={18} />
           </button>
 
           {/* Breadcrumb / titre page */}
@@ -414,7 +431,7 @@ function DashboardLayout() {
                 border: "1px solid var(--color-primary-100)",
               }}
             >
-              🏘️ Accueil
+              <Home size={16} /> Accueil
             </Link>
 
             <NotificationBell />

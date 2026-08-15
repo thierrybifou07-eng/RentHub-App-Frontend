@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react"
+import { Video } from "lucide-react"
 import { resolveMediaUrl } from "../../utils/mediaUrl"
 
 export default function MediaUploader({
@@ -120,7 +121,7 @@ export default function MediaUploader({
                 <div key={m.id} className="position-relative border rounded overflow-hidden shadow-sm" style={{ width: "120px", height: "120px", backgroundColor: "#f8f9fa" }}>
                   {isVideo ? (
                     <div className="d-flex align-items-center justify-content-center h-100 bg-dark text-white">
-                      <span className="small">🎥 Vidéo</span>
+                      <span className="small"><Video size={16} className="me-1" />Vidéo</span>
                     </div>
                   ) : (
                     <img src={src} alt="Existant" style={{ width: "100%", height: "100%", objectFit: "cover" }} />

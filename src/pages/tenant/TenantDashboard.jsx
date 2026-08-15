@@ -6,6 +6,7 @@ import { useFavoritesStore } from "../../stores/favoritesStore"
 import { getConversationsByUser } from "../../services/messagingService"
 import PageHeader from "../../components/common/PageHeader"
 import StatCard from "../../components/common/StatCard"
+import { Heart, Mail, Search } from "lucide-react"
 
 function TenantDashboard() {
   const user = useAuthStore((s) => s.user)
@@ -30,13 +31,13 @@ function TenantDashboard() {
 
       <div className="row g-4 mb-4">
         <div className="col-md-4">
-          <StatCard icon="&#9825;" value={favorites.length} label="Favoris" />
+          <StatCard icon={Heart} value={favorites.length} label="Favoris" />
         </div>
         <div className="col-md-4">
-          <StatCard icon="&#9993;" value={conversationCount} label="Conversations" />
+          <StatCard icon={Mail} value={conversationCount} label="Conversations" />
         </div>
         <div className="col-md-4">
-          <StatCard icon="&#128269;" value="8" label="Annonces disponibles" />
+          <StatCard icon={Search} value="8" label="Annonces disponibles" />
         </div>
       </div>
 
@@ -44,7 +45,7 @@ function TenantDashboard() {
         <div className="col-md-4">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body text-center">
-              <div className="display-6 mb-2">&#9825;</div>
+              <div className="display-6 mb-2"><Heart size={44} /></div>
               <h2 className="h6">Mes favoris</h2>
               <p className="text-secondary small">
                 Retrouvez les annonces que vous avez sauvegardées.
@@ -59,7 +60,7 @@ function TenantDashboard() {
         <div className="col-md-4">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body text-center">
-              <div className="display-6 mb-2">&#9993;</div>
+              <div className="display-6 mb-2"><Mail size={44} /></div>
               <h2 className="h6">Messages</h2>
               <p className="text-secondary small">
                 Discutez avec les propriéaires de vos annonces.
@@ -74,7 +75,7 @@ function TenantDashboard() {
         <div className="col-md-4">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body text-center">
-              <div className="display-6 mb-2">&#128269;</div>
+              <div className="display-6 mb-2"><Search size={44} /></div>
               <h2 className="h6">Rechercher</h2>
               <p className="text-secondary small">
                 Trouvez votre prochain logement au Cameroun.

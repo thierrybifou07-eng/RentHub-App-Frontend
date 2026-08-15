@@ -6,6 +6,7 @@ import { resetPasswordSchema } from "../../schemas/userSchema"
 import * as authApi from "../../api/authApi"
 import { APP_ROUTES } from "../../constants/routes"
 import FormField from "../../components/forms/FormField"
+import { PartyPopper, TriangleAlert } from "lucide-react"
 
 function ResetPasswordPage() {
   const navigate = useNavigate()
@@ -48,7 +49,9 @@ function ResetPasswordPage() {
   if (isSuccess) {
     return (
       <div className="text-center page-enter">
-        <div style={{ fontSize: "3rem", marginBottom: "var(--space-4)" }}>🎉</div>
+        <div style={{ fontSize: "3rem", marginBottom: "var(--space-4)", display: "flex", justifyContent: "center" }}>
+          <PartyPopper size={48} />
+        </div>
         <h2 style={{ marginBottom: "var(--space-3)" }}>Mot de passe modifié !</h2>
         <p style={{ color: "var(--color-text-muted)", marginBottom: "var(--space-6)" }}>
           Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé vers la page de connexion.
@@ -75,7 +78,7 @@ function ResetPasswordPage() {
           }}
           role="alert"
         >
-          <span aria-hidden="true">⚠</span> {globalError}
+          <TriangleAlert size={16} aria-hidden="true" /> {globalError}
         </div>
       )}
 

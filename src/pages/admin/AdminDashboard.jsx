@@ -7,6 +7,7 @@ import PageHeader from "../../components/common/PageHeader"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import { APP_ROUTES } from "../../constants/routes"
+import { Bell, CreditCard, Home, Siren, User, Users } from "lucide-react"
 
 export default function AdminDashboard() {
   const user = useAuthStore((s) => s.user)
@@ -48,31 +49,31 @@ export default function AdminDashboard() {
 
   const statCards = [
     {
-      icon: "\uf0c0",
+      icon: Users,
       label: "Utilisateurs totaux",
       value: stats?.users || 0,
-      color: "text-primary",
+      color: "primary",
       href: APP_ROUTES.adminUsers,
     },
     {
-      icon: "\uf015",
+      icon: Home,
       label: "Annonces actives",
       value: stats?.publishedListings || 0,
-      color: "text-success",
+      color: "success",
       href: APP_ROUTES.adminModeration,
     },
     {
-      icon: "\uf071",
+      icon: Siren,
       label: "Signalements en cours",
       value: stats?.pendingReports || 0,
-      color: "text-warning",
+      color: "warning",
       href: APP_ROUTES.adminReports,
     },
     {
-      icon: "\uf155",
+      icon: CreditCard,
       label: "Abonnements actifs",
       value: stats?.activeSubscriptions || 0,
-      color: "text-info",
+      color: "info",
       href: APP_ROUTES.adminSubscriptions,
     },
   ]
@@ -153,13 +154,13 @@ export default function AdminDashboard() {
                 <div className="table-responsive">
                   <table className="table table-borderless align-middle mb-0">
                     <tbody>
-                      {activity.slice(0, 6).map((item, index) => (
+                      {activity.slice(0, 6).map((item, index) => {
+                        const ActivityIcon = item.type === "USER" ? User : item.type === "LISTING" ? Home : Bell
+                        return (
                         <tr key={index} className="border-bottom">
                           <td style={{ width: "40px" }}>
                             <div className="bg-light rounded-circle d-flex align-items-center justify-content-center" style={{ width: "32px", height: "32px" }}>
-                              <span style={{ fontFamily: "FontAwesome" }} className="text-muted small">
-                                {item.type === "USER" ? "\uf007" : item.type === "LISTING" ? "\uf015" : "\uf0f3"}
-                              </span>
+                              <ActivityIcon size={14} className="text-muted" />
                             </div>
                           </td>
                           <td>
@@ -167,7 +168,8 @@ export default function AdminDashboard() {
                             <small className="text-muted">{new Date(item.createdAt || item.date).toLocaleString("fr-FR")}</small>
                           </td>
                         </tr>
-                      ))}
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>

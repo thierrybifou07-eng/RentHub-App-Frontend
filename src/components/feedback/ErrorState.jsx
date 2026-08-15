@@ -8,6 +8,8 @@
  *  fullPage  — si true, occupe toute la hauteur visible
  */
 
+import { RotateCcw, TriangleAlert } from "lucide-react"
+
 function ErrorState({
   title    = "Une erreur est survenue",
   message  = "Impossible de charger les données. Veuillez vérifier votre connexion.",
@@ -26,7 +28,7 @@ function ErrorState({
     >
       {/* Icône */}
       <div className="error-icon" aria-hidden="true">
-        ⚠️
+        <TriangleAlert size={36} />
       </div>
 
       {/* Titre */}
@@ -65,7 +67,7 @@ function ErrorState({
             e.currentTarget.style.transform = "none"
           }}
         >
-          <span aria-hidden="true">↺</span>
+          <RotateCcw size={14} aria-hidden="true" />
           Réessayer
         </button>
       )}

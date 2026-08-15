@@ -1,3 +1,5 @@
+import { Camera, Home, Info } from "lucide-react"
+
 export const EMPTY_FORM = {
   title: "",
   property_type_id: "",
@@ -12,9 +14,9 @@ export const EMPTY_FORM = {
 }
 
 export const WIZARD_STEPS = [
-  { key: "general", label: "Informations", icon: "📝" },
-  { key: "details", label: "Caractéristiques", icon: "🏠" },
-  { key: "media", label: "Médias", icon: "📷" },
+  { key: "general", label: "Informations", icon: Info },
+  { key: "details", label: "Caractéristiques", icon: Home },
+  { key: "media", label: "Médias", icon: Camera },
 ]
 
 export const STEP_FIELDS = {

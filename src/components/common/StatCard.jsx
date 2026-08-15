@@ -1,8 +1,10 @@
+import { ArrowDown, ArrowRight, ArrowUp, BarChart3 } from "lucide-react"
+
 /**
  * StatCard — Carte de statistique premium
  *
  * Props:
- *  icon      — emoji ou string affiché dans le cercle coloré
+ *  icon      — composant d'icône lucide affiché dans le cercle coloré (défaut BarChart3)
  *  value     — valeur principale (nombre ou texte)
  *  label     — libellé sous la valeur
  *  trend     — { value: string, direction: "up"|"down"|"neutral" } (optionnel)
@@ -37,15 +39,16 @@ const COLOR_MAP = {
   },
 }
 
-const TREND_ICONS = { up: "↑", down: "↓", neutral: "→" }
+const TREND_ICONS = { up: ArrowUp, down: ArrowDown, neutral: ArrowRight }
 const TREND_COLORS = {
   up:      "var(--color-success)",
   down:    "var(--color-danger)",
   neutral: "var(--color-text-muted)",
 }
 
-function StatCard({ icon = "📊", value, label, trend, color = "primary" }) {
+function StatCard({ icon: Icon = BarChart3, value, label, trend, color = "primary" }) {
   const theme = COLOR_MAP[color] || COLOR_MAP.primary
+  const TrendIcon = TREND_ICONS[trend?.direction] || ArrowRight
 
   return (
     <div
@@ -55,7 +58,7 @@ function StatCard({ icon = "📊", value, label, trend, color = "primary" }) {
       <div className="card-body">
         {/* Icône */}
         <div className="stat-icon" style={{ "--stat-card-bg": theme.bg }}>
-          <span role="img" aria-hidden="true">{icon}</span>
+          <Icon size={22} aria-hidden="true" />
         </div>
 
         {/* Valeur */}
@@ -70,7 +73,7 @@ function StatCard({ icon = "📊", value, label, trend, color = "primary" }) {
             className="stat-trend"
             style={{ color: TREND_COLORS[trend.direction] || TREND_COLORS.neutral }}
           >
-            <span aria-hidden="true">{TREND_ICONS[trend.direction] || "→"}</span>
+            <span aria-hidden="true"><TrendIcon size={14} /></span>
             <span>{trend.value}</span>
           </div>
         )}

@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom"
+import { Inbox } from "lucide-react"
 
 /**
  * EmptyState — État vide premium
  *
  * Props:
- *  icon        — emoji affiché dans le cercle (défaut "📄")
+ *  icon        — composant d'icône lucide affiché dans le cercle (défaut Inbox)
  *  title       — titre principal
  *  description — texte explicatif (optionnel)
  *  action      — { label, to?, onClick? } — bouton CTA (optionnel)
@@ -20,7 +21,7 @@ const BG_MAP = {
 }
 
 function EmptyState({
-  icon        = "📭",
+  icon: Icon = Inbox,
   title       = "Aucun résultat",
   description,
   action,
@@ -54,7 +55,7 @@ function EmptyState({
         style={{ background: BG_MAP[color] || BG_MAP.primary }}
         aria-hidden="true"
       >
-        {icon}
+        <Icon size={40} aria-hidden="true" />
       </div>
 
       {/* Titre */}

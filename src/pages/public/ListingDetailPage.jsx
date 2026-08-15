@@ -10,6 +10,7 @@ import { useFavoritesStore } from "../../stores/favoritesStore"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import ReportModal from "../../components/reports/ReportModal"
+import { Star } from "lucide-react"
 
 function ListingDetailPage() {
   const { listingId } = useParams()
@@ -209,7 +210,7 @@ function ListingDetailPage() {
             </span>
             <span className="text-secondary small">{cityName}</span>
             {favCount > 0 && (
-              <span className="text-secondary small">★ {favCount} favori{favCount > 1 ? "s" : ""}</span>
+              <span className="text-secondary small"><Star size={13} className="text-warning me-1" />{favCount} favori{favCount > 1 ? "s" : ""}</span>
             )}
           </div>
 
@@ -352,7 +353,11 @@ function ListingDetailPage() {
                       className={`btn ${isFavorite ? "btn-warning" : "btn-outline-warning"}`}
                       onClick={() => toggleFavorite(listingId)}
                     >
-                      {isFavorite ? "★ Retirer des favoris" : "☆ Ajouter aux favoris"}
+                      {isFavorite ? (
+                        <><Star size={16} className="me-1" />Retirer des favoris</>
+                      ) : (
+                        <><Star size={16} className="me-1" />Ajouter aux favoris</>
+                      )}
                     </button>
                     <button
                       type="button"

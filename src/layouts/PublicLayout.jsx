@@ -2,6 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useRef, useState } from "react"
 import { APP_ROUTES } from "../constants/routes"
 import { useAuthStore } from "../stores/authStore"
+import { Building2, Menu, X } from "lucide-react"
 import AppFooter from "../components/common/AppFooter"
 
 const ROLE_DASHBOARD_ROUTE = {
@@ -110,7 +111,7 @@ function PublicLayout() {
                 fontSize: 15,
                 boxShadow: "0 2px 8px rgba(15,81,50,0.30)",
                 flexShrink: 0,
-              }}>🏘️</span>
+              }}><Building2 size={18} color="#fff" /></span>
               <span style={{
                 fontFamily: "var(--font-display)",
                 fontSize: "var(--text-xl)",
@@ -262,7 +263,7 @@ function PublicLayout() {
               lineHeight: 1,
             }}
           >
-            {mobileOpen ? "✕" : "☰"}
+            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
 

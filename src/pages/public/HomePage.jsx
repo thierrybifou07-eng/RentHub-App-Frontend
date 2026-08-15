@@ -7,6 +7,7 @@ import ListingCard from "../../components/listings/ListingCard"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import EmptyState from "../../components/feedback/EmptyState"
+import { BookOpen, Mail, Search } from "lucide-react"
 
 function HomePage() {
   const navigate = useNavigate()
@@ -153,7 +154,7 @@ function HomePage() {
             <div className="col-md-4">
               <article className="card h-100 border-0 shadow-sm">
                 <div className="card-body text-center">
-                  <div className="display-6 mb-2">&#128269;</div>
+                  <div className="display-6 mb-2"><Search size={44} /></div>
                   <h2 className="h6 fw-bold">Recherche rapide</h2>
                   <p className="text-secondary small mb-0">
                     Filtrez par ville, type de bien, budget et nombre de chambres.
@@ -164,7 +165,7 @@ function HomePage() {
             <div className="col-md-4">
               <article className="card h-100 border-0 shadow-sm">
                 <div className="card-body text-center">
-                  <div className="display-6 mb-2">&#128179;</div>
+                  <div className="display-6 mb-2"><BookOpen size={44} /></div>
                   <h2 className="h6 fw-bold">Prix en XAF</h2>
                   <p className="text-secondary small mb-0">
                     Tous les prix sont affichés en francs CFA camerounais.
@@ -175,7 +176,7 @@ function HomePage() {
             <div className="col-md-4">
               <article className="card h-100 border-0 shadow-sm">
                 <div className="card-body text-center">
-                  <div className="display-6 mb-2">&#9993;</div>
+                  <div className="display-6 mb-2"><Mail size={44} /></div>
                   <h2 className="h6 fw-bold">Messagerie privée</h2>
                   <p className="text-secondary small mb-0">
                     Contactez directement le propriétaire de l'annonce.

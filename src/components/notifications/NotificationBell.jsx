@@ -4,21 +4,37 @@ import { APP_ROUTES, getListingDetailPath } from "../../constants/routes"
 import { useAuthStore } from "../../stores/authStore"
 import { useNotificationsStore } from "../../stores/notificationsStore"
 import { formatRelativeTime } from "../../utils/formatters"
+import {
+  Ban,
+  Bell,
+  CircleCheck,
+  CircleX,
+  CreditCard,
+  FileText,
+  Folder,
+  House,
+  Inbox,
+  MessageCircle,
+  Scale,
+  Siren,
+  Sparkles,
+  TriangleAlert,
+} from "lucide-react"
 
 const NOTIFICATION_META = {
-  new_message:               { icon: "💬", color: "#3b82f6" },
-  new_pending_announcement:  { icon: "🏡", color: "#f59f00" },
-  announcement_approved:     { icon: "✅", color: "#10b981" },
-  announcement_rejected:     { icon: "❌", color: "#ef4444" },
-  announcement_archived:     { icon: "📁", color: "#64748b" },
-  new_report:                { icon: "🚨", color: "#ef4444" },
-  report_reviewed:           { icon: "📝", color: "#3b82f6" },
-  report_dismissed:          { icon: "📭", color: "#64748b" },
-  report_action_taken:       { icon: "⚖️", color: "#8b5cf6" },
-  new_subscription_request:  { icon: "💳", color: "#f59f00" },
-  subscription_activated:    { icon: "✨", color: "#10b981" },
-  subscription_rejected:     { icon: "🚫", color: "#ef4444" },
-  subscription_failed:       { icon: "⚠️", color: "#ef4444" },
+  new_message:               { icon: MessageCircle, color: "#3b82f6" },
+  new_pending_announcement:  { icon: House, color: "#f59f00" },
+  announcement_approved:     { icon: CircleCheck, color: "#10b981" },
+  announcement_rejected:     { icon: CircleX, color: "#ef4444" },
+  announcement_archived:     { icon: Folder, color: "#64748b" },
+  new_report:                { icon: Siren, color: "#ef4444" },
+  report_reviewed:           { icon: FileText, color: "#3b82f6" },
+  report_dismissed:          { icon: Inbox, color: "#64748b" },
+  report_action_taken:       { icon: Scale, color: "#8b5cf6" },
+  new_subscription_request:  { icon: CreditCard, color: "#f59f00" },
+  subscription_activated:    { icon: Sparkles, color: "#10b981" },
+  subscription_rejected:     { icon: Ban, color: "#ef4444" },
+  subscription_failed:       { icon: TriangleAlert, color: "#ef4444" },
 }
 
 function getNotificationTarget(notification, role) {
@@ -108,7 +124,7 @@ function NotificationBell() {
         aria-label="Notifications"
         aria-expanded={open}
       >
-        🔔
+        <Bell size={18} />
         {unreadCount > 0 && (
           <span className="notification-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
         )}
@@ -130,7 +146,8 @@ function NotificationBell() {
               <li className="notification-empty">Aucune notification</li>
             )}
             {notifications.slice(0, 20).map((notification) => {
-              const meta = NOTIFICATION_META[notification.type] || { icon: "🔔", color: "#64748b" }
+              const meta = NOTIFICATION_META[notification.type] || { icon: Bell, color: "#64748b" }
+              const Icon = meta.icon
               return (
                 <li key={notification.id}>
                   <button
@@ -142,7 +159,7 @@ function NotificationBell() {
                       className="notification-item-icon"
                       style={{ background: `${meta.color}1a`, color: meta.color }}
                     >
-                      {meta.icon}
+                      <Icon size={16} />
                     </span>
                     <span className="notification-item-content">
                       <span className="notification-item-title">{notification.title}</span>
