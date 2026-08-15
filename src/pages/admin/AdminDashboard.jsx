@@ -152,7 +152,7 @@ export default function AdminDashboard() {
                 <p className="text-muted text-center my-4">Aucune activité récente.</p>
               ) : (
                 <div className="table-responsive">
-                  <table className="table table-borderless align-middle mb-0">
+                  <table className="table table-borderless table-renthub align-middle mb-0">
                     <tbody>
                       {activity.slice(0, 6).map((item, index) => {
                         const ActivityIcon = item.type === "USER" ? User : item.type === "LISTING" ? Home : Bell

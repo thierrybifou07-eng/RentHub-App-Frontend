@@ -100,8 +100,8 @@ function OwnerListings() {
         <div className="card border-0 shadow-sm">
           <div className="card-body p-0">
             <div className="table-responsive">
-              <table className="table table-hover align-middle mb-0">
-                <thead className="table-light">
+              <table className="table table-hover align-middle table-renthub mb-0">
+                <thead>
                   <tr>
                     <th scope="col" className="ps-3">Titre</th>
                     <th scope="col">Type</th>

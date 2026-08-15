@@ -115,8 +115,8 @@ export default function AdminReports() {
         <EmptyState message="Aucun signalement trouvé." />
       ) : (
         <div className="table-responsive">
-          <table className="table align-middle table-hover">
-            <thead className="table-light">
+          <table className="table align-middle table-hover table-renthub">
+            <thead>
               <tr>
                 <th>ID</th>
                 <th>Cible (Annonce)</th>

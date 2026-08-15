@@ -101,8 +101,8 @@ export default function AdminModeration() {
       ) : (
         <div className="card border-0 shadow-sm">
           <div className="table-responsive">
-            <table className="table align-middle table-hover mb-0">
-              <thead className="table-light">
+            <table className="table align-middle table-hover table-renthub mb-0">
+              <thead>
                 <tr>
                   <th>Annonce</th>
                   <th>Propriétaire</th>

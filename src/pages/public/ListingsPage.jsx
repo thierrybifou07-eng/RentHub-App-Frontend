@@ -7,6 +7,7 @@ import ListingCard from "../../components/listings/ListingCard"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import EmptyState from "../../components/feedback/EmptyState"
+import { ArrowLeft, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
 
 function ListingsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -210,6 +211,7 @@ function ListingsPage() {
                   className="btn btn-outline-secondary btn-sm"
                   onClick={resetFilters}
                 >
+                  <RotateCcw size={14} className="me-1" />
                   Réinitialiser les filtres
                 </button>
               </div>
@@ -245,14 +247,15 @@ function ListingsPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <nav className="d-flex justify-content-center mt-4" aria-label="Pagination des annonces">
-              <ul className="pagination pagination-sm mb-0">
+              <ul className="pagination pagination-sm pagination-renthub mb-0">
                 <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
                   <button
                     className="page-link"
                     onClick={() => goToPage(currentPage - 1)}
                     disabled={currentPage <= 1}
+                    aria-label="Page précédente"
                   >
-                    &laquo;
+                    <ChevronLeft size={16} />
                   </button>
                 </li>
                 {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -291,8 +294,9 @@ function ListingsPage() {
                     className="page-link"
                     onClick={() => goToPage(currentPage + 1)}
                     disabled={currentPage >= totalPages}
+                    aria-label="Page suivante"
                   >
-                    &raquo;
+                    <ChevronRight size={16} />
                   </button>
                 </li>
               </ul>
@@ -303,7 +307,8 @@ function ListingsPage() {
 
       <div className="text-center mt-5">
         <Link to={APP_ROUTES.home} className="btn btn-outline-success btn-sm">
-          &larr; Retour à l'accueil
+          <ArrowLeft size={14} className="me-1" />
+          Retour à l'accueil
         </Link>
       </div>
     </div>
