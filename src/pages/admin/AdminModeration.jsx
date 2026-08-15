@@ -6,8 +6,9 @@ import PageHeader from "../../components/common/PageHeader"
 import LoadingState from "../../components/feedback/LoadingState"
 import Pagination from "../../components/common/Pagination"
 import { getModerationListings, approveListing, rejectListing, deleteListing } from "../../services/adminService"
+import { formatXAF } from "../../utils/formatters"
 
-const PAGE_LIMIT = 10
+const PAGE_LIMIT = 20
 
 export default function AdminModeration() {
   const [listings, setListings] = useState([])
@@ -141,7 +142,7 @@ export default function AdminModeration() {
                       </td>
                       <td>{ownerName}</td>
                       <td>{cityName}</td>
-                      <td>{listing.price.toLocaleString("fr-FR")}&nbsp;FCFA</td>
+                      <td>{formatXAF(listing.price)} XAF</td>
                       <td>
                         <ListingBadge statusId={listing.status?.id ?? listing.status_id} />
                       </td>

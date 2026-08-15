@@ -6,7 +6,7 @@ import LoadingState from "../../components/feedback/LoadingState"
 import Pagination from "../../components/common/Pagination"
 import { formatDate } from "../../utils/formatters"
 
-const PAGE_LIMIT = 10
+const PAGE_LIMIT = 20
 
 const STATUS_CLASSES = {
   PENDING: "bg-info",

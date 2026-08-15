@@ -6,7 +6,7 @@ import LoadingState from "../../components/feedback/LoadingState"
 import Pagination from "../../components/common/Pagination"
 import { CircleCheck } from "lucide-react"
 
-const PAGE_LIMIT = 10
+const PAGE_LIMIT = 20
 
 
 const ROLE_CLASSES = {
@@ -88,6 +88,8 @@ export default function AdminUsers() {
         newStatus: isBanned ? "ACTIVE" : "SUSPENDED"
       })
       await loadUsers()
+    } catch (err) {
+      alert(err.message || "Erreur lors du changement de statut.")
     } finally {
       setActionLoading(null)
     }
@@ -98,6 +100,8 @@ export default function AdminUsers() {
     try {
       await manageUserRole({ userId: id, currentRole, newRole })
       await loadUsers()
+    } catch (err) {
+      alert(err.message || "Erreur lors du changement de rôle.")
     } finally {
       setActionLoading(null)
     }
@@ -109,6 +113,8 @@ export default function AdminUsers() {
     try {
       await verifyUser(id)
       await loadUsers()
+    } catch (err) {
+      alert(err.message || "Erreur lors de la vérification.")
     } finally {
       setActionLoading(null)
     }
