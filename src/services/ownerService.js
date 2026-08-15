@@ -10,8 +10,8 @@ import { ANNOUNCEMENT_STATUS } from "../constants/apiStatuses"
 
 export async function getOwnerListings(params = {}) {
   const response = await getMyAnnouncements(params)
-  // L'API renvoie souvent { status: 'success', data: { items, meta } } ou similaire
-  return response.data|| []
+  // L'enveloppe paginée du backend : { status, data: rows, pagination }
+  return { items: response.data || [], pagination: response.pagination || {} }
 }
 
 export async function createListing(data) {

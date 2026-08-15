@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Link } from "react-router-dom"
 import { getAdminReports, reviewReport, dismissReport, takeActionReport } from "../../api/reportsApi"
 import EmptyState from "../../components/feedback/EmptyState"
 import LoadingState from "../../components/feedback/LoadingState"
+import Pagination from "../../components/common/Pagination"
 import { formatDate } from "../../utils/formatters"
+
+const PAGE_LIMIT = 10
 
 const STATUS_CLASSES = {
   PENDING: "bg-info",
@@ -29,28 +32,41 @@ export default function AdminReports() {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("all")
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
   
   // Note admin pour les actions
-  const [adminNote, setAdminNote] = useState("")
+  const adminNote = ""
   const [actionLoading, setActionLoading] = useState(null)
 
-  useEffect(() => {
-    let active = true
-    loadReports(active)
-    return () => { active = false }
-  }, [filter])
-
-  async function loadReports(active = true) {
+  const loadReports = useCallback(async (active = true) => {
     setLoading(true)
     try {
-      const params = filter === "all" ? {} : { status_id: STATUS_ID_BY_CODE[filter] }
+      const params = { page, limit: PAGE_LIMIT }
+      if (filter !== "all") params.status_id = STATUS_ID_BY_CODE[filter]
       const data = await getAdminReports(params)
-      if (active) setReports(data.items || data || [])
+      if (active) {
+        setReports(data.items || [])
+        setTotalPages(data.pagination?.totalPages || 1)
+        setTotalItems(data.pagination?.total || data.items?.length || 0)
+      }
     } catch (err) {
       console.error(err)
     } finally {
       if (active) setLoading(false)
     }
+  }, [filter, page])
+
+  useEffect(() => {
+    let active = true
+    loadReports(active)
+    return () => { active = false }
+  }, [loadReports])
+
+  const changeFilter = (key) => {
+    setFilter(key)
+    setPage(1)
   }
 
   const handleReview = async (id) => {
@@ -108,7 +124,7 @@ export default function AdminReports() {
             <button
               type="button"
               className={`nav-link ${filter === t.key ? "active" : ""}`}
-              onClick={() => setFilter(t.key)}
+              onClick={() => changeFilter(t.key)}
             >
               {t.label}
             </button>
@@ -200,6 +216,16 @@ export default function AdminReports() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {!loading && reports.length > 0 && (
+        <>
+          <p className="text-secondary small text-center mt-3 mb-0">
+            {totalItems} signalement{totalItems > 1 ? "s" : ""}
+            {totalPages > 1 && ` — Page ${page} sur ${totalPages}`}
+          </p>
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} ariaLabel="Pagination des signalements" />
+        </>
       )}
     </div>
   )

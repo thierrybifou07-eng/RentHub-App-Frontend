@@ -7,34 +7,51 @@ import { formatXAF } from "../../utils/formatters"
 import { PROPERTY_TYPE_FALLBACK, ANNOUNCEMENT_STATUS } from "../../constants/apiStatuses"
 import PageHeader from "../../components/common/PageHeader"
 import ListingBadge from "../../components/listings/ListingBadge"
+import Pagination from "../../components/common/Pagination"
 import EmptyState from "../../components/feedback/EmptyState"
 import LoadingState from "../../components/feedback/LoadingState"
+
+const PAGE_LIMIT = 20
 
 function OwnerListings() {
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
   const [listings, setListings] = useState([])
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
   const [loading, setLoading] = useState(true)
   const [actionError, setActionError] = useState(null)
 
   useEffect(() => {
     if (!user) return
     let active = true
-    getOwnerListings({}).then((result) => {
-      if (active) {
-        setListings(result)
-        setLoading(false)
-      }
-    })
+    loadListings(active)
     return () => { active = false }
-  }, [user])
+  }, [user, page])
+
+  async function loadListings(active = true) {
+    setLoading(true)
+    try {
+      const { items, pagination } = await getOwnerListings({ page, limit: PAGE_LIMIT })
+      if (active) {
+        setListings(items || [])
+        setTotalPages(pagination?.totalPages || 1)
+        setTotalItems(pagination?.total || items?.length || 0)
+      }
+    } catch (err) {
+      if (active) setActionError(err.message)
+    } finally {
+      if (active) setLoading(false)
+    }
+  }
 
   async function handleDelete(listingId, title) {
     if (!window.confirm(`Supprimer l'annonce \u00ab\u00a0${title}\u00a0\u00bb\u2002? Cette action est irréversible.`)) return
     setActionError(null)
     try {
       await removeListing(listingId)
-      setListings((prev) => prev.filter((l) => l.id !== listingId))
+      await loadListings()
     } catch (err) {
       setActionError(err.message)
     }
@@ -179,6 +196,16 @@ function OwnerListings() {
             </div>
           </div>
         </div>
+      )}
+
+      {!loading && listings.length > 0 && (
+        <>
+          <p className="text-secondary small text-center mt-3 mb-0">
+            {totalItems} annonce{totalItems > 1 ? "s" : ""}
+            {totalPages > 1 && ` — Page ${page} sur ${totalPages}`}
+          </p>
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} ariaLabel="Pagination de mes annonces" />
+        </>
       )}
 
       <div className="text-center mt-4">

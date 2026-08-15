@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { getAdminSubscriptions, activateSubscription, rejectSubscription } from "../../api/subscriptionsApi"
 import PageHeader from "../../components/common/PageHeader"
 import EmptyState from "../../components/feedback/EmptyState"
 import LoadingState from "../../components/feedback/LoadingState"
+import Pagination from "../../components/common/Pagination"
+
+const PAGE_LIMIT = 10
 
 const STATUS_CLASSES = {
   PENDING: "bg-warning text-dark",
@@ -24,24 +27,37 @@ export default function AdminSubscriptions() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(null)
   const [filter, setFilter] = useState("all")
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
   
-  useEffect(() => {
-    let active = true
-    loadSubscriptions(active)
-    return () => { active = false }
-  }, [filter])
-
-  async function loadSubscriptions(active = true) {
+  const loadSubscriptions = useCallback(async (active = true) => {
     setLoading(true)
     try {
-      const params = filter === "all" ? {} : { status: filter }
+      const params = { page, limit: PAGE_LIMIT }
+      if (filter !== "all") params.status = filter
       const data = await getAdminSubscriptions(params)
-      if (active) setSubscriptions(data.items || data || [])
+      if (active) {
+        setSubscriptions(data.items || [])
+        setTotalPages(data.pagination?.totalPages || 1)
+        setTotalItems(data.pagination?.total || data.items?.length || 0)
+      }
     } catch (err) {
       console.error(err)
     } finally {
       if (active) setLoading(false)
     }
+  }, [filter, page])
+
+  useEffect(() => {
+    let active = true
+    loadSubscriptions(active)
+    return () => { active = false }
+  }, [loadSubscriptions])
+
+  const changeFilter = (key) => {
+    setFilter(key)
+    setPage(1)
   }
 
   const handleActivate = async (id) => {
@@ -68,9 +84,7 @@ export default function AdminSubscriptions() {
     }
   }
 
-  const filtered = filter === "all"
-    ? subscriptions
-    : subscriptions.filter(s => s.status?.code === filter || s.status === filter)
+  const filtered = subscriptions
 
   return (
     <div>
@@ -90,7 +104,7 @@ export default function AdminSubscriptions() {
             <button
               type="button"
               className={`nav-link ${filter === t.key ? "active" : ""}`}
-              onClick={() => setFilter(t.key)}
+              onClick={() => changeFilter(t.key)}
             >
               {t.label}
             </button>
@@ -172,6 +186,16 @@ export default function AdminSubscriptions() {
             </table>
           </div>
         </div>
+      )}
+
+      {!loading && subscriptions.length > 0 && (
+        <>
+          <p className="text-secondary small text-center mt-3 mb-0">
+            {totalItems} abonnement{totalItems > 1 ? "s" : ""}
+            {totalPages > 1 && ` — Page ${page} sur ${totalPages}`}
+          </p>
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} ariaLabel="Pagination des abonnements" />
+        </>
       )}
     </div>
   )

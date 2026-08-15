@@ -16,7 +16,7 @@ export async function getMyAnnouncements(params = {}) {
 export async function getPendingAnnouncements(params = {}) {
   const query = new URLSearchParams(params).toString()
   const response = await apiClient.get(`/announcements/admin/pending${query ? `?${query}` : ""}`)
-  return response.data || []
+  return { items: response.data || [], pagination: response.pagination || {} }
 }
 
 // GET /announcements/:id (public)

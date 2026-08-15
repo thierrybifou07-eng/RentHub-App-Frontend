@@ -3,7 +3,10 @@ import { getUsers, getUserById, manageUserStatus, manageUserRole, verifyUser } f
 import EmptyState from "../../components/feedback/EmptyState"
 import PageHeader from "../../components/common/PageHeader"
 import LoadingState from "../../components/feedback/LoadingState"
+import Pagination from "../../components/common/Pagination"
 import { CircleCheck } from "lucide-react"
+
+const PAGE_LIMIT = 10
 
 
 const ROLE_CLASSES = {
@@ -28,6 +31,9 @@ export default function AdminUsers() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(null)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
 
   // Filters
   const [search, setSearch] = useState("")
@@ -41,26 +47,34 @@ export default function AdminUsers() {
   const loadUsers = useCallback(async (active = true) => {
     setLoading(true)
     try {
-      const params = {}
-      params.limit = 100
+      const params = { page, limit: PAGE_LIMIT }
       if (search) params.search = search
       if (roleFilter) params.role_id = ROLE_ID_BY_CODE[roleFilter]
       if (statusFilter) params.user_status_id = STATUS_ID_BY_CODE[statusFilter]
 
       const data = await getUsers(params)
-      if (active) setUsers(data.items || data || [])
+      if (active) {
+        setUsers(data.items || [])
+        setTotalPages(data.pagination?.totalPages || 1)
+        setTotalItems(data.pagination?.total || data.items?.length || 0)
+      }
     } catch (err) {
       console.error(err)
     } finally {
       if (active) setLoading(false)
     }
-  }, [search, roleFilter, statusFilter])
+  }, [search, roleFilter, statusFilter, page])
 
   useEffect(() => {
     let active = true
     loadUsers(active)
     return () => { active = false }
   }, [loadUsers]) // Debounce ideally for search, but simplified here
+
+  const changeFilter = (setter) => (value) => {
+    setter(value)
+    setPage(1)
+  }
 
   const handleBan = async (id, currentStatus) => {
     const isBanned = currentStatus?.code === "SUSPENDED" || currentStatus === "SUSPENDED"
@@ -116,7 +130,7 @@ export default function AdminUsers() {
     <div>
       <PageHeader
         title="Gestion des utilisateurs"
-        description={`${users.length} compte(s) trouvé(s) avec les filtres actuels.`}
+        description={`${totalItems} compte(s) trouvé(s) avec les filtres actuels.`}
       />
 
       <div className="card border-0 shadow-sm mb-4">
@@ -128,11 +142,11 @@ export default function AdminUsers() {
                 className="form-control"
                 placeholder="Rechercher (nom, email...)"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => changeFilter(setSearch)(e.target.value)}
               />
             </div>
             <div className="col-md-3">
-              <select className="form-select" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+              <select className="form-select" value={roleFilter} onChange={(e) => changeFilter(setRoleFilter)(e.target.value)}>
                 <option value="">Tous les rôles</option>
                 <option value="ROLE_TENANT">Locataires</option>
                 <option value="ROLE_OWNER">Propriétaires</option>
@@ -140,7 +154,7 @@ export default function AdminUsers() {
               </select>
             </div>
             <div className="col-md-3">
-              <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <select className="form-select" value={statusFilter} onChange={(e) => changeFilter(setStatusFilter)(e.target.value)}>
                 <option value="">Tous les statuts</option>
                 <option value="ACTIVE">Actif</option>
                 <option value="SUSPENDED">Suspendu</option>
@@ -247,6 +261,16 @@ export default function AdminUsers() {
             </table>
           </div>
         </div>
+      )}
+
+      {!loading && users.length > 0 && (
+        <>
+          <p className="text-secondary small text-center mt-3 mb-0">
+            {totalItems} compte{totalItems > 1 ? "s" : ""}
+            {totalPages > 1 && ` — Page ${page} sur ${totalPages}`}
+          </p>
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} ariaLabel="Pagination des utilisateurs" />
+        </>
       )}
 
       {/* Modal Détails Utilisateur */}

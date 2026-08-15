@@ -22,10 +22,11 @@ function OwnerDashboard() {
           console.log('Here is the user',user)
 
     Promise.all([
-      getOwnerListings({}),
+      getOwnerListings({ limit: 100 }),
       getConversationsByUser(user.id),
-    ]).then(([listings, convs]) => {
+    ]).then(([result, convs]) => {
       if (active) {
+        const listings = result.items || result || []
         setListingCount(listings.length)
         setPublishedCount(
           listings.filter((l) => l.status_id === ANNOUNCEMENT_STATUS.ACTIVE.id).length

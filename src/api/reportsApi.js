@@ -10,7 +10,7 @@ export async function createReport(data) {
 export async function getAdminReports(params = {}) {
   const query = new URLSearchParams(params).toString()
   const response = await apiClient.get(`/reports/admin?${query}`)
-  return response.data || response
+  return { items: response.data || [], pagination: response.pagination || {} }
 }
 
 export async function getAdminReportById(id) {

@@ -4,32 +4,49 @@ import ListingBadge from "../../components/listings/ListingBadge"
 import EmptyState from "../../components/feedback/EmptyState"
 import PageHeader from "../../components/common/PageHeader"
 import LoadingState from "../../components/feedback/LoadingState"
+import Pagination from "../../components/common/Pagination"
 import { getModerationListings, approveListing, rejectListing, deleteListing } from "../../services/adminService"
+
+const PAGE_LIMIT = 10
 
 export default function AdminModeration() {
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("all")
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
   const [actionLoading, setActionLoading] = useState(null)
 
   const loadListings = useCallback(async (active = true) => {
     setLoading(true)
     try {
-      const params = filter === "REJECTED" ? { status: "REJECTED" } : {}
+      const params = { page, limit: PAGE_LIMIT }
+      if (filter === "REJECTED") params.status = "REJECTED"
+      if (filter === "PENDING_REVIEW") params.status = "PENDING_REVIEW"
       const data = await getModerationListings(params)
-      if (active) setListings(data.items || data || [])
+      if (active) {
+        setListings(data.items || [])
+        setTotalPages(data.pagination?.totalPages || 1)
+        setTotalItems(data.pagination?.total || data.items?.length || 0)
+      }
     } catch (err) {
       console.error(err)
     } finally {
       if (active) setLoading(false)
     }
-  }, [filter])
+  }, [filter, page])
 
   useEffect(() => {
     let active = true
     loadListings(active)
     return () => { active = false }
   }, [loadListings])
+
+  const changeFilter = (key) => {
+    setFilter(key)
+    setPage(1)
+  }
 
   const handleApprove = async (id) => {
     setActionLoading(id)
@@ -64,10 +81,6 @@ export default function AdminModeration() {
     }
   }
 
-  const filtered = filter === "all"
-    ? listings
-    : listings.filter((l) => l.status?.code === filter || l.status === filter)
-
   if (loading && listings.length === 0) {
     return <LoadingState message="Chargement des annonces à modérer..." />
   }
@@ -89,7 +102,7 @@ export default function AdminModeration() {
             <button
               type="button"
               className={`nav-link ${filter === t.key ? "active" : ""}`}
-              onClick={() => setFilter(t.key)}
+              onClick={() => changeFilter(t.key)}
             >
               {t.label}
             </button>
@@ -97,7 +110,7 @@ export default function AdminModeration() {
         ))}
       </ul>
 
-      {filtered.length === 0 ? (
+      {listings.length === 0 ? (
         <EmptyState message="Aucune annonce à modérer pour le moment." />
       ) : (
         <div className="card border-0 shadow-sm">
@@ -114,7 +127,7 @@ export default function AdminModeration() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((listing) => {
+                {listings.map((listing) => {
                   const ownerName = listing.owner ? `${listing.owner.firstname} ${listing.owner.lastname}` : "Inconnu"
                   const cityName = listing.City?.name || listing.city || "Inconnue"
                   const statusCode = listing.status?.code || listing.status
@@ -171,6 +184,16 @@ export default function AdminModeration() {
             </table>
           </div>
         </div>
+      )}
+
+      {!loading && listings.length > 0 && (
+        <>
+          <p className="text-secondary small text-center mt-3 mb-0">
+            {totalItems} annonce{totalItems > 1 ? "s" : ""}
+            {totalPages > 1 && ` — Page ${page} sur ${totalPages}`}
+          </p>
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} ariaLabel="Pagination de la modération" />
+        </>
       )}
     </div>
   )

@@ -24,6 +24,7 @@ export const APP_ROUTES = {
   ownerListings: "/proprietaire/annonces",
   ownerMessages: "/proprietaire/messages",
   ownerSubscription: "/proprietaire/abonnement",
+  ownerListingDetail: "/proprietaire/annonces/:id",
 
   // Admin
   adminDashboard: "/admin/dashboard",

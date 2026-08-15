@@ -43,7 +43,7 @@ export async function verifyUser(userId) {
 export async function getUsers(params = {}) {
   const query = new URLSearchParams(params).toString()
   const response = await apiClient.get(`/admin/users?${query}`)
-  return response.data || response || { items: [], total: 0 }
+  return { items: response.data || [], pagination: response.pagination || {} }
 }
 
 export async function getUserById(id) {

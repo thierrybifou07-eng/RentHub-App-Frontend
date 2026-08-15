@@ -46,7 +46,7 @@ export async function confirmPayment(data) {
 export async function getAdminSubscriptions(params = {}) {
   const query = new URLSearchParams(params).toString()
   const response = await apiClient.get(`/subscriptions/admin?${query}`)
-  return response.data || response
+  return { items: response.data || [], pagination: response.pagination || {} }
 }
 
 // GET /subscriptions/admin/:id

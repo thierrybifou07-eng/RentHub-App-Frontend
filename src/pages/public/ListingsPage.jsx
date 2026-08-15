@@ -4,10 +4,11 @@ import { APP_ROUTES } from "../../constants/routes"
 import { getCities, getPropertyTypes } from "../../api/catalogApi"
 import { getAnnouncements } from "../../api/announcementsApi"
 import ListingCard from "../../components/listings/ListingCard"
+import Pagination from "../../components/common/Pagination"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import EmptyState from "../../components/feedback/EmptyState"
-import { ArrowLeft, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
+import { ArrowLeft, RotateCcw } from "lucide-react"
 
 function ListingsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -245,63 +246,12 @@ function ListingsPage() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <nav className="d-flex justify-content-center mt-4" aria-label="Pagination des annonces">
-              <ul className="pagination pagination-sm pagination-renthub mb-0">
-                <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
-                  <button
-                    className="page-link"
-                    onClick={() => goToPage(currentPage - 1)}
-                    disabled={currentPage <= 1}
-                    aria-label="Page précédente"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                </li>
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((p) => {
-                    // Afficher max 7 pages autour de la page courante
-                    if (totalPages <= 7) return true
-                    if (p === 1 || p === totalPages) return true
-                    return Math.abs(p - currentPage) <= 2
-                  })
-                  .reduce((acc, p, idx, arr) => {
-                    // Insérer "..." entre les trous
-                    if (idx > 0 && p - arr[idx - 1] > 1) {
-                      acc.push("ellipsis-" + p)
-                    }
-                    acc.push(p)
-                    return acc
-                  }, [])
-                  .map((p) => {
-                    if (typeof p === "string") {
-                      return (
-                        <li key={p} className="page-item disabled">
-                          <span className="page-link">…</span>
-                        </li>
-                      )
-                    }
-                    return (
-                      <li key={p} className={`page-item ${p === currentPage ? "active" : ""}`}>
-                        <button className="page-link" onClick={() => goToPage(p)}>
-                          {p}
-                        </button>
-                      </li>
-                    )
-                  })}
-                <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
-                  <button
-                    className="page-link"
-                    onClick={() => goToPage(currentPage + 1)}
-                    disabled={currentPage >= totalPages}
-                    aria-label="Page suivante"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </li>
-              </ul>
-            </nav>
-          )}
+          <Pagination
+            page={currentPage}
+            totalPages={totalPages}
+            onPageChange={goToPage}
+            ariaLabel="Pagination des annonces"
+          />
         </>
       )}
 
