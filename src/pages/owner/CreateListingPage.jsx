@@ -41,6 +41,7 @@ function CreateListingPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (wizardStep !== 2) return
     setGlobalError(null)
     setGlobalSuccess(null)
     const parsed = validate()

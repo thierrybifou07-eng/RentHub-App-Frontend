@@ -12,7 +12,7 @@ import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 
 function EditListingPage() {
-  const { listingId } = useParams()
+  const { id: listingId } = useParams()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
 
@@ -109,6 +109,7 @@ function EditListingPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (wizardStep !== 2) return
     setGlobalError(null)
     setGlobalSuccess(null)
     const parsed = validate()

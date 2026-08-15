@@ -127,9 +127,10 @@ export default function ListingWizardShell({
               </button>
             ) : (
               <button
-                type="submit"
+                type="button"
                 className="btn btn-success"
                 disabled={submitting}
+                onClick={onSubmit}
               >
                 {submitting
                   ? (isEdit ? "Enregistrement..." : "Création en cours...")
