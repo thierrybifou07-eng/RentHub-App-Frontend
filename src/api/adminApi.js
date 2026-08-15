@@ -6,7 +6,7 @@ export async function getStats() {
 }
 
 export async function getStatsEvolution() {
-  const response = await apiClient.get("/admin/stats-evolution")
+  const response = await apiClient.get("/admin/stats/evolution")
   return response.data || response
 }
 

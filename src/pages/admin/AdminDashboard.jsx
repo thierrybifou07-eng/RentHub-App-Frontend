@@ -30,7 +30,25 @@ export default function AdminDashboard() {
         if (active) {
           setStats(statsData)
           setPending(pendingData)
-          setActivity(activityData?.items || activityData || [])
+          setActivity([
+            ...(activityData?.announcements || []).map((a) => ({
+              type: "LISTING",
+              message: `Nouvelle annonce en attente de validation`,
+              description: a.owner ? `${a.owner.firstname} ${a.owner.lastname}` : "",
+              createdAt: a.createdAt,
+            })),
+            ...(activityData?.reports || []).map((r) => ({
+              type: "REPORT",
+              message: `Nouveau signalement reçu`,
+              createdAt: r.createdAt,
+            })),
+            ...(activityData?.subscriptions || []).map((s) => ({
+              type: "SUBSCRIPTION",
+              message: `Nouvel abonnement en attente de paiement`,
+              description: s.user ? `${s.user.firstname} ${s.user.lastname}` : "",
+              createdAt: s.createdAt,
+            })),
+          ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
         }
       } catch (err) {
         if (active) setError(err.message || "Erreur de chargement du tableau de bord")
@@ -51,28 +69,28 @@ export default function AdminDashboard() {
     {
       icon: Users,
       label: "Utilisateurs totaux",
-      value: stats?.users || 0,
+      value: stats?.users?.total || 0,
       color: "primary",
       href: APP_ROUTES.adminUsers,
     },
     {
       icon: Home,
       label: "Annonces actives",
-      value: stats?.publishedListings || 0,
+      value: stats?.announcements?.active || 0,
       color: "success",
       href: APP_ROUTES.adminModeration,
     },
     {
       icon: Siren,
       label: "Signalements en cours",
-      value: stats?.pendingReports || 0,
+      value: stats?.reports?.pending || 0,
       color: "warning",
       href: APP_ROUTES.adminReports,
     },
     {
       icon: CreditCard,
       label: "Abonnements actifs",
-      value: stats?.activeSubscriptions || 0,
+      value: stats?.subscriptions?.active || 0,
       color: "info",
       href: APP_ROUTES.adminSubscriptions,
     },
