@@ -4,6 +4,7 @@ import { APP_ROUTES } from "../constants/routes"
 import { useAuthStore } from "../stores/authStore"
 import { Building2, Menu, X } from "lucide-react"
 import AppFooter from "../components/common/AppFooter"
+import UserAvatar from "../components/common/UserAvatar"
 
 const ROLE_DASHBOARD_ROUTE = {
   tenant: APP_ROUTES.tenantDashboard,
@@ -75,12 +76,11 @@ function PublicLayout() {
     navigate(APP_ROUTES.home, { replace: true })
   }
 
-  function getInitials(u) {
-    if (!u) return "?"
-    const first = (u.firstname || u.name || "?")[0] || ""
-    const last  = u.lastname ? u.lastname[0] : ""
-    return (first + last).toUpperCase() || "?"
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      useAuthStore.getState().hydrateAvatar()
+    }
+  }, [isAuthenticated])
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
@@ -183,23 +183,7 @@ function PublicLayout() {
                 </Link>
 
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: "var(--radius-full)",
-                    background: "var(--gradient-primary)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "white",
-                    fontSize: "var(--text-xs)",
-                    fontWeight: 700,
-                    letterSpacing: "var(--tracking-wider)",
-                    cursor: "default",
-                    boxShadow: "var(--shadow-sm)",
-                  }}>
-                    {getInitials(user)}
-                  </div>
+                  <UserAvatar user={user} size={34} />
 
                   <button
                     type="button"

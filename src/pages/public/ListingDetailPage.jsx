@@ -11,6 +11,7 @@ import { useConversationsStore } from "../../stores/conversationsStore"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import ReportModal from "../../components/reports/ReportModal"
+import UserAvatar from "../../components/common/UserAvatar"
 import { Star, ChevronLeft } from "lucide-react"
 
 function ListingDetailPage() {
@@ -334,11 +335,7 @@ function ListingDetailPage() {
 
               {ownerInfo && (
                 <div className="d-flex align-items-center gap-2 mb-3">
-                  <div className="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style={{ width: 40, height: 40 }}>
-                    <span className="fw-bold small">
-                      {(ownerInfo.firstname || ownerInfo.name || "?").charAt(0)}
-                    </span>
-                  </div>
+                  <UserAvatar user={ownerInfo} size={40} />
                   <div>
                     <p className="fw-bold mb-0 small">
                       {ownerInfo.firstname && ownerInfo.lastname

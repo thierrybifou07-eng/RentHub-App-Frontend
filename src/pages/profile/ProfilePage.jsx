@@ -12,6 +12,7 @@ function ProfilePage() {
   const updateProfile = useAuthStore((s) => s.updateProfile)
   const changePassword = useAuthStore((s) => s.changePassword)
   const deleteAccount = useAuthStore((s) => s.deleteAccount)
+  const syncAvatarUrl = useAuthStore((s) => s.setAvatarUrl)
   const navigate = useNavigate()
 
   const [avatarUrl, setAvatarUrl] = useState(null)
@@ -59,7 +60,9 @@ function ProfilePage() {
         const mediaList = Array.isArray(mediaData) ? mediaData : mediaData?.data || []
         const avatarMedia = mediaList.find((m) => m.MediaType?.code === "USER_AVATAR" || m.mediaType?.code === "USER_AVATAR")
         if (avatarMedia) {
-          setAvatarUrl(resolveMediaUrl(avatarMedia))
+          const url = resolveMediaUrl(avatarMedia)
+          setAvatarUrl(url)
+          syncAvatarUrl(url)
         }
       })
       .catch(console.error)
@@ -67,7 +70,7 @@ function ProfilePage() {
         if (active) setLoading(p => ({ ...p, avatar: false }))
       })
     return () => { active = false }
-  }, [])
+  }, [syncAvatarUrl])
 
   function setProfileField(field, value) {
     setProfileForm(p => ({ ...p, [field]: value }))
@@ -87,8 +90,8 @@ function ProfilePage() {
       // Refetch media or just assume success and set a local preview
       const preview = URL.createObjectURL(file)
       setAvatarUrl(preview)
-      setMessages(p => ({ ...p, avatar: { type: "success", text: "Avatar mis à jour." } }))
-    } catch (err) {
+      syncAvatarUrl(preview)
+      setMessages(p => ({ ...p, avatar: { type: "success", text: "Avatar mis à jour." } }))    } catch (err) {
       setMessages(p => ({ ...p, avatar: { type: "danger", text: err.message || "Erreur lors de l'upload de l'avatar." } }))
     } finally {
       setLoading(p => ({ ...p, avatar: false }))
@@ -102,6 +105,7 @@ function ProfilePage() {
     try {
       await deleteAvatar()
       setAvatarUrl(null)
+      syncAvatarUrl(null)
       setMessages(p => ({ ...p, avatar: { type: "success", text: "Avatar supprimé." } }))
     } catch (err) {
       setMessages(p => ({ ...p, avatar: { type: "danger", text: err.message || "Erreur lors de la suppression." } }))

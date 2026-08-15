@@ -1,5 +1,7 @@
 import { create } from "zustand"
 import * as authApi from "../api/authApi"
+import { getMyMedia } from "../api/mediaApi"
+import { resolveMediaUrl } from "../utils/mediaUrl"
 import { getRoleKey } from "../constants/roles"
 import { STORAGE_KEYS, clearStoredAuth } from "../api/client"
 
@@ -32,6 +34,7 @@ function normalizeUser(raw) {
     gender: raw.gender,
     cityId: raw.city_id ?? raw.cityId ?? null,
     userStatus: raw.user_status_id ?? raw.userStatus ?? null,
+    avatarUrl: raw.avatarUrl || raw.avatar_url || raw.avatar || raw.photo || raw.profile_picture || null,
   }
 }
 
@@ -61,6 +64,29 @@ export const useAuthStore = create((set, get) => ({
     ) {
       set(next)
     }
+  },
+
+  /** Récupère l'avatar (média USER_AVATAR) de l'utilisateur connecté et le partage dans le store. */
+  async hydrateAvatar() {
+    const { user, token } = get()
+    if (!user || !token || user.avatarUrl) return
+    try {
+      const data = await getMyMedia()
+      const media = Array.isArray(data) ? data : data?.data || []
+      const avatar = media.find(
+        (m) => m.MediaType?.code === "USER_AVATAR" || m.mediaType?.code === "USER_AVATAR"
+      )
+      if (avatar) get().setAvatarUrl(resolveMediaUrl(avatar))
+    } catch { /* ignore */ }
+  },
+
+  /** Met à jour l'avatar de l'utilisateur courant (persisté localement). */
+  setAvatarUrl(url) {
+    const { user, token, refreshToken } = get()
+    if (!user) return
+    const next = { ...user, avatarUrl: url }
+    persistAuth(token, refreshToken, next)
+    set({ user: next })
   },
 
   async login(email, password) {

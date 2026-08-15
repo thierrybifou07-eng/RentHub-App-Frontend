@@ -5,6 +5,7 @@ import { useAuthStore } from "../stores/authStore"
 import { useConversationsStore } from "../stores/conversationsStore"
 import { startRealtime, stopRealtime } from "../services/realtime"
 import NotificationBell from "../components/notifications/NotificationBell"
+import UserAvatar from "../components/common/UserAvatar"
 import {
   BarChart3,
   Building2,
@@ -55,15 +56,6 @@ const SECTION_COLORS = {
   admin:  { accent: "#3b82f6", bg: "rgba(59,130,246,0.15)", text: "#bfdbfe" },
 }
 
-/* ── Initiales utilisateur ──────────────────────────────────── */
-
-function getInitials(user) {
-  if (!user) return "?"
-  const first = (user.firstname || user.name || "?")[0] || ""
-  const last  = user.lastname ? user.lastname[0] : ""
-  return (first + last).toUpperCase() || "?"
-}
-
 /* ── Composant ──────────────────────────────────────────────── */
 
 function DashboardLayout() {
@@ -103,6 +95,7 @@ function DashboardLayout() {
     }
     startRealtime()
     fetchUnreadCount()
+    useAuthStore.getState().hydrateAvatar()
     const interval = setInterval(fetchUnreadCount, 30000)
     return () => clearInterval(interval)
   }, [user, fetchUnreadCount])
@@ -280,23 +273,8 @@ function DashboardLayout() {
           }}
           className="sidebar-profile-link"
         >
-          <div style={{
-            width: 38,
-            height: 38,
-            borderRadius: "var(--radius-full)",
-            background: "var(--gradient-primary)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            fontSize: "var(--text-xs)",
-            fontWeight: 700,
-            letterSpacing: "var(--tracking-wider)",
-            flexShrink: 0,
-            boxShadow: "0 2px 8px rgba(15,81,50,0.5)",
-          }}>
-            {getInitials(user)}
-          </div>
+            <UserAvatar user={user} size={38} />
+
           <div style={{ minWidth: 0, flex: 1 }}>
             <p style={{
               margin: 0,
@@ -441,7 +419,7 @@ function DashboardLayout() {
               style={{ textDecoration: "none" }}
             >
               <div className="topbar-avatar" title={user?.email}>
-                {getInitials(user)}
+                <UserAvatar user={user} size={36} />
               </div>
             </Link>
           </div>

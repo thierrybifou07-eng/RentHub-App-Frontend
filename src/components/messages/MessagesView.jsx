@@ -9,6 +9,7 @@ import { formatMessageTime, formatDayLabel, formatRelativeTime, formatName } fro
 import PageHeader from "../common/PageHeader"
 import EmptyState from "../feedback/EmptyState"
 import LoadingState from "../feedback/LoadingState"
+import UserAvatar from "../common/UserAvatar"
 
 /* ── Variantes tenant / owner ─────────────────────────────────── */
 
@@ -196,6 +197,7 @@ function MessagesView({ variant = "tenant" }) {
                   {conversations.map((conv) => {
                     const title = conv.Announcement?.title || "Annonce"
                     const participant = cfg.getParticipant(conv) || cfg.participantFallback
+                    const participantUser = variant === "tenant" ? conv.owner : conv.tenant
                     const lastMsg = conv.last_message
                     const unread = conv.unread_count || 0
                     return (
@@ -205,8 +207,9 @@ function MessagesView({ variant = "tenant" }) {
                         className={`list-group-item list-group-item-action conversation-item ${activeConversation?.id === conv.id ? "active" : ""}`}
                         onClick={() => handleSelectConversation(conv.id)}
                       >
-                        <div className="d-flex justify-content-between align-items-start mb-1">
-                          <span className="fw-bold small text-truncate" style={{ maxWidth: "70%" }}>
+                        <div className="d-flex align-items-center gap-2 mb-1">
+                          <UserAvatar user={participantUser} size={34} />
+                          <span className="fw-bold small text-truncate" style={{ minWidth: 0, flex: 1 }}>
                             {title}
                           </span>
                           <span className="d-flex align-items-center gap-2">
