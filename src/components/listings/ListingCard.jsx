@@ -1,12 +1,14 @@
 import ListingPrice from "./ListingPrice"
 import ListingLocation from "./ListingLocation"
 import { getListingDetailPath } from "../../constants/routes"
-import { getPrimaryMediaUrl } from "../../utils/mediaUrl"
+import { getPrimaryMedia, getPrimaryMediaUrl, isVideoMedia } from "../../utils/mediaUrl"
 import { BadgeCheck, Star } from "lucide-react"
 import { Link } from "react-router-dom"
 
 function ListingCard({ listing, showFavorite, isFavorite, onToggleFavorite }) {
-  const imageUrl = getPrimaryMediaUrl(listing.Media) || listing.image
+  const primaryMedia = getPrimaryMedia(listing.Media)
+  const imageUrl = primaryMedia ? getPrimaryMediaUrl(listing.Media) : (listing.image || null)
+  const coverIsVideo = Boolean(primaryMedia && isVideoMedia(primaryMedia))
 
   const ownerVerified = Boolean(
     listing.User?.verified_at ||
@@ -21,12 +23,24 @@ function ListingCard({ listing, showFavorite, isFavorite, onToggleFavorite }) {
       <Link to={getListingDetailPath(listing.id)} className="text-decoration-none">
         <div className="listing-card-image">
           {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={listing.title}
-              className="card-img-top"
-              loading="lazy"
-            />
+            coverIsVideo ? (
+              <video
+                src={imageUrl}
+                className="card-img-top"
+                muted
+                autoPlay
+                loop
+                playsInline
+                preload="metadata"
+              />
+            ) : (
+              <img
+                src={imageUrl}
+                alt={listing.title}
+                className="card-img-top"
+                loading="lazy"
+              />
+            )
           ) : (
             <div className="skeleton-image" />
           )}

@@ -44,14 +44,16 @@
   position: relative;
 }
 
-.listing-card-image img {
+.listing-card-image img,
+.listing-card-image video {
   height: 210px;
   object-fit: cover;
   width: 100%;
   transition: transform var(--transition-slow);
 }
 
-.listing-card:hover .listing-card-image img {
+.listing-card:hover .listing-card-image img,
+.listing-card:hover .listing-card-image video {
   transform: scale(1.04);
 }
 

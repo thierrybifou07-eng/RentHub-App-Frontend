@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { Video } from "lucide-react"
-import { resolveMediaUrl } from "../../utils/mediaUrl"
+import { isImageMedia, isVideoMedia } from "../../utils/mediaUrl"
 
 export default function MediaUploader({
   existingMedia = [],
@@ -30,8 +30,8 @@ export default function MediaUploader({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newFiles])
 
-  const existingImages = existingMedia.filter(m => m.mediaType?.code === "IMAGE" || m.MediaType?.code === "IMAGE" || m.type === "image" || !m.type)
-  const existingVideos = existingMedia.filter(m => m.mediaType?.code === "VIDEO" || m.MediaType?.code === "VIDEO" || m.type === "video")
+  const existingImages = existingMedia.filter(m => isImageMedia(m) || !isVideoMedia(m))
+  const existingVideos = existingMedia.filter(m => isVideoMedia(m))
 
   const newImagesCount = newFiles.filter(f => f.type.startsWith('image/')).length
   const newVideosCount = newFiles.filter(f => f.type.startsWith('video/')).length
@@ -112,7 +112,7 @@ export default function MediaUploader({
           <div className="d-flex flex-wrap gap-3">
             {/* Médias existants (déjà sur le serveur) */}
             {existingMedia.map((m) => {
-              const isVideo = m.mediaType?.code === "VIDEO" || m.MediaType?.code === "VIDEO" || m.type === "video"
+              const isVideo = isVideoMedia(m)
               const imgUrl = m.url || m.path || m.file_path
               // L'URL de l'image (si c'est hébergé par le backend)
               const src = imgUrl?.startsWith("http") ? imgUrl : `${import.meta.env.VITE_API_BASE_URL?.replace("/api/v1", "") || ""}/${imgUrl?.replace(/^\//, "")}`
