@@ -36,7 +36,6 @@ export default function AdminSubscriptions() {
   const [totalItems, setTotalItems] = useState(0)
   
   const loadSubscriptions = useCallback(async (active = true) => {
-    setLoading(true)
     try {
       const params = { page, limit: PAGE_LIMIT }
       if (filter !== "all") params.status = filter
@@ -55,7 +54,8 @@ export default function AdminSubscriptions() {
 
   useEffect(() => {
     let active = true
-    loadSubscriptions(active)
+    const onLoad = () => loadSubscriptions(active)
+    onLoad()
     return () => { active = false }
   }, [loadSubscriptions])
 

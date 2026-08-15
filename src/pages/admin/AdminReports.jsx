@@ -41,7 +41,6 @@ export default function AdminReports() {
   const [actionLoading, setActionLoading] = useState(null)
 
   const loadReports = useCallback(async (active = true) => {
-    setLoading(true)
     try {
       const params = { page, limit: PAGE_LIMIT }
       if (filter !== "all") params.status_id = STATUS_ID_BY_CODE[filter]
@@ -60,7 +59,8 @@ export default function AdminReports() {
 
   useEffect(() => {
     let active = true
-    loadReports(active)
+    const onLoad = () => loadReports(active)
+    onLoad()
     return () => { active = false }
   }, [loadReports])
 

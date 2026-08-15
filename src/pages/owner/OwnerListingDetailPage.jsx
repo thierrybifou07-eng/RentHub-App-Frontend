@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { APP_ROUTES } from "../../constants/routes"
 import { useAuthStore } from "../../stores/authStore"
@@ -25,8 +25,7 @@ function OwnerListingDetailPage() {
   const [activeMediaIndex, setActiveMediaIndex] = useState(0)
   const [failedMedia, setFailedMedia] = useState([])
 
-  async function loadListing(active = true) {
-    setLoading(true)
+  const loadListing = useCallback(async (active = true) => {
     try {
       const data = await getListingById(id)
       if (!active) return
@@ -47,14 +46,15 @@ function OwnerListingDetailPage() {
     } finally {
       if (active) setLoading(false)
     }
-  }
+  }, [id, user])
 
   useEffect(() => {
     if (!user) return
     let active = true
-    loadListing(active)
+    const onLoad = () => loadListing(active)
+    onLoad()
     return () => { active = false }
-  }, [user, id])
+  }, [user, loadListing])
 
   async function handleToggleStatus() {
     if (!listing) return

@@ -65,12 +65,6 @@ export function SkeletonCard() {
 /* ── Page grille ─────────────────────────────────────────────── */
 
 export function SkeletonPage({ title, cols = 3 }) {
-  const gridCols = {
-    2: "repeat(2, 1fr)",
-    3: "repeat(3, 1fr)",
-    4: "repeat(4, 1fr)",
-  }
-
   return (
     <div
       className="page-enter"

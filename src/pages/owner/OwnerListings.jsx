@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { APP_ROUTES } from "../../constants/routes"
 import { useAuthStore } from "../../stores/authStore"
@@ -23,15 +23,7 @@ function OwnerListings() {
   const [loading, setLoading] = useState(true)
   const [actionError, setActionError] = useState(null)
 
-  useEffect(() => {
-    if (!user) return
-    let active = true
-    loadListings(active)
-    return () => { active = false }
-  }, [user, page])
-
-  async function loadListings(active = true) {
-    setLoading(true)
+  const loadListings = useCallback(async (active = true) => {
     try {
       const { items, pagination } = await getOwnerListings({ page, limit: PAGE_LIMIT })
       if (active) {
@@ -44,7 +36,15 @@ function OwnerListings() {
     } finally {
       if (active) setLoading(false)
     }
-  }
+  }, [page])
+
+  useEffect(() => {
+    if (!user) return
+    let active = true
+    const onLoad = () => loadListings(active)
+    onLoad()
+    return () => { active = false }
+  }, [user, loadListings])
 
   async function handleDelete(listingId, title) {
     if (!window.confirm(`Supprimer l'annonce \u00ab\u00a0${title}\u00a0\u00bb\u2002? Cette action est irréversible.`)) return

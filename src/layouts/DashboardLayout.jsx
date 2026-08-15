@@ -111,7 +111,7 @@ function DashboardLayout() {
         const { getPendingCounts } = await import("../api/adminApi")
         const data = await getPendingCounts()
         if (active) setAdminPending(data)
-      } catch (err) {
+      } catch {
         // silent
       }
     }
@@ -131,7 +131,8 @@ function DashboardLayout() {
 
   // Fermer la sidebar mobile au changement de route
   useEffect(() => {
-    setSidebarOpen(false)
+    const timer = setTimeout(() => setSidebarOpen(false), 0)
+    return () => clearTimeout(timer)
   }, [location.pathname])
 
   async function handleLogout() {

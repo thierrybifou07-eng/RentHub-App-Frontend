@@ -58,7 +58,8 @@ function PublicLayout() {
 
   // Fermer le menu mobile au changement de route
   useEffect(() => {
-    setMobileOpen(false)
+    const timer = setTimeout(() => setMobileOpen(false), 0)
+    return () => clearTimeout(timer)
   }, [location.pathname])
 
   // Fermer le drawer au clic sur la touche Échap

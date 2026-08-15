@@ -80,13 +80,19 @@ function ListingsPage() {
       try {
         // Construire les params pour l'API
         const params = {}
-        if (filters.search) params.search = filters.search
-        if (filters.city_id) params.city_id = Number(filters.city_id)
-        if (filters.property_type_id) params.property_type_id = Number(filters.property_type_id)
-        if (filters.minPrice) params.minPrice = Number(filters.minPrice)
-        if (filters.maxPrice) params.maxPrice = Number(filters.maxPrice)
-        if (filters.sort) params.sort = filters.sort
-        params.page = Number(filters.page) || 1
+        const search = searchParams.get("search") || ""
+        const cityId = searchParams.get("city_id") || ""
+        const propertyTypeId = searchParams.get("property_type_id") || ""
+        const minPrice = searchParams.get("minPrice") || ""
+        const maxPrice = searchParams.get("maxPrice") || ""
+        const sort = searchParams.get("sort") || ""
+        if (search) params.search = search
+        if (cityId) params.city_id = Number(cityId)
+        if (propertyTypeId) params.property_type_id = Number(propertyTypeId)
+        if (minPrice) params.minPrice = Number(minPrice)
+        if (maxPrice) params.maxPrice = Number(maxPrice)
+        if (sort) params.sort = sort
+        params.page = Number(searchParams.get("page")) || 1
         params.limit = 20
 
         const result = await getAnnouncements(params)

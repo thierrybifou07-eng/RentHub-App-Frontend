@@ -20,7 +20,6 @@ export default function AdminModeration() {
   const [actionLoading, setActionLoading] = useState(null)
 
   const loadListings = useCallback(async (active = true) => {
-    setLoading(true)
     try {
       const params = { page, limit: PAGE_LIMIT }
       if (filter === "all") params.status = "all"
@@ -41,7 +40,8 @@ export default function AdminModeration() {
 
   useEffect(() => {
     let active = true
-    loadListings(active)
+    const onLoad = () => loadListings(active)
+    onLoad()
     return () => { active = false }
   }, [loadListings])
 

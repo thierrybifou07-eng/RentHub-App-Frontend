@@ -45,7 +45,6 @@ export default function AdminUsers() {
   const [loadingDetail, setLoadingDetail] = useState(false)
 
   const loadUsers = useCallback(async (active = true) => {
-    setLoading(true)
     try {
       const params = { page, limit: PAGE_LIMIT }
       if (search) params.search = search
@@ -67,7 +66,8 @@ export default function AdminUsers() {
 
   useEffect(() => {
     let active = true
-    loadUsers(active)
+    const onLoad = () => loadUsers(active)
+    onLoad()
     return () => { active = false }
   }, [loadUsers]) // Debounce ideally for search, but simplified here
 
