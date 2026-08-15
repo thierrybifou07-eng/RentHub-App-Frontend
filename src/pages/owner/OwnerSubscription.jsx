@@ -131,7 +131,7 @@ function OwnerSubscription() {
 
                   {activePlan?.id === plan.id && currentSubscription?.status === "ACTIVE" ? (
                     <button className="btn btn-outline-primary w-100" disabled>Forfait actuel</button>
-                  ) : plan.price === 0 ? (
+                  ) : Number(plan.price) === 0 ? (
                     <button className="btn btn-outline-secondary w-100" disabled>Gratuit — forfait par défaut</button>
                   ) : (
                     <button
