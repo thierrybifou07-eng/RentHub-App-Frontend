@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { resetPasswordSchema } from "../../schemas/userSchema"
 import * as authApi from "../../api/authApi"
 import { APP_ROUTES } from "../../constants/routes"
@@ -10,12 +10,14 @@ import { PartyPopper, TriangleAlert } from "lucide-react"
 
 function ResetPasswordPage() {
   const navigate = useNavigate()
+  const { state } = useLocation()
   const [searchParams] = useSearchParams()
   const [globalError, setGlobalError] = useState(null)
   const [isSuccess, setIsSuccess] = useState(false)
 
-  // Pré-remplir l'email si présent dans l'URL (ex: depuis le lien reçu par mail)
-  const defaultEmail = searchParams.get("email") || ""
+  // Pré-remplir l'email si présent dans l'URL ou dans le state de navigation
+  // (ex: redirigé depuis "Mot de passe oublié")
+  const defaultEmail = searchParams.get("email") || state?.email || ""
   const defaultCode = searchParams.get("code") || ""
 
   const {

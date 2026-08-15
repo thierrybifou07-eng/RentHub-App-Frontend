@@ -40,9 +40,9 @@ const SHOWCASE_CONTENT = {
   [APP_ROUTES.forgotPassword]: {
     kicker: "Aide à la connexion",
     title: "Mot de passe oublié",
-    description: "Indiquez votre adresse e-mail : nous vous envoyons un lien pour réinitialiser votre mot de passe.",
+    description: "Indiquez votre adresse e-mail : nous vous envoyons un code pour réinitialiser votre mot de passe.",
     points: [
-      { icon: MailCheck, text: "Un e-mail sécurisé avec lien de réinitialisation" },
+      { icon: MailCheck, text: "Un e-mail sécurisé avec un code de vérification" },
       { icon: KeyRound, text: "Réinitialisez en quelques clics" },
       { icon: ShieldCheck, text: "Vos données restent confidentielles" },
     ],
