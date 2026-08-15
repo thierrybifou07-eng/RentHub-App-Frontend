@@ -10,6 +10,8 @@ import ProtectedRoute from "../components/common/ProtectedRoute"
 import HomePage from "../pages/public/HomePage"
 import ListingsPage from "../pages/public/ListingsPage"
 import ListingDetailPage from "../pages/public/ListingDetailPage"
+import AboutPage from "../pages/public/AboutPage"
+import ContactPage from "../pages/public/ContactPage"
 
 import LoginPage from "../pages/auth/LoginPage"
 import RegisterPage from "../pages/auth/RegisterPage"
@@ -43,6 +45,8 @@ export const router = createBrowserRouter([
       { path: APP_ROUTES.home, element: <HomePage /> },
       { path: APP_ROUTES.listings, element: <ListingsPage /> },
       { path: APP_ROUTES.listingDetail, element: <ListingDetailPage /> },
+      { path: APP_ROUTES.about, element: <AboutPage /> },
+      { path: APP_ROUTES.contact, element: <ContactPage /> },
     ],
   },
   {

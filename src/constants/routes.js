@@ -2,6 +2,8 @@ export const APP_ROUTES = {
   // Public
   home: "/",
   listings: "/annonces",
+  about: "/a-propos",
+  contact: "/contact",
   login: "/connexion",
   register: "/inscription",
   forgotPassword: "/mot-de-passe-oublie",
