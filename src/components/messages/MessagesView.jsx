@@ -4,12 +4,27 @@ import { APP_ROUTES, getListingDetailPath } from "../../constants/routes"
 import { useAuthStore } from "../../stores/authStore"
 import { useConversationsStore } from "../../stores/conversationsStore"
 import { messageFormSchema } from "../../schemas/messageSchema"
-import { formatRelativeTime, formatName } from "../../utils/formatters"
+import { formatMessageTime, formatDayLabel, formatRelativeTime, formatName } from "../../utils/formatters"
 import PageHeader from "../common/PageHeader"
 import EmptyState from "../feedback/EmptyState"
 import LoadingState from "../feedback/LoadingState"
 
 /* ── Variantes tenant / owner ─────────────────────────────────── */
+
+function groupMessagesByDay(messages) {
+  const groups = []
+  for (const msg of messages) {
+    const ts = msg.created_at || msg.createdAt || msg.updatedAt
+    const key = new Date(ts).toDateString()
+    const last = groups[groups.length - 1]
+    if (last && last.key === key) {
+      last.messages.push(msg)
+    } else {
+      groups.push({ key, label: formatDayLabel(ts), messages: [msg] })
+    }
+  }
+  return groups
+}
 
 const CONFIGS = {
   tenant: {
@@ -227,13 +242,22 @@ function MessagesView({ variant = "tenant" }) {
                       ) : activeMessages.length === 0 ? (
                         <p className="text-center text-secondary small mb-0">Aucun message.</p>
                       ) : (
-                        activeMessages.map((msg) => (
-                          <div
-                            key={msg.id}
-                            className={`message-bubble ${isOwnMessage(msg) ? "own" : "other"}`}
-                          >
-                            <p className="message-text">{msg.content || msg.text}</p>
-                            <div className="message-time">{formatRelativeTime(msg.created_at || msg.createdAt || msg.updatedAt)}</div>
+                        groupMessagesByDay(activeMessages).map((group) => (
+                          <div key={group.key} className="message-day-group">
+                            <div className="message-day-separator">
+                              <span>{group.label}</span>
+                            </div>
+                            {group.messages.map((msg) => (
+                              <div
+                                key={msg.id}
+                                className={`message-bubble ${isOwnMessage(msg) ? "own" : "other"}`}
+                                data-message-id={msg.id}
+                                data-read={msg.is_read || msg.isRead || msg.read_at ? "1" : "0"}
+                              >
+                                <p className="message-text">{msg.content || msg.text}</p>
+                                <div className="message-time">{formatMessageTime(msg.created_at || msg.createdAt || msg.updatedAt)}</div>
+                              </div>
+                            ))}
                           </div>
                         ))
                       )}

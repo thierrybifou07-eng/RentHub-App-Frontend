@@ -32,3 +32,32 @@ export function formatRelativeTime(dateStr) {
   if (diffD < 7) return `il y a ${diffD} j`
   return formatDate(dateStr)
 }
+
+export function formatMessageTime(dateStr) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(dateStr))
+}
+
+export function formatDayLabel(dateStr) {
+  const date = new Date(dateStr)
+  const today = new Date()
+  const yesterday = new Date()
+  yesterday.setDate(today.getDate() - 1)
+
+  const sameDay = (a, b) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+
+  if (sameDay(date, today)) return "Aujourd'hui"
+  if (sameDay(date, yesterday)) return "Hier"
+  return new Intl.DateTimeFormat("fr-FR", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
+  }).format(date)
+}
