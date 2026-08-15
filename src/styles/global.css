@@ -506,16 +506,36 @@ img, video {
   pointer-events: none;
 }
 
-.auth-layout::after {
-  content: '';
+.auth-deco {
   position: absolute;
-  width: 500px;
-  height: 500px;
   border-radius: var(--radius-full);
-  border: 1px solid rgba(15, 81, 50, 0.06);
-  top: -200px;
-  right: -200px;
   pointer-events: none;
+}
+
+.auth-deco-top {
+  top: -120px;
+  left: -120px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(15, 81, 50, 0.10) 0%, transparent 70%);
+}
+
+.auth-deco-bottom {
+  bottom: -80px;
+  right: -80px;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(58, 158, 111, 0.08) 0%, transparent 70%);
+}
+
+.auth-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(15, 81, 50, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
 }
 
 /* ── Hero Section (public) ───────────────────────────────────── */
