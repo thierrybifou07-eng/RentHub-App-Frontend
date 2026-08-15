@@ -66,3 +66,9 @@ export async function rejectSubscription(id, adminNote) {
   const response = await apiClient.patch(`/subscriptions/admin/${id}/reject`, { adminNote })
   return response.data || response
 }
+
+// PATCH /subscriptions/admin/:id/cancel
+export async function cancelSubscription(id, adminNote) {
+  const response = await apiClient.patch(`/subscriptions/admin/${id}/cancel`, { adminNote })
+  return response.data || response
+}
