@@ -13,9 +13,10 @@ export async function getMyAnnouncements(params = {}) {
 }
 
 // GET /announcements/admin/pending (admin - liste des annonces en attente)
-export async function getPendingAnnouncements() {
-  const response = await apiClient.get("/announcements/admin/pending")
-  return response
+export async function getPendingAnnouncements(params = {}) {
+  const query = new URLSearchParams(params).toString()
+  const response = await apiClient.get(`/announcements/admin/pending${query ? `?${query}` : ""}`)
+  return response.data || []
 }
 
 // GET /announcements/:id (public)
@@ -37,10 +38,16 @@ export async function updateAnnouncement(id, data) {
   return response
 }
 
-// DELETE /announcements/:id (propriétaire/agence/admin)
+// DELETE /announcements/:id (propriétaire/agence)
 export async function deleteAnnouncement(id) {
   const response = await apiClient.delete(`/announcements/${id}`)
   return response
+}
+
+// DELETE /announcements/admin/:id (admin - suppression définitive)
+export async function deleteAnnouncementAdmin(id) {
+  const response = await apiClient.delete(`/announcements/admin/${id}`)
+  return response.data || response
 }
 
 // PATCH /announcements/:id/archive (propriétaire/agence)

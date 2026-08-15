@@ -22,8 +22,8 @@ export async function changeUserRole(userId, newRole) {
   return adminApi.manageUserRole({ userId, currentRole: "ANY", newRole })
 }
 
-export async function getModerationListings() {
-  return announcementsApi.getPendingAnnouncements()
+export async function getModerationListings(params = {}) {
+  return announcementsApi.getPendingAnnouncements(params)
 }
 
 export async function approveListing(listingId) {
@@ -35,5 +35,5 @@ export async function rejectListing(listingId, reason = "Non conforme") {
 }
 
 export async function deleteListing(listingId) {
-  return announcementsApi.deleteAnnouncement(listingId)
+  return announcementsApi.deleteAnnouncementAdmin(listingId)
 }

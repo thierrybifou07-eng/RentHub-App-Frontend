@@ -21,8 +21,7 @@ export async function getRecentActivity() {
 }
 
 export async function manageAnnouncementStatus(id, newStatus) {
-  // Optionnel si endpoints séparés: /admin/announcements/:id/approve, etc.
-  const response = await apiClient.patch(`/admin/announcements/${id}/status`, { status: newStatus })
+  const response = await apiClient.patch(`/admin/manage-announcements-status/${id}`, { newStatus })
   return response.data || response
 }
 

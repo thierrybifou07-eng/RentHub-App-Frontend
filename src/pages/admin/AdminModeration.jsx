@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import ListingBadge from "../../components/listings/ListingBadge"
 import EmptyState from "../../components/feedback/EmptyState"
@@ -12,23 +12,24 @@ export default function AdminModeration() {
   const [filter, setFilter] = useState("all")
   const [actionLoading, setActionLoading] = useState(null)
 
-  useEffect(() => {
-    let active = true
-    loadListings(active)
-    return () => { active = false }
-  }, [])
-
-  async function loadListings(active = true) {
+  const loadListings = useCallback(async (active = true) => {
     setLoading(true)
     try {
-      const data = await getModerationListings()
+      const params = filter === "REJECTED" ? { status: "REJECTED" } : {}
+      const data = await getModerationListings(params)
       if (active) setListings(data.items || data || [])
     } catch (err) {
       console.error(err)
     } finally {
       if (active) setLoading(false)
     }
-  }
+  }, [filter])
+
+  useEffect(() => {
+    let active = true
+    loadListings(active)
+    return () => { active = false }
+  }, [loadListings])
 
   const handleApprove = async (id) => {
     setActionLoading(id)
@@ -81,7 +82,7 @@ export default function AdminModeration() {
       <ul className="nav nav-pills mb-4">
         {[
           { key: "all", label: "Toutes" },
-          { key: "PENDING", label: "En attente" },
+          { key: "PENDING_REVIEW", label: "En attente" },
           { key: "REJECTED", label: "Rejetées" },
         ].map((t) => (
           <li key={t.key} className="nav-item">
@@ -114,8 +115,8 @@ export default function AdminModeration() {
               </thead>
               <tbody>
                 {filtered.map((listing) => {
-                  const ownerName = listing.owner?.name || listing.owner?.email || "Inconnu"
-                  const cityName = listing.city?.name || listing.city || "Inconnue"
+                  const ownerName = listing.owner ? `${listing.owner.firstname} ${listing.owner.lastname}` : "Inconnu"
+                  const cityName = listing.City?.name || listing.city || "Inconnue"
                   const statusCode = listing.status?.code || listing.status
                   
                   return (
@@ -129,10 +130,10 @@ export default function AdminModeration() {
                       <td>{cityName}</td>
                       <td>{listing.price.toLocaleString("fr-FR")}&nbsp;FCFA</td>
                       <td>
-                        <ListingBadge status={statusCode} />
+                        <ListingBadge statusId={listing.status?.id ?? listing.status_id} />
                       </td>
                       <td className="text-end">
-                        {statusCode === "PENDING" && (
+                        {statusCode === "PENDING_REVIEW" && (
                           <div className="btn-group btn-group-sm">
                             <button
                               type="button"
