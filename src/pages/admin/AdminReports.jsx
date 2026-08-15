@@ -8,14 +8,21 @@ import { formatDate } from "../../utils/formatters"
 const STATUS_CLASSES = {
   PENDING: "bg-info",
   REVIEWED: "bg-warning",
-  RESOLVED: "bg-success",
+  ACTION_TAKEN: "bg-success",
   DISMISSED: "bg-secondary",
 }
 const STATUS_LABELS = {
   PENDING: "En attente",
   REVIEWED: "En revue",
-  RESOLVED: "Résolu",
+  ACTION_TAKEN: "Résolu",
   DISMISSED: "Rejeté",
+}
+
+const STATUS_ID_BY_CODE = {
+  PENDING: 1,
+  REVIEWED: 2,
+  DISMISSED: 3,
+  ACTION_TAKEN: 4,
 }
 
 export default function AdminReports() {
@@ -36,7 +43,7 @@ export default function AdminReports() {
   async function loadReports(active = true) {
     setLoading(true)
     try {
-      const params = filter === "all" ? {} : { status_id: filter }
+      const params = filter === "all" ? {} : { status_id: STATUS_ID_BY_CODE[filter] }
       const data = await getAdminReports(params)
       if (active) setReports(data.items || data || [])
     } catch (err) {
@@ -94,7 +101,7 @@ export default function AdminReports() {
           { key: "all", label: "Toutes" },
           { key: "PENDING", label: "En attente" },
           { key: "REVIEWED", label: "En revue" },
-          { key: "RESOLVED", label: "Résolus" },
+          { key: "ACTION_TAKEN", label: "Résolus" },
           { key: "DISMISSED", label: "Rejetés" },
         ].map((t) => (
           <li key={t.key} className="nav-item">
@@ -129,8 +136,10 @@ export default function AdminReports() {
             </thead>
             <tbody>
               {reports.map((report) => {
-                const targetName = report.announcement?.title || `Annonce #${report.announcement_id}`
-                const reporterName = report.reporter?.name || report.reporter?.email || "Inconnu"
+                const targetName = report.Announcement?.title || `Annonce #${report.announcement_id}`
+                const reporterName = report.reporter
+                  ? `${report.reporter.firstname} ${report.reporter.lastname}`
+                  : "Inconnu"
                 return (
                   <tr key={report.id}>
                     <td>#{report.id}</td>
