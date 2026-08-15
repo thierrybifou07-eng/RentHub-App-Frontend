@@ -710,7 +710,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  max-width: 100%;
 }
 
 .conversation-item .conv-time {
@@ -720,13 +720,19 @@
 
 /* ── Message Thread ───────────────────────────────────────────── */
 
+.messages-layout {
+  overflow-x: hidden;
+}
+
 .thread-inner {
   min-height: 480px;
+  min-width: 0;
 }
 
 .conversation-list {
   max-height: 480px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Mobile : master/detail — la conversation sélectionnée remplace la liste */
@@ -760,6 +766,7 @@
   gap: var(--space-3);
   max-height: 420px;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: var(--space-5);
   background: var(--color-neutral-50);
   border-radius: var(--radius-lg);

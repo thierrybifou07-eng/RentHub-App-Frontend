@@ -77,6 +77,8 @@ function MessagesView({ variant = "tenant" }) {
   const [sending, setSending] = useState(false)
 
   const messagesEndRef = useRef(null)
+  const threadRef = useRef(null)
+  const pendingScrollRef = useRef(null)
 
   useEffect(() => {
     if (!user) return
@@ -89,6 +91,7 @@ function MessagesView({ variant = "tenant" }) {
 
   const handleSelectConversation = useCallback((convId) => {
     setLoadingMessages(true)
+    pendingScrollRef.current = "firstUnread"
     openConversation(convId).finally(() => setLoadingMessages(false))
     setNewText("")
     setSendError(null)
@@ -108,14 +111,32 @@ function MessagesView({ variant = "tenant" }) {
     }
     if (!match) return
     const { openConversation: open } = useConversationsStore.getState()
+    pendingScrollRef.current = "firstUnread"
     open(match.id).then(() => {
       setNewText("")
       setSendError(null)
     })
   }, [searchParams, conversations, user, activeConversation])
 
+  // Au chargement d'une conversation : scroll vers le premier message non lu,
+  // sinon vers le dernier message. Le scroll vers le bas après envoi est géré dans handleSend.
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    const pending = pendingScrollRef.current
+    if (!pending) return
+    pendingScrollRef.current = null
+    requestAnimationFrame(() => {
+      if (pending !== "firstUnread") {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+        return
+      }
+      const threadEl = threadRef.current
+      const unread = threadEl?.querySelector('[data-read="0"]')
+      if (unread) {
+        unread.scrollIntoView({ behavior: "smooth", block: "center" })
+      } else {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+      }
+    })
   }, [activeMessages])
 
   async function handleSend(e) {
@@ -130,6 +151,9 @@ function MessagesView({ variant = "tenant" }) {
     try {
       await sendMessage(activeConversation.id, newText)
       setNewText("")
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+      })
     } catch {
       setSendError("Erreur lors de l'envoi.")
     } finally {
@@ -236,7 +260,7 @@ function MessagesView({ variant = "tenant" }) {
                       </div>
                     </div>
 
-                    <div className="message-thread flex-grow-1 p-3">
+                    <div className="message-thread flex-grow-1 p-3" ref={threadRef}>
                       {loadingMessages ? (
                         <p className="text-center text-secondary small mb-0">Chargement...</p>
                       ) : activeMessages.length === 0 ? (
