@@ -1,13 +1,20 @@
-import ListingBadge from "./ListingBadge"
 import ListingPrice from "./ListingPrice"
 import ListingLocation from "./ListingLocation"
 import { getListingDetailPath } from "../../constants/routes"
 import { getPrimaryMediaUrl } from "../../utils/mediaUrl"
-import { Star } from "lucide-react"
+import { BadgeCheck, Star } from "lucide-react"
 import { Link } from "react-router-dom"
 
 function ListingCard({ listing, showFavorite, isFavorite, onToggleFavorite }) {
   const imageUrl = getPrimaryMediaUrl(listing.Media) || listing.image
+
+  const ownerVerified = Boolean(
+    listing.User?.verified_at ||
+    listing.User?.verifiedAt ||
+    listing.owner?.verified_at ||
+    listing.owner?.verifiedAt ||
+    listing.ownerVerified,
+  )
 
   return (
     <article className="card border-0 shadow-sm h-100 listing-card position-relative">
@@ -53,7 +60,11 @@ function ListingCard({ listing, showFavorite, isFavorite, onToggleFavorite }) {
           >
             <h3 className="h6 fw-bold mb-0 listing-card-title">{listing.title}</h3>
           </Link>
-          <ListingBadge statusId={listing.announcement_status_id || listing.statusId || listing.status} />
+          {ownerVerified && (
+            <span className="badge-pill success" title="Propriétaire vérifié">
+              <BadgeCheck size={13} /> Vérifié
+            </span>
+          )}
         </div>
 
         <ListingLocation city={listing.city} neighborhood={listing.neighborhood} />
