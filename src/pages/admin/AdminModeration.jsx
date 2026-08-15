@@ -23,6 +23,7 @@ export default function AdminModeration() {
     setLoading(true)
     try {
       const params = { page, limit: PAGE_LIMIT }
+      if (filter === "all") params.status = "all"
       if (filter === "REJECTED") params.status = "REJECTED"
       if (filter === "PENDING_REVIEW") params.status = "PENDING_REVIEW"
       const data = await getModerationListings(params)

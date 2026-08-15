@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react"
-import { getAdminSubscriptions, activateSubscription, rejectSubscription } from "../../api/subscriptionsApi"
+import { getAdminSubscriptions, activateSubscription, rejectSubscription, cancelSubscription } from "../../api/subscriptionsApi"
 import PageHeader from "../../components/common/PageHeader"
 import EmptyState from "../../components/feedback/EmptyState"
 import LoadingState from "../../components/feedback/LoadingState"
@@ -9,17 +9,21 @@ const PAGE_LIMIT = 20
 
 const STATUS_CLASSES = {
   PENDING: "bg-warning text-dark",
+  WAITING_PAYMENT: "bg-info text-dark",
   ACTIVE: "bg-success",
   EXPIRED: "bg-secondary",
   CANCELLED: "bg-dark",
   REJECTED: "bg-danger",
+  FAILED: "bg-danger",
 }
 const STATUS_LABELS = {
   PENDING: "En attente",
+  WAITING_PAYMENT: "Paiement attendu",
   ACTIVE: "Actif",
   EXPIRED: "Expiré",
   CANCELLED: "Annulé",
   REJECTED: "Rejeté",
+  FAILED: "Échec paiement",
 }
 
 export default function AdminSubscriptions() {
@@ -84,6 +88,19 @@ export default function AdminSubscriptions() {
     }
   }
 
+  const handleCancel = async (id) => {
+    if (!window.confirm("Annuler cet abonnement actif ?")) return
+    const note = prompt("Note admin (optionnelle) pour l'annulation :")
+    if (note === null) return
+    setActionLoading(id)
+    try {
+      await cancelSubscription(id, note)
+      await loadSubscriptions()
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
   const filtered = subscriptions
 
   return (
@@ -97,7 +114,9 @@ export default function AdminSubscriptions() {
         {[
           { key: "all", label: "Tous" },
           { key: "PENDING", label: "En attente (Manuel)" },
+          { key: "WAITING_PAYMENT", label: "Paiement en cours" },
           { key: "ACTIVE", label: "Actifs" },
+          { key: "CANCELLED", label: "Annulés" },
           { key: "REJECTED", label: "Rejetés" },
         ].map((t) => (
           <li key={t.key} className="nav-item">
@@ -177,6 +196,16 @@ export default function AdminSubscriptions() {
                               Rejeter
                             </button>
                           </div>
+                        )}
+                        {statusCode === "ACTIVE" && (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-dark"
+                            onClick={() => handleCancel(sub.id)}
+                            disabled={actionLoading === sub.id}
+                          >
+                            Annuler
+                          </button>
                         )}
                       </td>
                     </tr>
