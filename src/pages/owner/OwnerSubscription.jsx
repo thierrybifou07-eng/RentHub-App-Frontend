@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react"
 import { useSubscriptionsStore } from "../../stores/subscriptionsStore"
-import { processManualSubscription } from "../../services/subscriptionsService"
+import { processSimulatedPayment } from "../../services/subscriptionsService"
 import PageHeader from "../../components/common/PageHeader"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
-import FormField from "../../components/forms/FormField"
 import { Check } from "lucide-react"
 import { formatXAF, formatDate } from "../../utils/formatters"
 import { getSubscriptionStatusLabel } from "../../constants/apiStatuses"
@@ -30,7 +29,6 @@ function OwnerSubscription() {
   const { plans, currentSubscription, loading, error, fetchPlans, fetchMySubscription } = useSubscriptionsStore()
 
   const [selectedPlanId, setSelectedPlanId] = useState(null)
-  const [paymentReference, setPaymentReference] = useState("")
 
   const [processingAction, setProcessingAction] = useState(false)
   const [actionError, setActionError] = useState(null)
@@ -45,24 +43,19 @@ function OwnerSubscription() {
     setSelectedPlanId(planId)
     setActionError(null)
     setActionSuccess(null)
-    setPaymentReference("")
   }
 
-  const handleManualSubmit = async (e) => {
-    e.preventDefault()
-    if (!selectedPlanId) return
-
+  const handleSimulatedPay = async (planId) => {
     setProcessingAction(true)
     setActionError(null)
     setActionSuccess(null)
     try {
-      await processManualSubscription(selectedPlanId, paymentReference)
-      setActionSuccess("Votre demande de souscription manuelle a été envoyée. Elle est en attente de validation.")
+      await processSimulatedPayment(planId)
+      setActionSuccess("Paiement simulé effectué — votre abonnement est désormais actif.")
       setSelectedPlanId(null)
-      setPaymentReference("")
       fetchMySubscription()
     } catch (err) {
-      setActionError(err.message || "Erreur lors de la souscription manuelle.")
+      setActionError(err.message || "Erreur lors du paiement simulé.")
     } finally {
       setProcessingAction(false)
     }
@@ -138,6 +131,8 @@ function OwnerSubscription() {
 
                   {activePlan?.id === plan.id && currentSubscription?.status === "ACTIVE" ? (
                     <button className="btn btn-outline-primary w-100" disabled>Forfait actuel</button>
+                  ) : plan.price === 0 ? (
+                    <button className="btn btn-outline-secondary w-100" disabled>Gratuit — forfait par défaut</button>
                   ) : (
                     <button
                       className="btn btn-primary w-100"
@@ -150,30 +145,16 @@ function OwnerSubscription() {
                   {/* Zone d'action si ce plan est sélectionné */}
                   {selectedPlanId === plan.id && (
                     <div className="mt-4 pt-3 border-top">
-                      <h5 className="h6 fw-bold mb-3">Paiement manuel</h5>
+                      <h5 className="h6 fw-bold mb-3">Paiement simulé</h5>
                       <p className="text-secondary small">
-                        Effectuez le paiement (Mobile Money, virement...) puis indiquez la référence.
-                        Votre abonnement sera activé après validation par l'administrateur.
+                        Mode démonstration : le paiement est simulé. Votre abonnement sera activé immédiatement.
                       </p>
-                      <form onSubmit={handleManualSubmit}>
-                        <FormField label="Référence de paiement (ex: Mobile Money)" htmlFor={`ref-${plan.id}`}>
-                          <input
-                            type="text"
-                            id={`ref-${plan.id}`}
-                            className="form-control form-control-sm"
-                            placeholder="Optionnel..."
-                            value={paymentReference}
-                            onChange={(e) => setPaymentReference(e.target.value)}
-                            disabled={processingAction}
-                          />
-                        </FormField>
-                        <div className="d-flex gap-2 mt-2">
-                          <button type="button" className="btn btn-sm btn-outline-secondary w-50" onClick={() => setSelectedPlanId(null)} disabled={processingAction}>Annuler</button>
-                          <button type="submit" className="btn btn-sm btn-success w-50" disabled={processingAction}>
-                            {processingAction ? "Envoi..." : "Valider"}
-                          </button>
-                        </div>
-                      </form>
+                      <div className="d-flex gap-2 mt-2">
+                        <button type="button" className="btn btn-sm btn-outline-secondary w-50" onClick={() => setSelectedPlanId(null)} disabled={processingAction}>Annuler</button>
+                        <button type="button" className="btn btn-sm btn-success w-50" onClick={() => handleSimulatedPay(plan.id)} disabled={processingAction}>
+                          {processingAction ? "Paiement..." : "Payer (simulation)"}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

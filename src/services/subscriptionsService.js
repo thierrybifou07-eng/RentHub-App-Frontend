@@ -12,6 +12,12 @@ export async function processManualSubscription(planId, paymentReference) {
   return await store.subscribe({ planId, paymentReference })
 }
 
+// 1bis. Paiement simulé — active immédiatement l'abonnement
+export async function processSimulatedPayment(planId) {
+  const store = useSubscriptionsStore.getState()
+  return await store.subscribe({ planId, simulated: true })
+}
+
 // 2. Initialisation du paiement Stripe
 export async function initStripePayment(planId) {
   const store = useSubscriptionsStore.getState()
