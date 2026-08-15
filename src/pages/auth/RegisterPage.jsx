@@ -24,7 +24,6 @@ function RegisterPage() {
       firstname: "",
       lastname: "",
       email: "",
-      gender: "M",
       password: "",
       confirmPassword: "",
     },
@@ -101,22 +100,6 @@ function RegisterPage() {
             />
           </FormField>
         </div>
-
-        <FormField
-          label="Sexe"
-          htmlFor="gender"
-          error={errors.gender?.message}
-        >
-          <select
-            id="gender"
-            className="input-premium"
-            disabled={isSubmitting}
-            {...register("gender")}
-          >
-            <option value="M">Homme</option>
-            <option value="F">Femme</option>
-          </select>
-        </FormField>
 
         <FormField
           label="Adresse e-mail"

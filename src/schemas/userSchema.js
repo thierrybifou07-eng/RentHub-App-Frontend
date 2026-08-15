@@ -35,10 +35,6 @@ export const registerSchema = z
       .string()
       .min(1, "L'adresse e-mail est requise")
       .email("Adresse e-mail invalide"),
-    gender: z.enum(["M", "F"], {
-      required_error: "Le genre est requis",
-      invalid_type_error: "Le genre doit être 'M' ou 'F'",
-    }).optional(),
     password: passwordSchema,
     confirmPassword: z.string().min(1, "Confirmez votre mot de passe"),
   })
