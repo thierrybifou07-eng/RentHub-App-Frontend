@@ -491,19 +491,23 @@ img, video {
 /* ── Auth Layout ─────────────────────────────────────────────── */
 
 .auth-layout {
-  background: var(--color-neutral-0);
   position: relative;
   overflow: hidden;
+  background:
+    radial-gradient(ellipse 90% 70% at 20% -10%, rgba(58, 158, 111, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 110% 100%, rgba(15, 81, 50, 0.55) 0%, transparent 60%),
+    linear-gradient(160deg, var(--color-neutral-900) 0%, #0f2e1f 100%);
 }
 
 .auth-layout::before {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse 80% 60% at 10% -10%, rgba(15, 81, 50, 0.12) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 90% 110%, rgba(58, 158, 111, 0.08) 0%, transparent 60%);
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 26px 26px;
   pointer-events: none;
+  mask-image: radial-gradient(ellipse 80% 80% at 40% 40%, black 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 40% 40%, black 30%, transparent 100%);
 }
 
 .auth-deco {
@@ -517,7 +521,7 @@ img, video {
   left: -120px;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(15, 81, 50, 0.10) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
 }
 
 .auth-deco-bottom {
@@ -525,13 +529,13 @@ img, video {
   right: -80px;
   width: 320px;
   height: 320px;
-  background: radial-gradient(circle, rgba(58, 158, 111, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
 }
 
 .auth-dots {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(15, 81, 50, 0.06) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.10) 1px, transparent 1px);
   background-size: 28px 28px;
   pointer-events: none;
   mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
@@ -635,6 +639,7 @@ img, video {
     filter var(--transition-fast);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-2);
 }
 

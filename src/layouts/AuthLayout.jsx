@@ -160,16 +160,13 @@ function AuthLayout() {
                   fontFamily: "var(--font-display)",
                   fontSize: "var(--text-3xl)",
                   fontWeight: 800,
-                  background: "var(--gradient-text-primary)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
+                  color: "#fff",
                   letterSpacing: "var(--tracking-tight)",
                 }}>
                   RentHub
                 </span>
               </Link>
-              <p style={{ marginTop: "var(--space-2)", fontSize: "var(--text-sm)", color: "var(--color-text-muted)" }}>
+              <p style={{ marginTop: "var(--space-2)", fontSize: "var(--text-sm)", color: "rgba(255,255,255,0.6)" }}>
                 Location immobilière au Cameroun
               </p>
             </div>
@@ -187,15 +184,15 @@ function AuthLayout() {
                 to={APP_ROUTES.home}
                 style={{
                   fontSize: "var(--text-sm)",
-                  color: "var(--color-text-muted)",
+                  color: "rgba(255,255,255,0.7)",
                   textDecoration: "none",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 6,
                   transition: "color var(--transition-fast)",
                 }}
-                onMouseEnter={e => { e.currentTarget.style.color = "var(--color-primary-500)" }}
-                onMouseLeave={e => { e.currentTarget.style.color = "var(--color-text-muted)" }}
+                onMouseEnter={e => { e.currentTarget.style.color = "#fff" }}
+                onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.7)" }}
               >
                 <ArrowLeft size={14} /> Retour à l'accueil
               </Link>
