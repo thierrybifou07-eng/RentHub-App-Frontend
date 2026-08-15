@@ -102,21 +102,6 @@ function ShowcasePanel() {
           ))}
         </ul>
 
-        <div className="auth-showcase-stats">
-          <div>
-            <p>1500+</p>
-            <span>Annonces actives</span>
-          </div>
-          <div>
-            <p>3500+</p>
-            <span>Locataires</span>
-          </div>
-          <div>
-            <p>98%</p>
-            <span>Clients satisfaits</span>
-          </div>
-        </div>
-
         <p className="auth-showcase-foot">
           <MapPin size={14} /> Villes principales : Douala · Yaoundé · Bafoussam
         </p>
