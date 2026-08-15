@@ -7,6 +7,7 @@ import { formatXAF, formatDate } from "../../utils/formatters"
 import { resolveMediaUrl } from "../../utils/mediaUrl"
 import { useAuthStore } from "../../stores/authStore"
 import { useFavoritesStore } from "../../stores/favoritesStore"
+import { useConversationsStore } from "../../stores/conversationsStore"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import ReportModal from "../../components/reports/ReportModal"
@@ -18,6 +19,8 @@ function ListingDetailPage() {
   const { isAuthenticated, user } = useAuthStore()
   const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite)
   const isFavorite = useFavoritesStore((s) => s.favorites.includes(listingId))
+  const fetchConversations = useConversationsStore((s) => s.fetchConversations)
+  const conversations = useConversationsStore((s) => s.conversations)
   const [listing, setListing] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -76,6 +79,18 @@ function ListingDetailPage() {
     load()
     return () => { active = false }
   }, [listingId])
+
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== "tenant") return
+    fetchConversations()
+  }, [isAuthenticated, user?.role, fetchConversations])
+
+  const hasExistingConversation = conversations.some(
+    (c) =>
+      String(c.announcement_id) === String(listingId) ||
+      String(c.announcement?.id) === String(listingId) ||
+      String(c.Announcement?.id) === String(listingId),
+  )
 
   if (loading) return (
     <div className="container py-4">
@@ -341,21 +356,32 @@ function ListingDetailPage() {
                     Connectez-vous pour contacter
                   </Link>
                 ) : user?.role === "tenant" ? (
-                  <form onSubmit={handleContact} className="d-flex flex-column gap-2 mb-2">
-                    {contactError && <div className="alert alert-danger p-2 small mb-0">{contactError}</div>}
-                    <textarea
-                      className="form-control"
-                      rows={3}
-                      placeholder="Votre message au propriétaire..."
-                      value={contactText}
-                      onChange={e => setContactText(e.target.value)}
-                      disabled={sendingContact}
-                      required
-                    />
-                    <button type="submit" className="btn btn-success" disabled={sendingContact || !contactText.trim()}>
-                      {sendingContact ? "Envoi..." : "Contacter le propriétaire"}
-                    </button>
-                  </form>
+                  hasExistingConversation ? (
+                    <div>
+                      <p className="text-secondary small mb-2">
+                        Vous avez déjà un échange au sujet de cette annonce.
+                      </p>
+                      <Link to={`${APP_ROUTES.tenantMessages}?listing=${listingId}`} className="btn btn-success w-100">
+                        Voir ma conversation
+                      </Link>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleContact} className="d-flex flex-column gap-2 mb-2">
+                      {contactError && <div className="alert alert-danger p-2 small mb-0">{contactError}</div>}
+                      <textarea
+                        className="form-control"
+                        rows={3}
+                        placeholder="Votre message au propriétaire..."
+                        value={contactText}
+                        onChange={e => setContactText(e.target.value)}
+                        disabled={sendingContact}
+                        required
+                      />
+                      <button type="submit" className="btn btn-success" disabled={sendingContact || !contactText.trim()}>
+                        {sendingContact ? "Envoi..." : "Contacter le propriétaire"}
+                      </button>
+                    </form>
+                  )
                 ) : null}
                 {isAuthenticated && user?.role === "tenant" && (
                   <>
