@@ -47,6 +47,39 @@ export const useNotificationsStore = create((set, get) => ({
     }
   },
 
+  /** Marque la notification comme lue côté serveur puis la retire de la liste. */
+  async removeNotification(id) {
+    const target = get().notifications.find((n) => String(n.id) === String(id))
+    const wasUnread = target && !target.is_read
+    try {
+      await markNotificationRead(id)
+    } catch (err) {
+      console.error("Failed to mark notification read:", err)
+    }
+    set((state) => ({
+      notifications: state.notifications.filter((n) => String(n.id) !== String(id)),
+      unreadCount: wasUnread ? Math.max(0, state.unreadCount - 1) : state.unreadCount,
+    }))
+  },
+
+  /** Retire toutes les notifications "new_message" d'une conversation (lecture directe du chat). */
+  async clearConversationNotifications(conversationId) {
+    const matches = get().notifications.filter(
+      (n) => n.type === "new_message" && String(n.data?.conversationId) === String(conversationId)
+    )
+    if (matches.length === 0) return
+    const unreadRemoved = matches.filter((n) => !n.is_read).length
+    matches.forEach((n) => {
+      markNotificationRead(n.id).catch((err) => console.error("Failed to mark notification read:", err))
+    })
+    set((state) => ({
+      notifications: state.notifications.filter(
+        (n) => !matches.some((m) => String(m.id) === String(n.id))
+      ),
+      unreadCount: Math.max(0, state.unreadCount - unreadRemoved),
+    }))
+  },
+
   async markAllRead() {
     try {
       await markAllNotificationsRead()

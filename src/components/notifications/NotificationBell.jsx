@@ -75,8 +75,8 @@ function NotificationBell() {
   const unreadCount = useNotificationsStore((s) => s.unreadCount)
   const fetchNotifications = useNotificationsStore((s) => s.fetchNotifications)
   const fetchUnreadCount = useNotificationsStore((s) => s.fetchUnreadCount)
-  const markRead = useNotificationsStore((s) => s.markRead)
   const markAllRead = useNotificationsStore((s) => s.markAllRead)
+  const removeNotification = useNotificationsStore((s) => s.removeNotification)
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
 
@@ -106,7 +106,7 @@ function NotificationBell() {
 
   function handleSelect(notification) {
     setOpen(false)
-    if (!notification.is_read) markRead(notification.id)
+    removeNotification(notification.id)
     const target = getNotificationTarget(notification, role)
     if (notification.type === "new_message" && notification.data?.conversationId) {
       navigate(`${target}?conversation=${notification.data.conversationId}`)

@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom"
 import { APP_ROUTES, getListingDetailPath } from "../../constants/routes"
 import { useAuthStore } from "../../stores/authStore"
 import { useConversationsStore } from "../../stores/conversationsStore"
+import { useNotificationsStore } from "../../stores/notificationsStore"
 import { messageFormSchema } from "../../schemas/messageSchema"
 import { formatMessageTime, formatDayLabel, formatRelativeTime, formatName } from "../../utils/formatters"
 import PageHeader from "../common/PageHeader"
@@ -92,7 +93,9 @@ function MessagesView({ variant = "tenant" }) {
   const handleSelectConversation = useCallback((convId) => {
     setLoadingMessages(true)
     pendingScrollRef.current = "firstUnread"
-    openConversation(convId).finally(() => setLoadingMessages(false))
+    openConversation(convId)
+      .then(() => useNotificationsStore.getState().clearConversationNotifications(convId))
+      .finally(() => setLoadingMessages(false))
     setNewText("")
     setSendError(null)
   }, [openConversation])
@@ -113,6 +116,7 @@ function MessagesView({ variant = "tenant" }) {
     const { openConversation: open } = useConversationsStore.getState()
     pendingScrollRef.current = "firstUnread"
     open(match.id).then(() => {
+      useNotificationsStore.getState().clearConversationNotifications(match.id)
       setNewText("")
       setSendError(null)
     })
