@@ -4,6 +4,7 @@ export const APP_ROUTES = {
   listings: "/annonces",
   about: "/a-propos",
   contact: "/contact",
+  terms: "/conditions-generales",
   login: "/connexion",
   register: "/inscription",
   forgotPassword: "/mot-de-passe-oublie",

@@ -26,13 +26,21 @@ function RegisterPage() {
       email: "",
       password: "",
       confirmPassword: "",
+      acceptedTerms: false,
     },
   })
 
   const onSubmit = async (data) => {
     setGlobalError(null)
     try {
-      await registerApi(data)
+      await registerApi({
+        firstname: data.firstname,
+        lastname: data.lastname,
+        email: data.email,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+        accepted_terms: data.acceptedTerms,
+      })
       // On redirige vers la page de connexion, qui affichera un message de succès.
       // Une fois connectés, ils seront redirigés vers VerifyEmailPage s'ils sont PENDING_VERIFICATION.
       navigate(APP_ROUTES.login, { replace: true, state: { registered: true, email: data.email } })
@@ -150,6 +158,34 @@ function RegisterPage() {
             disabled={isSubmitting}
             {...register("confirmPassword")}
           />
+        </FormField>
+
+        <FormField htmlFor="acceptedTerms" error={errors.acceptedTerms?.message}>
+          <label
+            htmlFor="acceptedTerms"
+            className="d-flex align-items-start gap-2"
+            style={{ fontSize: "var(--text-sm)", cursor: "pointer", color: "var(--color-text)", lineHeight: "var(--leading-relaxed)", marginBottom: 0 }}
+          >
+            <input
+              id="acceptedTerms"
+              type="checkbox"
+              className="form-check-input mt-1"
+              disabled={isSubmitting}
+              {...register("acceptedTerms")}
+            />
+            <span>
+              J'accepte les{" "}
+              <Link
+                to={APP_ROUTES.terms}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "var(--color-primary-600)", fontWeight: 600, textDecoration: "underline" }}
+              >
+                Conditions Générales d'Utilisation
+              </Link>
+              {" "}de RentHub.
+            </span>
+          </label>
         </FormField>
 
         <button

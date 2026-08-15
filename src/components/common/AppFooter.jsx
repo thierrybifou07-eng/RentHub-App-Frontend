@@ -7,6 +7,7 @@ const COMPANY_LINKS = [
   { to: APP_ROUTES.listings, label: "Toutes les annonces" },
   { to: APP_ROUTES.about, label: "À propos" },
   { to: APP_ROUTES.contact, label: "Contact" },
+  { to: APP_ROUTES.terms, label: "Conditions d'utilisation" },
 ]
 
 const ACCOUNT_LINKS = [

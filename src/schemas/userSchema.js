@@ -37,6 +37,9 @@ export const registerSchema = z
       .email("Adresse e-mail invalide"),
     password: passwordSchema,
     confirmPassword: z.string().min(1, "Confirmez votre mot de passe"),
+    acceptedTerms: z.boolean().refine((v) => v === true, {
+      message: "Vous devez accepter les Conditions Générales d'Utilisation",
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas",
