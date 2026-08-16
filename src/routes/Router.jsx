@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react"
 import { createBrowserRouter } from "react-router-dom"
 import { APP_ROUTES } from "../constants/routes"
 import { ROLE_KEYS } from "../constants/roles"
@@ -6,40 +7,52 @@ import PublicLayout from "../layouts/PublicLayout"
 import AuthLayout from "../layouts/AuthLayout"
 import DashboardLayout from "../layouts/DashboardLayout"
 import ProtectedRoute from "../components/common/ProtectedRoute"
+import LoadingState from "../components/feedback/LoadingState"
 
-import HomePage from "../pages/public/HomePage"
-import ListingsPage from "../pages/public/ListingsPage"
-import ListingDetailPage from "../pages/public/ListingDetailPage"
-import AboutPage from "../pages/public/AboutPage"
-import ContactPage from "../pages/public/ContactPage"
-import TermsPage from "../pages/public/TermsPage"
+const lazyPage = (loader) => {
+  const Component = lazy(loader)
+  return function LazyPage(props) {
+    return (
+      <Suspense fallback={<LoadingState size="sm" message="Chargement de la page..." />}>
+        <Component {...props} />
+      </Suspense>
+    )
+  }
+}
 
-import LoginPage from "../pages/auth/LoginPage"
-import RegisterPage from "../pages/auth/RegisterPage"
-import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage"
-import ResetPasswordPage from "../pages/auth/ResetPasswordPage"
-import VerifyEmailPage from "../pages/auth/VerifyEmailPage"
+const HomePage = lazyPage(() => import("../pages/public/HomePage"))
+const ListingsPage = lazyPage(() => import("../pages/public/ListingsPage"))
+const ListingDetailPage = lazyPage(() => import("../pages/public/ListingDetailPage"))
+const AboutPage = lazyPage(() => import("../pages/public/AboutPage"))
+const ContactPage = lazyPage(() => import("../pages/public/ContactPage"))
+const TermsPage = lazyPage(() => import("../pages/public/TermsPage"))
 
-import ProfilePage from "../pages/profile/ProfilePage"
+const LoginPage = lazyPage(() => import("../pages/auth/LoginPage"))
+const RegisterPage = lazyPage(() => import("../pages/auth/RegisterPage"))
+const ForgotPasswordPage = lazyPage(() => import("../pages/auth/ForgotPasswordPage"))
+const ResetPasswordPage = lazyPage(() => import("../pages/auth/ResetPasswordPage"))
+const VerifyEmailPage = lazyPage(() => import("../pages/auth/VerifyEmailPage"))
 
-import TenantDashboard from "../pages/tenant/TenantDashboard"
-import TenantFavorites from "../pages/tenant/TenantFavorites"
-import TenantMessages from "../pages/tenant/TenantMessages"
+const ProfilePage = lazyPage(() => import("../pages/profile/ProfilePage"))
 
-import OwnerDashboard from "../pages/owner/OwnerDashboard"
-import OwnerListings from "../pages/owner/OwnerListings"
-import OwnerMessages from "../pages/owner/OwnerMessages"
-import OwnerSubscription from "../pages/owner/OwnerSubscription"
-import CreateListingPage from "../pages/owner/CreateListingPage"
-import EditListingPage from "../pages/owner/EditListingPage"
-import OwnerListingDetailPage from "../pages/owner/OwnerListingDetailPage"
+const TenantDashboard = lazyPage(() => import("../pages/tenant/TenantDashboard"))
+const TenantFavorites = lazyPage(() => import("../pages/tenant/TenantFavorites"))
+const TenantMessages = lazyPage(() => import("../pages/tenant/TenantMessages"))
 
-import AdminDashboard from "../pages/admin/AdminDashboard"
-import AdminModeration from "../pages/admin/AdminModeration"
-import AdminListingDetail from "../pages/admin/AdminListingDetail"
-import AdminUsers from "../pages/admin/AdminUsers"
-import AdminReports from "../pages/admin/AdminReports"
-import AdminSubscriptions from "../pages/admin/AdminSubscriptions"
+const OwnerDashboard = lazyPage(() => import("../pages/owner/OwnerDashboard"))
+const OwnerListings = lazyPage(() => import("../pages/owner/OwnerListings"))
+const OwnerMessages = lazyPage(() => import("../pages/owner/OwnerMessages"))
+const OwnerSubscription = lazyPage(() => import("../pages/owner/OwnerSubscription"))
+const CreateListingPage = lazyPage(() => import("../pages/owner/CreateListingPage"))
+const EditListingPage = lazyPage(() => import("../pages/owner/EditListingPage"))
+const OwnerListingDetailPage = lazyPage(() => import("../pages/owner/OwnerListingDetailPage"))
+
+const AdminDashboard = lazyPage(() => import("../pages/admin/AdminDashboard"))
+const AdminModeration = lazyPage(() => import("../pages/admin/AdminModeration"))
+const AdminListingDetail = lazyPage(() => import("../pages/admin/AdminListingDetail"))
+const AdminUsers = lazyPage(() => import("../pages/admin/AdminUsers"))
+const AdminReports = lazyPage(() => import("../pages/admin/AdminReports"))
+const AdminSubscriptions = lazyPage(() => import("../pages/admin/AdminSubscriptions"))
 
 export const router = createBrowserRouter([
   {
