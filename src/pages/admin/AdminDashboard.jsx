@@ -7,7 +7,7 @@ import PageHeader from "../../components/common/PageHeader"
 import LoadingState from "../../components/feedback/LoadingState"
 import ErrorState from "../../components/feedback/ErrorState"
 import { APP_ROUTES } from "../../constants/routes"
-import { Bell, CreditCard, Home, Siren, User, Users } from "lucide-react"
+import { Bell, Coins, CreditCard, Home, MapPin, ShieldCheck, Siren, Tag, User, Users } from "lucide-react"
 import {
   ResponsiveContainer,
   LineChart,
@@ -17,7 +17,12 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts"
+
+const CHART_COLORS = ["#6366f1", "#10b981", "#f59f00", "#3b82f6", "#ef4444", "#8b5cf6", "#14b8a6", "#f97316"]
 
 export default function AdminDashboard() {
   const user = useAuthStore((s) => s.user)
@@ -90,6 +95,11 @@ export default function AdminDashboard() {
     return Object.values(byDay).sort((a, b) => a.date.localeCompare(b.date))
   }, [evolution])
 
+  const plansData = useMemo(
+    () => (stats?.subscriptions?.byPlan || []).map((p) => ({ ...p, label: p.label || p.code })),
+    [stats]
+  )
+
   if (!user) return null
 
   if (loading) return <LoadingState message="Chargement de l'espace administrateur..." />
@@ -151,6 +161,112 @@ export default function AdminDashboard() {
             </Link>
           </div>
         ))}
+      </div>
+
+      <div className="row g-3 mb-4">
+        <div className="col-sm-6 col-xl-3">
+          <StatCard
+            icon={Coins}
+            label="Revenus totaux"
+            value={formatMoney(stats?.revenue?.total)}
+            color="success"
+          />
+        </div>
+        <div className="col-sm-6 col-xl-3">
+          <StatCard
+            icon={Coins}
+            label="Revenus (30 derniers jours)"
+            value={formatMoney(stats?.revenue?.last30d)}
+            color="info"
+          />
+        </div>
+      </div>
+
+      <div className="row g-4 mb-4">
+        {/* Répartition par plan */}
+        <div className="col-lg-6">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
+              <h5 className="fw-bold mb-0">Répartition par plan</h5>
+            </div>
+            <div className="card-body">
+              {plansData.length === 0 ? (
+                <p className="text-muted text-center my-4">Aucun abonnement.</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie
+                      data={plansData}
+                      dataKey="count"
+                      nameKey="label"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={90}
+                      innerRadius={45}
+                      paddingAngle={3}
+                    >
+                      {plansData.map((entry, index) => (
+                        <Cell key={entry.id || index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value, name) => [value, name]} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Top villes */}
+        <div className="col-lg-6">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
+              <h5 className="fw-bold mb-0">Top villes</h5>
+            </div>
+            <div className="card-body">
+              <DistributionList items={stats?.announcements?.topCities || []} icon={MapPin} empty="Aucune annonce." />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="row g-4 mb-4">
+        {/* Top types de bien */}
+        <div className="col-lg-4">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
+              <h5 className="fw-bold mb-0">Top types de bien</h5>
+            </div>
+            <div className="card-body">
+              <DistributionList items={stats?.announcements?.topTypes || []} icon={Tag} empty="Aucune annonce." />
+            </div>
+          </div>
+        </div>
+
+        {/* Utilisateurs par rôle */}
+        <div className="col-lg-4">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
+              <h5 className="fw-bold mb-0">Utilisateurs par rôle</h5>
+            </div>
+            <div className="card-body">
+              <DistributionList items={stats?.users?.byRole || []} icon={User} empty="Aucun utilisateur." />
+            </div>
+          </div>
+        </div>
+
+        {/* Utilisateurs par statut */}
+        <div className="col-lg-4">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
+              <h5 className="fw-bold mb-0">Utilisateurs par statut</h5>
+            </div>
+            <div className="card-body">
+              <DistributionList items={stats?.users?.byStatus || []} icon={ShieldCheck} empty="Aucun utilisateur." />
+            </div>
+          </div>
+        </div>
       </div>
 
       {evolutionData.length > 0 && (
@@ -262,6 +378,46 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+const formatMoney = (value) => `${Number(value || 0).toLocaleString("fr-FR")} FCFA`
+
+function DistributionList({ items, icon: Icon, empty }) {
+  if (!items || items.length === 0) {
+    return <p className="text-muted text-center my-4">{empty}</p>
+  }
+  const max = Math.max(...items.map((i) => Number(i.count) || 0))
+  return (
+    <div>
+      {items.map((item, index) => {
+        const count = Number(item.count) || 0
+        const pct = max > 0 ? Math.round((count / max) * 100) : 0
+        return (
+          <div key={item.id || index} className="mb-3">
+            <div className="d-flex align-items-center justify-content-between mb-1">
+              <div className="d-flex align-items-center gap-2">
+                <div className="bg-light rounded-circle d-flex align-items-center justify-content-center" style={{ width: "28px", height: "28px" }}>
+                  <Icon size={14} className="text-muted" />
+                </div>
+                <span className="small fw-medium text-truncate" style={{ maxWidth: "180px" }}>{item.label || item.code || item.name || "—"}</span>
+              </div>
+              <span className="small fw-bold">{count}</span>
+            </div>
+            <div className="progress" style={{ height: "6px" }}>
+              <div
+                className="progress-bar"
+                role="progressbar"
+                style={{ width: `${pct}%`, backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                aria-valuenow={pct}
+                aria-valuemin="0"
+                aria-valuemax="100"
+              />
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
