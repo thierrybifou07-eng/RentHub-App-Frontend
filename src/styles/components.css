@@ -90,6 +90,26 @@
   background: var(--color-neutral-100);
 }
 
+.listing-card-image .listing-card-video-badge {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  background: rgba(10, 20, 40, 0.55);
+  color: #fff;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: none;
+  backdrop-filter: blur(2px);
+}
+
 .listing-card:hover .listing-card-image img,
 .listing-card:hover .listing-card-image video {
   transform: scale(1.04);

@@ -2,7 +2,7 @@ import ListingPrice from "./ListingPrice"
 import ListingLocation from "./ListingLocation"
 import { getListingDetailPath } from "../../constants/routes"
 import { getPrimaryMedia, getPrimaryMediaUrl, isVideoMedia } from "../../utils/mediaUrl"
-import { BadgeCheck, ImageOff, Star } from "lucide-react"
+import { BadgeCheck, ImageOff, Play, Star } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useState } from "react"
 
@@ -34,8 +34,6 @@ function ListingCard({ listing, showFavorite, isFavorite, onToggleFavorite }) {
                 src={imageUrl}
                 className={`card-img-top ${mediaLoaded ? "" : "media-hidden"}`}
                 muted
-                autoPlay
-                loop
                 playsInline
                 preload="metadata"
                 onLoadedData={() => setMediaLoaded(true)}
@@ -53,6 +51,12 @@ function ListingCard({ listing, showFavorite, isFavorite, onToggleFavorite }) {
             )
           ) : (
             <div className="skeleton-image" />
+          )}
+          {coverIsVideo && (
+            <span className="listing-card-video-badge" aria-hidden="true">
+              <Play size={14} fill="currentColor" />
+              Vidéo
+            </span>
           )}
           {mediaFailed && !showSkeleton && (
             <div className="listing-card-image-fallback">
