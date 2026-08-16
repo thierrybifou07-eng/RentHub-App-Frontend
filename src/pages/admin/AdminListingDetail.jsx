@@ -54,6 +54,15 @@ function AdminListingDetail() {
     setFailedImages((prev) => (prev.includes(id) ? prev : [...prev, id]))
   }
 
+  // Re-synchronise l'annonce après un échec d'action : le serveur peut avoir
+  // exécuté l'action malgré une réponse perdue (ex. erreur réseau transitoire).
+  const reloadListing = async () => {
+    try {
+      const data = await getModerationListing(listingId)
+      if (data) setListing(data)
+    } catch { /* on conserve l'état actuel si le rechargement échoue */ }
+  }
+
   if (loading) return <LoadingState message="Chargement de l'annonce..." />
 
   if (error && !listing) {
@@ -89,6 +98,7 @@ function AdminListingDetail() {
       setListing((prev) => ({ ...prev, status_id: ANNOUNCEMENT_STATUS.ACTIVE.id }))
       setSuccess("Annonce approuvée et publiée. Le propriétaire a été notifié.")
     } catch (err) {
+      await reloadListing()
       setError(err.message || "Erreur lors de l'approbation.")
     } finally {
       setActionLoading(null)
@@ -105,6 +115,7 @@ function AdminListingDetail() {
       setListing((prev) => ({ ...prev, status_id: ANNOUNCEMENT_STATUS.REJECTED.id }))
       setSuccess("Annonce rejetée. Le propriétaire a été notifié de la raison.")
     } catch (err) {
+      await reloadListing()
       setError(err.message || "Erreur lors du rejet.")
     } finally {
       setActionLoading(null)
