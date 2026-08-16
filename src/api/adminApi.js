@@ -5,8 +5,8 @@ export async function getStats() {
   return response.data || response
 }
 
-export async function getStatsEvolution() {
-  const response = await apiClient.get("/admin/stats/evolution")
+export async function getStatsEvolution(days = 30) {
+  const response = await apiClient.get("/admin/stats/evolution", { params: { days } })
   return response.data || response
 }
 

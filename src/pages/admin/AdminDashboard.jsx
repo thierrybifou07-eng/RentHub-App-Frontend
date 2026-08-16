@@ -24,6 +24,15 @@ import {
 
 const CHART_COLORS = ["#6366f1", "#10b981", "#f59f00", "#3b82f6", "#ef4444", "#8b5cf6", "#14b8a6", "#f97316"]
 
+const PERIODS = [
+  { value: 7, label: "7 derniers jours" },
+  { value: 30, label: "30 derniers jours" },
+  { value: 60, label: "60 derniers jours" },
+  { value: 90, label: "90 derniers jours" },
+  { value: 180, label: "6 derniers mois" },
+  { value: 365, label: "1 an" },
+]
+
 export default function AdminDashboard() {
   const user = useAuthStore((s) => s.user)
   
@@ -31,6 +40,8 @@ export default function AdminDashboard() {
   const [pending, setPending] = useState(null)
   const [activity, setActivity] = useState([])
   const [evolution, setEvolution] = useState(null)
+  const [granularity, setGranularity] = useState("day")
+  const [periodDays, setPeriodDays] = useState(30)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -42,12 +53,13 @@ export default function AdminDashboard() {
           getStats(),
           getPendingCounts(),
           getRecentActivity(),
-          getStatsEvolution(),
+          getStatsEvolution(periodDays),
         ])
         if (active) {
           setStats(statsData)
           setPending(pendingData)
           setEvolution(evolutionData)
+          setGranularity(evolutionData?.granularity || "day")
           setActivity([
             ...(activityData?.announcements || []).map((a) => ({
               type: "LISTING",
@@ -76,7 +88,7 @@ export default function AdminDashboard() {
     }
     loadDashboard()
     return () => { active = false }
-  }, [])
+  }, [periodDays])
 
   const evolutionData = useMemo(() => {
     const byDay = {}
@@ -136,9 +148,20 @@ export default function AdminDashboard() {
     },
   ]
 
+  const periodLabel = PERIODS.find((p) => p.value === periodDays)?.label || `${periodDays} derniers jours`
+
   const formatDay = (value) => {
-    const [, m, d] = String(value).split("-")
-    return d ? `${d}/${m}` : value
+    const str = String(value)
+    if (granularity === "week") {
+      const [, w] = str.split("-W")
+      return w ? `S${w}` : str
+    }
+    if (granularity === "month") {
+      const [y, m] = str.split("-")
+      return m ? `${m}/${y}` : str
+    }
+    const [, m, d] = str.split("-")
+    return d ? `${d}/${m}` : str
   }
 
   return (
@@ -271,8 +294,19 @@ export default function AdminDashboard() {
 
       {evolutionData.length > 0 && (
         <div className="card border-0 shadow-sm mb-4">
-          <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
-            <h5 className="fw-bold mb-0">Évolution sur 30 jours</h5>
+          <div className="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <h5 className="fw-bold mb-0">Évolution — {periodLabel}</h5>
+            <select
+              className="form-select form-select-sm"
+              style={{ width: "auto" }}
+              value={periodDays}
+              onChange={(e) => setPeriodDays(Number(e.target.value))}
+              aria-label="Période d'évolution"
+            >
+              {PERIODS.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
           </div>
           <div className="card-body">
             <ResponsiveContainer width="100%" height={300}>
