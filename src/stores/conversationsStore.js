@@ -7,6 +7,9 @@ export const useConversationsStore = create((set, get) => ({
   unreadCount: 0,
   activeConversation: null,
   activeMessages: [],
+  // Métadonnées de pagination du fil ouvert (page = dernière page chargée, ordre DESC côté API)
+  messagesMeta: { page: 0, limit: 50, total: 0, totalPages: 0 },
+  loadingOlder: false,
 
   async fetchConversations(params = {}) {
     try {
@@ -32,17 +35,58 @@ export const useConversationsStore = create((set, get) => ({
   async openConversation(conversationId) {
     // Set active conversation from list if possible
     const conv = get().conversations.find(c => c.id === conversationId)
-    set({ activeConversation: conv || { id: conversationId }, activeMessages: [] })
+    set({
+      activeConversation: conv || { id: conversationId },
+      activeMessages: [],
+      messagesMeta: { page: 0, limit: 50, total: 0, totalPages: 0 },
+      loadingOlder: false,
+    })
 
     try {
-      const data = await getMessages(conversationId)
-      const messages = data || []
-      set({ activeMessages: messages })
+      const { messages, pagination } = await getMessages(conversationId, { page: 1, limit: 50 })
+      // L'API renvoie les plus récents d'abord ; on inverse pour afficher du plus ancien au plus récent.
+      set({
+        activeMessages: [...messages].reverse(),
+        messagesMeta: {
+          page: 1,
+          limit: 50,
+          total: pagination?.total ?? 0,
+          totalPages: pagination?.totalPages ?? 0,
+        },
+      })
 
       // Update unread count as the API marks them read
       get().fetchUnreadCount()
     } catch (err) {
       console.error("Failed to load messages:", err)
+    }
+  },
+
+  /**
+   * Charge la page suivante (messages plus anciens) et les préfixe dans le fil.
+   */
+  async loadOlderMessages(conversationId) {
+    const { page, limit, totalPages } = get().messagesMeta
+    if (!conversationId || get().loadingOlder || page >= totalPages) return
+    set({ loadingOlder: true })
+    try {
+      const nextPage = page + 1
+      const { messages, pagination } = await getMessages(conversationId, { page: nextPage, limit })
+      // Le lot (DESC) est inversé pour l'affichage puis inséré devant le fil existant (ASC).
+      const older = [...messages].reverse()
+      set(state => ({
+        activeMessages: [...older, ...state.activeMessages],
+        messagesMeta: {
+          page: pagination?.page ?? nextPage,
+          limit,
+          total: pagination?.total ?? state.messagesMeta.total,
+          totalPages: pagination?.totalPages ?? totalPages,
+        },
+      }))
+    } catch (err) {
+      console.error("Failed to load older messages:", err)
+    } finally {
+      set({ loadingOlder: false })
     }
   },
 

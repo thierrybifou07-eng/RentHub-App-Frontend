@@ -20,9 +20,10 @@ export async function getUnreadCount() {
 }
 
 // GET /conversations/:id/messages — Liste des messages d'une conversation (les marque comme lus)
+// Retourne { messages: Message[], pagination: { page, limit, total, totalPages } }
 export async function getMessages(conversationId, params = {}) {
   const response = await apiClient.get(`/conversations/${conversationId}/messages`, { params })
-  return response.data
+  return { messages: response.data || [], pagination: response.pagination || null }
 }
 
 // POST /conversations/:id/messages — Envoyer un message

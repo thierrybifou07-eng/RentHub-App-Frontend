@@ -1,32 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Link, useSearchParams } from "react-router-dom"
-import { APP_ROUTES, getListingDetailPath } from "../../constants/routes"
+import { APP_ROUTES } from "../../constants/routes"
 import { useAuthStore } from "../../stores/authStore"
 import { useConversationsStore } from "../../stores/conversationsStore"
 import { useNotificationsStore } from "../../stores/notificationsStore"
 import { messageFormSchema } from "../../schemas/messageSchema"
-import { formatMessageTime, formatDayLabel, formatRelativeTime, formatName } from "../../utils/formatters"
+import { formatName } from "../../utils/formatters"
 import PageHeader from "../common/PageHeader"
 import EmptyState from "../feedback/EmptyState"
 import LoadingState from "../feedback/LoadingState"
-import UserAvatar from "../common/UserAvatar"
+import ConversationList from "./ConversationList"
+import ConversationHeader from "./ConversationHeader"
+import ConversationThread from "./ConversationThread"
+import MessageInput from "./MessageInput"
 
 /* ── Variantes tenant / owner ─────────────────────────────────── */
-
-function groupMessagesByDay(messages) {
-  const groups = []
-  for (const msg of messages) {
-    const ts = msg.created_at || msg.createdAt || msg.updatedAt
-    const key = new Date(ts).toDateString()
-    const last = groups[groups.length - 1]
-    if (last && last.key === key) {
-      last.messages.push(msg)
-    } else {
-      groups.push({ key, label: formatDayLabel(ts), messages: [msg] })
-    }
-  }
-  return groups
-}
 
 const CONFIGS = {
   tenant: {
@@ -66,9 +54,12 @@ function MessagesView({ variant = "tenant" }) {
     conversations,
     activeConversation,
     activeMessages,
+    messagesMeta,
+    loadingOlder,
     fetchConversations,
     openConversation,
     closeConversation,
+    loadOlderMessages,
     sendMessage,
   } = useConversationsStore()
 
@@ -128,6 +119,7 @@ function MessagesView({ variant = "tenant" }) {
   useEffect(() => {
     const pending = pendingScrollRef.current
     if (!pending) return
+    if (loadingMessages || !threadRef.current?.querySelector(".message-bubble")) return
     pendingScrollRef.current = null
     requestAnimationFrame(() => {
       if (pending !== "firstUnread") {
@@ -142,7 +134,33 @@ function MessagesView({ variant = "tenant" }) {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
       }
     })
-  }, [activeMessages])
+  }, [activeMessages, loadingMessages])
+
+  const getFirstVisibleBubble = (container) => {
+    const bubbles = container?.querySelectorAll(".message-bubble")
+    if (!bubbles || bubbles.length === 0) return null
+    const scrollTop = container.scrollTop
+    for (const b of bubbles) {
+      if (b.offsetTop + b.offsetHeight > scrollTop) return b
+    }
+    return bubbles[0]
+  }
+
+  const handleLoadOlder = useCallback(() => {
+    if (!activeConversation) return
+    const container = threadRef.current
+    if (!container) return
+    // On conserve la position de lecture via un élément ancré : après insertion
+    // des anciens messages, on re-scrolle pour le replacer à la même hauteur.
+    const anchor = getFirstVisibleBubble(container)
+    const anchorDistance = anchor ? anchor.offsetTop - container.scrollTop : 0
+    loadOlderMessages(activeConversation.id).then(() => {
+      requestAnimationFrame(() => {
+        if (!container || !anchor || !anchor.isConnected) return
+        container.scrollTop = anchor.offsetTop - anchorDistance
+      })
+    })
+  }, [activeConversation, loadOlderMessages])
 
   async function handleSend(e) {
     e.preventDefault()
@@ -166,8 +184,7 @@ function MessagesView({ variant = "tenant" }) {
     }
   }
 
-  const isOwnMessage = (msg) =>
-    msg.sender_id === user.id || msg.senderId === user.id
+  const hasOlder = messagesMeta.page > 0 && messagesMeta.page < messagesMeta.totalPages
 
   return (
     <div className="messages-view">
@@ -188,53 +205,19 @@ function MessagesView({ variant = "tenant" }) {
 
               {/* ── Liste des conversations ─────────────────── */}
               <section className="col-12 col-md-4 border-end conversations-pane">
-                <div className="p-3 border-bottom">
-                  <h2 className="h6 fw-bold mb-0">
+                <div className="conversations-pane-header">
+                  <span className="fw-bold small">
                     {conversations.length} conversation{conversations.length > 1 ? "s" : ""}
-                  </h2>
+                  </span>
                 </div>
-                <div className="list-group list-group-flush conversation-list">
-                  {conversations.map((conv) => {
-                    const title = conv.Announcement?.title || "Annonce"
-                    const participant = cfg.getParticipant(conv) || cfg.participantFallback
-                    const participantUser = variant === "tenant" ? conv.owner : conv.tenant
-                    const lastMsg = conv.last_message
-                    const unread = conv.unread_count || 0
-                    return (
-                      <button
-                        key={conv.id}
-                        type="button"
-                        className={`list-group-item list-group-item-action conversation-item ${activeConversation?.id === conv.id ? "active" : ""}`}
-                        onClick={() => handleSelectConversation(conv.id)}
-                      >
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <UserAvatar user={participantUser} size={34} />
-                          <span className="fw-bold small text-truncate" style={{ minWidth: 0, flex: 1 }}>
-                            {title}
-                          </span>
-                          <span className="d-flex align-items-center gap-2">
-                            {unread > 0 && (
-                              <span className="badge bg-danger rounded-pill">{unread > 99 ? "99+" : unread}</span>
-                            )}
-                            {lastMsg && (
-                              <small className="text-secondary text-nowrap">
-                                {formatRelativeTime(conv.updatedAt)}
-                              </small>
-                            )}
-                          </span>
-                        </div>
-                        <p className="mb-1 small text-secondary">
-                          {participant}
-                        </p>
-                        {lastMsg && (
-                          <p className={`mb-0 small text-truncate ${unread > 0 ? "fw-bold text-dark" : ""}`} style={{ maxWidth: "90%" }}>
-                            {lastMsg}
-                          </p>
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
+                <ConversationList
+                  conversations={conversations}
+                  variant={variant}
+                  activeId={activeConversation?.id}
+                  onSelect={handleSelectConversation}
+                  getParticipant={cfg.getParticipant}
+                  participantFallback={cfg.participantFallback}
+                />
               </section>
 
               {/* ── Fil de discussion ───────────────────────── */}
@@ -245,79 +228,32 @@ function MessagesView({ variant = "tenant" }) {
                   </div>
                 ) : (
                   <div className="d-flex flex-column thread-inner">
-                    <div className="px-3 py-2 border-bottom d-flex align-items-center gap-2">
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-light d-md-none flex-shrink-0"
-                        onClick={closeConversation}
-                        aria-label="Retour aux conversations"
-                      >
-                        &larr;
-                      </button>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <Link to={getListingDetailPath(activeConversation.announcement_id)}>
-                          <h3 className="h6 fw-bold mb-0 text-truncate">
-                            {activeConversation.Announcement?.title || "Annonce"}
-                          </h3>
-                        </Link>
-                        <small className="text-secondary">
-                          {cfg.getParticipant(activeConversation) || cfg.participantFallback}
-                          {activeConversation.announcement?.city?.name ? ` \u00b7 ${activeConversation.announcement.city.name}` : ""}
-                        </small>
-                      </div>
-                    </div>
+                    <ConversationHeader
+                      conversation={activeConversation}
+                      onBack={closeConversation}
+                      getParticipant={cfg.getParticipant}
+                      participantFallback={cfg.participantFallback}
+                    />
 
-                    <div className="message-thread flex-grow-1 p-3" ref={threadRef}>
-                      {loadingMessages ? (
-                        <p className="text-center text-secondary small mb-0">Chargement...</p>
-                      ) : activeMessages.length === 0 ? (
-                        <p className="text-center text-secondary small mb-0">Aucun message.</p>
-                      ) : (
-                        groupMessagesByDay(activeMessages).map((group) => (
-                          <div key={group.key} className="message-day-group">
-                            <div className="message-day-separator">
-                              <span>{group.label}</span>
-                            </div>
-                            {group.messages.map((msg) => (
-                              <div
-                                key={msg.id}
-                                className={`message-bubble ${isOwnMessage(msg) ? "own" : "other"}`}
-                                data-message-id={msg.id}
-                                data-read={msg.is_read || msg.isRead || msg.read_at ? "1" : "0"}
-                              >
-                                <p className="message-text">{msg.content || msg.text}</p>
-                                <div className="message-time">{formatMessageTime(msg.created_at || msg.createdAt || msg.updatedAt)}</div>
-                              </div>
-                            ))}
-                          </div>
-                        ))
-                      )}
-                      <div ref={messagesEndRef} />
-                    </div>
+                    <ConversationThread
+                      messages={activeMessages}
+                      loading={loadingMessages}
+                      loadingOlder={loadingOlder}
+                      hasOlder={hasOlder}
+                      onLoadOlder={handleLoadOlder}
+                      currentUserId={user?.id}
+                      threadRef={threadRef}
+                      messagesEndRef={messagesEndRef}
+                    />
 
-                    <form onSubmit={handleSend} className="message-input-area p-3 border-top bg-light">
-                      {sendError && (
-                        <div className="alert alert-danger py-1 px-2 small mb-2">{sendError}</div>
-                      )}
-                      <div className="d-flex gap-2 w-100">
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder={cfg.inputPlaceholder}
-                          value={newText}
-                          onChange={(e) => setNewText(e.target.value)}
-                          disabled={sending}
-                          maxLength={2000}
-                        />
-                        <button
-                          type="submit"
-                          className="btn btn-success"
-                          disabled={sending || !newText.trim()}
-                        >
-                          {sending ? "Envoi..." : "Envoyer"}
-                        </button>
-                      </div>
-                    </form>
+                    <MessageInput
+                      value={newText}
+                      onChange={(e) => setNewText(e.target.value)}
+                      onSubmit={handleSend}
+                      placeholder={cfg.inputPlaceholder}
+                      sending={sending}
+                      error={sendError}
+                    />
                   </div>
                 )}
               </section>
