@@ -35,22 +35,30 @@ export default function MediaUploader({
 
   const newImagesCount = newFiles.filter(f => f.type.startsWith('image/')).length
   const newVideosCount = newFiles.filter(f => f.type.startsWith('video/')).length
-  
-  const canAddMoreImages = (existingImages.length + newImagesCount) < maxImages
-  const canAddMoreVideos = (existingVideos.length + newVideosCount) < maxVideos
+
+  // Quota du plan appliqué sur le TOTAL médias (photos + vidéos)
+  const combinedUsed = existingImages.length + existingVideos.length + newImagesCount + newVideosCount
+  const canAddMore = combinedUsed < maxImages
 
   const handleFileChange = (e) => {
     const selected = Array.from(e.target.files)
-    
-    // Ajout de la prévisualisation pour chaque fichier
-    const filesWithPreviews = selected.map(f => {
-      // Pour éviter de modifier l'objet File original qui est readonly sur certaines props, on attache la preview
-      f.preview = URL.createObjectURL(f)
-      return f
-    })
 
-    setNewFiles(prev => [...prev, ...filesWithPreviews])
-    
+    // On ne garde que les fichiers qui tiennent dans le quota combiné restant
+    // (et on plafonne les vidéos à maxVideos par annonce).
+    const remainingCombined = maxImages - combinedUsed
+    let addedVideos = 0
+    const kept = []
+    for (const f of selected) {
+      if (kept.length >= remainingCombined) break
+      const isVideo = f.type.startsWith('video/')
+      if (isVideo && (newVideosCount + addedVideos) >= maxVideos) continue
+      if (isVideo) addedVideos += 1
+      f.preview = URL.createObjectURL(f)
+      kept.push(f)
+    }
+
+    setNewFiles(prev => [...prev, ...kept])
+
     // Réinitialiser l'input file pour permettre la sélection des mêmes fichiers si besoin
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
@@ -80,13 +88,12 @@ export default function MediaUploader({
             type="button" 
             className="btn btn-outline-success"
             onClick={() => fileInputRef.current?.click()}
-            disabled={!canAddMoreImages && !canAddMoreVideos}
+            disabled={!canAddMore}
           >
             Sélectionner des fichiers
           </button>
           <span className="text-secondary small">
-            Limites : {maxImages} images (reste {maxImages - (existingImages.length + newImagesCount)}), 
-            {maxVideos} vidéos (reste {maxVideos - (existingVideos.length + newVideosCount)})
+            Quota du plan : {maxImages} médias par annonce (photos + vidéos) — reste {Math.max(0, maxImages - combinedUsed)}
           </span>
         </div>
         <input
@@ -97,7 +104,7 @@ export default function MediaUploader({
           accept="image/*,video/mp4,video/webm"
           ref={fileInputRef}
           onChange={handleFileChange}
-          disabled={!canAddMoreImages && !canAddMoreVideos}
+          disabled={!canAddMore}
         />
         <div className="form-text">
           L'image qui apparaît en premier sera utilisée comme image de couverture de l'annonce.

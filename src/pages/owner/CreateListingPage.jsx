@@ -66,8 +66,8 @@ function CreateListingPage() {
     const images = newMediaFiles.images || []
     const videos = newMediaFiles.videos || []
 
-    if (images.length > planLimits.max_media) {
-      setGlobalError(`Votre plan autorise un maximum de ${planLimits.max_media} photos par annonce.`)
+    if (images.length + videos.length > planLimits.max_media) {
+      setGlobalError(`Votre plan autorise un maximum de ${planLimits.max_media} médias (photos + vidéos) par annonce.`)
       return
     }
 

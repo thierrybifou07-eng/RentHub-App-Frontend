@@ -136,8 +136,9 @@ function EditListingPage() {
     const videos = newMediaFiles.videos || []
 
     const existingImageCount = existingMedia.filter((m) => isImageMedia(m) || !isVideoMedia(m)).length
-    if (existingImageCount + images.length > planLimits.max_media) {
-      setGlobalError(`Votre plan autorise un maximum de ${planLimits.max_media} photos par annonce.`)
+    const existingVideoCount = existingMedia.filter((m) => isVideoMedia(m)).length
+    if (existingImageCount + existingVideoCount + images.length + videos.length > planLimits.max_media) {
+      setGlobalError(`Votre plan autorise un maximum de ${planLimits.max_media} médias (photos + vidéos) par annonce.`)
       return
     }
 
