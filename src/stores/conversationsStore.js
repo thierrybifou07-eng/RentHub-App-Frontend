@@ -123,10 +123,18 @@ export const useConversationsStore = create((set, get) => ({
   async sendMessage(conversationId, content) {
     try {
       const msgData = await sendMessage(conversationId, content)
-      // Optimistic or real append
-/*       const msgData = newMsg?.data || newMsg
- */      set(state => ({
-        activeMessages: [...state.activeMessages, msgData]
+      set(state => ({
+        activeMessages: [...state.activeMessages, msgData],
+        // Met à jour la liste (preview + tri par activité + badge non-lus à 0)
+        conversations: state.conversations.map(c => {
+          if (String(c.id) !== String(conversationId)) return c
+          return {
+            ...c,
+            last_message: msgData,
+            updatedAt: msgData.createdAt,
+            unread_count: 0,
+          }
+        }),
       }))
       return msgData
     } catch (err) {
