@@ -3,7 +3,7 @@ import { getUserAvatarUrl } from "../../utils/userAvatar"
 
 function getInitials(user) {
   if (!user) return "?"
-  const first = (user.firstname || user.name || "?")[0] || ""
+  const first = (user.firstname || "?")[0] || ""
   const last = user.lastname ? user.lastname[0] : ""
   return (first + last).toUpperCase() || "?"
 }

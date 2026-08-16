@@ -5,14 +5,12 @@ import PageHeader from "../../components/common/PageHeader"
 import LoadingState from "../../components/feedback/LoadingState"
 import Pagination from "../../components/common/Pagination"
 import { CircleCheck } from "lucide-react"
-
-const PAGE_LIMIT = 20
-
+import { PAGE_LIMIT } from "../../utils/formatters"
 
 const ROLE_CLASSES = {
-  ROLE_ADMIN: "bg-dark",
+  ROLE_ADMIN: "bg-secondary text-white",
   ROLE_OWNER: "bg-primary",
-  ROLE_TENANT: "bg-info text-dark",
+  ROLE_TENANT: "bg-warning text-dark",
 }
 
 const ROLE_ID_BY_CODE = {

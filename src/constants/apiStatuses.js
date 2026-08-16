@@ -131,8 +131,14 @@ export function getRoleLabel(roleId) {
 // Ce fallback est utilisé uniquement si l'API est indisponible.
 
 export const PROPERTY_TYPE_FALLBACK = {
-  1: { id: 1, code: "APARTMENT",  label: "Appartement"       },
-  2: { id: 2, code: "HOUSE",      label: "Maison"            },
-  3: { id: 3, code: "STUDIO",     label: "Studio"            },
-  4: { id: 4, code: "COMMERCIAL", label: "Local commercial"  },
+  1: { id: 1, code: "APARTMENT",        label: "Appartement"     },
+  2: { id: 2, code: "ROOM",             label: "Chambre"         },
+  3: { id: 3, code: "HOUSE",            label: "Maison"          },
+  4: { id: 4, code: "STUDIO",           label: "Studio"          },
+  5: { id: 5, code: "COMMERCIAL_LOCAL", label: "Local commercial"},
+  6: { id: 6, code: "VILLA",            label: "Villa"           },
+  7: { id: 7, code: "WAREHOUSE",        label: "Entrepôt"        },
+  8: { id: 8, code: "OFFICE",           label: "Bureau"          },
+  9: { id: 9, code: "SHOP",             label: "Boutique"        },
+  10: { id: 10, code: "GODOWN",          label: "Magasin"         },
 }

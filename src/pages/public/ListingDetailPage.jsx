@@ -126,20 +126,6 @@ function ListingDetailPage() {
 
   return (
     <div className="container py-4">
-      <nav aria-label="Fil d'Ariane" className="mb-3">
-        <ol className="breadcrumb small">
-          <li className="breadcrumb-item">
-            <Link to={APP_ROUTES.home}>Accueil</Link>
-          </li>
-          <li className="breadcrumb-item">
-            <Link to={APP_ROUTES.listings}>Annonces</Link>
-          </li>
-          <li className="breadcrumb-item active" aria-current="page">
-            {listing.title}
-          </li>
-        </ol>
-      </nav>
-
       <div className="row g-4">
         <div className="col-lg-8">
           {/* Bouton retour */}
@@ -231,8 +217,7 @@ function ListingDetailPage() {
 
           <h1 className="h3 mb-2">{listing.title}</h1>
           <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
-{/*             <ListingBadge statusId={listing.status_id} />
- */}            <span className="text-secondary small">
+            <span className="text-secondary small">
               {typeLabel} &middot; {listing.rooms ?? 0} pièce{(listing.rooms ?? 0) > 1 ? "s" : ""}
             </span>
             <span className="text-secondary small">{cityName}</span>

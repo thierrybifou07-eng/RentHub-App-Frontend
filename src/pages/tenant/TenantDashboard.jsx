@@ -4,6 +4,7 @@ import { APP_ROUTES } from "../../constants/routes"
 import { useAuthStore } from "../../stores/authStore"
 import { useFavoritesStore } from "../../stores/favoritesStore"
 import { getConversationsByUser } from "../../services/messagingService"
+import { getAnnouncements } from "../../api/announcementsApi"
 import PageHeader from "../../components/common/PageHeader"
 import StatCard from "../../components/common/StatCard"
 import { Heart, Mail, Search } from "lucide-react"
@@ -12,12 +13,19 @@ function TenantDashboard() {
   const user = useAuthStore((s) => s.user)
   const favorites = useFavoritesStore((s) => s.favorites)
   const [conversationCount, setConversationCount] = useState(0)
+  const [announcementCount, setAnnouncementCount] = useState(0)
 
   useEffect(() => {
     if (!user) return
     let active = true
     getConversationsByUser(user.id).then((convs) => {
       if (active) setConversationCount(convs.length)
+    })
+    getAnnouncements({ limit: 1 }).then((result) => {
+      if (!active) return
+      const pagination = result.data?.pagination || result.pagination || null
+      const total = pagination?.totalItems ?? pagination?.total ?? null
+      if (total != null) setAnnouncementCount(total)
     })
     return () => { active = false }
   }, [user])
@@ -37,7 +45,7 @@ function TenantDashboard() {
           <StatCard icon={Mail} value={conversationCount} label="Conversations" />
         </div>
         <div className="col-md-4">
-          <StatCard icon={Search} value="8" label="Annonces disponibles" />
+          <StatCard icon={Search} value={announcementCount} label="Annonces disponibles" />
         </div>
       </div>
 

@@ -4,6 +4,7 @@ export function formatXAF(amount) {
     maximumFractionDigits: 0,
   }).format(amount)
 }
+export const PAGE_LIMIT = 10
 
 export function formatName(person) {
   return `${person.firstname} ${person.lastname}`

@@ -83,9 +83,12 @@ function OwnerListings() {
     }
   }
 
-  function getTypeLabel(typeId) {
-    // Ideally this comes from a hook/context with catalogApi, but for now we fallback
-    return Object.values(PROPERTY_TYPE_FALLBACK).find((t) => t.id === typeId)?.label || typeId
+  function getTypeLabel(listing) {
+    return (
+      listing.PropertyType?.label ||
+      Object.values(PROPERTY_TYPE_FALLBACK).find((t) => t.id === listing.property_type_id)?.label ||
+      listing.property_type_id
+    )
   }
 
   return (
@@ -139,7 +142,7 @@ function OwnerListings() {
                           {listing.title}
                         </Link>
                       </td>
-                      <td className="small">{getTypeLabel(listing.property_type_id)}</td>
+                      <td className="small">{getTypeLabel(listing)}</td>
                       <td className="small">
                         {listing.City?.name}
                       </td>
