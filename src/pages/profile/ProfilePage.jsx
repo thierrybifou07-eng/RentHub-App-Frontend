@@ -37,6 +37,8 @@ function ProfilePage() {
 
   const [deletePassword, setDeletePassword] = useState("")
 
+  const [activeTab, setActiveTab] = useState("profile")
+
   // États de chargement et erreurs
   const [loading, setLoading] = useState({
     avatar: true,
@@ -169,188 +171,227 @@ function ProfilePage() {
   return (
     <div className="page-enter pb-5">
       <h1 className="h3 fw-bold mb-4">Mon Profil</h1>
-      
-      <div className="row g-4">
-        {/* Colonne gauche : Avatar et Infos */}
-        <div className="col-md-4">
-          <div className="card border-0 shadow-sm mb-4">
-            <div className="card-body text-center">
-              <h5 className="card-title mb-4">Photo de profil</h5>
-              
-              <div className="mb-3 position-relative d-inline-block">
-                {loading.avatar ? (
-                  <div className="rounded-circle bg-light d-flex align-items-center justify-content-center" style={{ width: "120px", height: "120px", margin: "0 auto" }}>
-                    <div className="spinner-border text-primary" role="status">
-                      <span className="visually-hidden">Chargement...</span>
+
+      <ul className="nav nav-tabs mb-4">
+        <li className="nav-item">
+          <button
+            type="button"
+            className={`nav-link ${activeTab === "profile" ? "active" : ""}`}
+            onClick={() => setActiveTab("profile")}
+          >
+            Informations personnelles
+          </button>
+        </li>
+        <li className="nav-item">
+          <button
+            type="button"
+            className={`nav-link ${activeTab === "security" ? "active" : ""}`}
+            onClick={() => setActiveTab("security")}
+          >
+            Sécurité
+          </button>
+        </li>
+        <li className="nav-item">
+          <button
+            type="button"
+            className={`nav-link text-danger ${activeTab === "account" ? "active" : ""}`}
+            onClick={() => setActiveTab("account")}
+          >
+            Compte
+          </button>
+        </li>
+      </ul>
+
+      {activeTab === "profile" && (
+        <div className="row g-4">
+          {/* Colonne gauche : Avatar */}
+          <div className="col-md-4">
+            <div className="card border-0 shadow-sm mb-4">
+              <div className="card-body text-center">
+                <h5 className="card-title mb-4">Photo de profil</h5>
+
+                <div className="mb-3 position-relative d-inline-block">
+                  {loading.avatar ? (
+                    <div className="rounded-circle bg-light d-flex align-items-center justify-content-center" style={{ width: "120px", height: "120px", margin: "0 auto" }}>
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Chargement...</span>
+                      </div>
+                    </div>
+                  ) : avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="rounded-circle object-fit-cover shadow-sm" style={{ width: "120px", height: "120px" }} />
+                  ) : (
+                    <div className="rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center display-1 shadow-sm" style={{ width: "120px", height: "120px", margin: "0 auto" }}>
+                      {user?.firstname?.charAt(0) || user?.name?.charAt(0) || "?"}
+                    </div>
+                  )}
+                </div>
+
+                {messages.avatar && (
+                  <div className={`alert alert-${messages.avatar.type} small py-1 px-2 mb-3`}>
+                    {messages.avatar.text}
+                  </div>
+                )}
+
+                <div className="d-flex flex-column gap-2 mt-3">
+                  <label className="btn btn-outline-primary btn-sm">
+                    Modifier la photo
+                    <input type="file" className="d-none" accept="image/*" onChange={handleAvatarUpload} disabled={loading.avatar} />
+                  </label>
+                  {avatarUrl && (
+                    <button type="button" className="btn btn-outline-danger btn-sm" onClick={handleAvatarDelete} disabled={loading.avatar}>
+                      Supprimer
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Colonne droite : Informations personnelles */}
+          <div className="col-md-8">
+            <div className="card border-0 shadow-sm mb-4">
+              <div className="card-body">
+                <h5 className="card-title border-bottom pb-2 mb-4">Informations personnelles</h5>
+
+                {messages.profile && (
+                  <div className={`alert alert-${messages.profile.type} small py-2 mb-3`}>
+                    {messages.profile.text}
+                  </div>
+                )}
+
+                <form onSubmit={handleProfileSubmit}>
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <FormField label="Prénom" htmlFor="profile-firstname">
+                        <input type="text" id="profile-firstname" className="form-control" value={profileForm.firstname} onChange={e => setProfileField("firstname", e.target.value)} />
+                      </FormField>
+                    </div>
+                    <div className="col-md-6">
+                      <FormField label="Nom" htmlFor="profile-lastname">
+                        <input type="text" id="profile-lastname" className="form-control" value={profileForm.lastname} onChange={e => setProfileField("lastname", e.target.value)} />
+                      </FormField>
+                    </div>
+                    <div className="col-md-6">
+                      <FormField label="Téléphone" htmlFor="profile-phone">
+                        <input type="tel" id="profile-phone" className="form-control" value={profileForm.phone} onChange={e => setProfileField("phone", e.target.value)} />
+                      </FormField>
+                    </div>
+                    <div className="col-md-6">
+                      <FormField label="Date de naissance" htmlFor="profile-birthdate">
+                        <input type="date" id="profile-birthdate" className="form-control" value={profileForm.birth_date} onChange={e => setProfileField("birth_date", e.target.value)} />
+                      </FormField>
+                    </div>
+                    <div className="col-md-6">
+                      <FormField label="Genre" htmlFor="profile-gender">
+                        <select id="profile-gender" className="form-select" value={profileForm.gender} onChange={e => setProfileField("gender", e.target.value)}>
+                          <option value="">Sélectionnez...</option>
+                          <option value="M">Homme</option>
+                          <option value="F">Femme</option>
+                        </select>
+                      </FormField>
+                    </div>
+                    <div className="col-md-6">
+                      <FormField label="Ville" htmlFor="profile-city">
+                        <select id="profile-city" className="form-select" value={profileForm.city_id} onChange={e => setProfileField("city_id", e.target.value)}>
+                          <option value="">Sélectionnez une ville...</option>
+                          {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                      </FormField>
+                    </div>
+                    <div className="col-12">
+                      <FormField label="Adresse" htmlFor="profile-address">
+                        <textarea id="profile-address" className="form-control" rows={2} value={profileForm.address} onChange={e => setProfileField("address", e.target.value)} />
+                      </FormField>
                     </div>
                   </div>
-                ) : avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="rounded-circle object-fit-cover shadow-sm" style={{ width: "120px", height: "120px" }} />
-                ) : (
-                  <div className="rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center display-1 shadow-sm" style={{ width: "120px", height: "120px", margin: "0 auto" }}>
-                    {user?.firstname?.charAt(0) || user?.name?.charAt(0) || "?"}
+                  <div className="mt-4 text-end">
+                    <button type="submit" className="btn btn-primary" disabled={loading.profile}>
+                      {loading.profile ? "Enregistrement..." : "Enregistrer les modifications"}
+                    </button>
                   </div>
-                )}
-              </div>
-
-              {messages.avatar && (
-                <div className={`alert alert-${messages.avatar.type} small py-1 px-2 mb-3`}>
-                  {messages.avatar.text}
-                </div>
-              )}
-
-              <div className="d-flex flex-column gap-2 mt-3">
-                <label className="btn btn-outline-primary btn-sm">
-                  Modifier la photo
-                  <input type="file" className="d-none" accept="image/*" onChange={handleAvatarUpload} disabled={loading.avatar} />
-                </label>
-                {avatarUrl && (
-                  <button type="button" className="btn btn-outline-danger btn-sm" onClick={handleAvatarDelete} disabled={loading.avatar}>
-                    Supprimer
-                  </button>
-                )}
+                </form>
               </div>
             </div>
           </div>
         </div>
+      )}
 
-        {/* Colonne droite : Formulaires */}
-        <div className="col-md-8">
-          
-          {/* Informations personnelles */}
-          <div className="card border-0 shadow-sm mb-4">
-            <div className="card-body">
-              <h5 className="card-title border-bottom pb-2 mb-4">Informations personnelles</h5>
-              
-              {messages.profile && (
-                <div className={`alert alert-${messages.profile.type} small py-2 mb-3`}>
-                  {messages.profile.text}
-                </div>
-              )}
+      {activeTab === "security" && (
+        <div className="row g-4">
+          <div className="col-md-8">
+            <div className="card border-0 shadow-sm mb-4">
+              <div className="card-body">
+                <h5 className="card-title border-bottom pb-2 mb-4">Changer le mot de passe</h5>
 
-              <form onSubmit={handleProfileSubmit}>
-                <div className="row g-3">
-                  <div className="col-md-6">
-                    <FormField label="Prénom" htmlFor="profile-firstname">
-                      <input type="text" id="profile-firstname" className="form-control" value={profileForm.firstname} onChange={e => setProfileField("firstname", e.target.value)} />
-                    </FormField>
+                {messages.password && (
+                  <div className={`alert alert-${messages.password.type} small py-2 mb-3`}>
+                    {messages.password.text}
                   </div>
-                  <div className="col-md-6">
-                    <FormField label="Nom" htmlFor="profile-lastname">
-                      <input type="text" id="profile-lastname" className="form-control" value={profileForm.lastname} onChange={e => setProfileField("lastname", e.target.value)} />
-                    </FormField>
+                )}
+
+                <form onSubmit={handlePasswordSubmit}>
+                  <div className="row g-3">
+                    <div className="col-12">
+                      <FormField label="Mot de passe actuel" htmlFor="pwd-current">
+                        <input type="password" id="pwd-current" className="form-control" value={passwordForm.currentPassword} onChange={e => setPasswordField("currentPassword", e.target.value)} required />
+                      </FormField>
+                    </div>
+                    <div className="col-md-6">
+                      <FormField label="Nouveau mot de passe" htmlFor="pwd-new">
+                        <input type="password" id="pwd-new" className="form-control" value={passwordForm.newPassword} onChange={e => setPasswordField("newPassword", e.target.value)} required />
+                      </FormField>
+                    </div>
+                    <div className="col-md-6">
+                      <FormField label="Confirmer le mot de passe" htmlFor="pwd-confirm">
+                        <input type="password" id="pwd-confirm" className="form-control" value={passwordForm.confirmNewPassword} onChange={e => setPasswordField("confirmNewPassword", e.target.value)} required />
+                      </FormField>
+                    </div>
                   </div>
-                  <div className="col-md-6">
-                    <FormField label="Téléphone" htmlFor="profile-phone">
-                      <input type="tel" id="profile-phone" className="form-control" value={profileForm.phone} onChange={e => setProfileField("phone", e.target.value)} />
-                    </FormField>
+                  <div className="mt-4 text-end">
+                    <button type="submit" className="btn btn-warning" disabled={loading.password}>
+                      {loading.password ? "Mise à jour..." : "Mettre à jour le mot de passe"}
+                    </button>
                   </div>
-                  <div className="col-md-6">
-                    <FormField label="Date de naissance" htmlFor="profile-birthdate">
-                      <input type="date" id="profile-birthdate" className="form-control" value={profileForm.birth_date} onChange={e => setProfileField("birth_date", e.target.value)} />
-                    </FormField>
-                  </div>
-                  <div className="col-md-6">
-                    <FormField label="Genre" htmlFor="profile-gender">
-                      <select id="profile-gender" className="form-select" value={profileForm.gender} onChange={e => setProfileField("gender", e.target.value)}>
-                        <option value="">Sélectionnez...</option>
-                        <option value="M">Homme</option>
-                        <option value="F">Femme</option>
-                      </select>
-                    </FormField>
-                  </div>
-                  <div className="col-md-6">
-                    <FormField label="Ville" htmlFor="profile-city">
-                      <select id="profile-city" className="form-select" value={profileForm.city_id} onChange={e => setProfileField("city_id", e.target.value)}>
-                        <option value="">Sélectionnez une ville...</option>
-                        {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                      </select>
-                    </FormField>
-                  </div>
-                  <div className="col-12">
-                    <FormField label="Adresse" htmlFor="profile-address">
-                      <textarea id="profile-address" className="form-control" rows={2} value={profileForm.address} onChange={e => setProfileField("address", e.target.value)} />
-                    </FormField>
-                  </div>
-                </div>
-                <div className="mt-4 text-end">
-                  <button type="submit" className="btn btn-primary" disabled={loading.profile}>
-                    {loading.profile ? "Enregistrement..." : "Enregistrer les modifications"}
-                  </button>
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
           </div>
-
-          {/* Mot de passe */}
-          <div className="card border-0 shadow-sm mb-4">
-            <div className="card-body">
-              <h5 className="card-title border-bottom pb-2 mb-4">Changer le mot de passe</h5>
-              
-              {messages.password && (
-                <div className={`alert alert-${messages.password.type} small py-2 mb-3`}>
-                  {messages.password.text}
-                </div>
-              )}
-
-              <form onSubmit={handlePasswordSubmit}>
-                <div className="row g-3">
-                  <div className="col-12">
-                    <FormField label="Mot de passe actuel" htmlFor="pwd-current">
-                      <input type="password" id="pwd-current" className="form-control" value={passwordForm.currentPassword} onChange={e => setPasswordField("currentPassword", e.target.value)} required />
-                    </FormField>
-                  </div>
-                  <div className="col-md-6">
-                    <FormField label="Nouveau mot de passe" htmlFor="pwd-new">
-                      <input type="password" id="pwd-new" className="form-control" value={passwordForm.newPassword} onChange={e => setPasswordField("newPassword", e.target.value)} required />
-                    </FormField>
-                  </div>
-                  <div className="col-md-6">
-                    <FormField label="Confirmer le mot de passe" htmlFor="pwd-confirm">
-                      <input type="password" id="pwd-confirm" className="form-control" value={passwordForm.confirmNewPassword} onChange={e => setPasswordField("confirmNewPassword", e.target.value)} required />
-                    </FormField>
-                  </div>
-                </div>
-                <div className="mt-4 text-end">
-                  <button type="submit" className="btn btn-warning" disabled={loading.password}>
-                    {loading.password ? "Mise à jour..." : "Mettre à jour le mot de passe"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          {/* Zone Danger */}
-          <div className="card border-0 shadow-sm border-danger">
-            <div className="card-body">
-              <h5 className="card-title text-danger border-bottom border-danger pb-2 mb-4">Zone Danger</h5>
-              <p className="small text-secondary">
-                La suppression de votre compte est définitive. Toutes vos données, annonces et messages seront supprimés.
-              </p>
-              
-              {messages.delete && (
-                <div className={`alert alert-${messages.delete.type} small py-2 mb-3`}>
-                  {messages.delete.text}
-                </div>
-              )}
-
-              <form onSubmit={handleDeleteAccount} className="d-flex align-items-end gap-3 mt-3">
-                <div className="flex-grow-1">
-                  <FormField label="Mot de passe pour confirmer" htmlFor="delete-pwd">
-                    <input type="password" id="delete-pwd" className="form-control border-danger" value={deletePassword} onChange={e => setDeletePassword(e.target.value)} required placeholder="Entrez votre mot de passe..." />
-                  </FormField>
-                </div>
-                <div>
-                  <button type="submit" className="btn btn-danger" disabled={loading.delete || !deletePassword}>
-                    {loading.delete ? "Suppression..." : "Supprimer mon compte"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-
         </div>
-      </div>
+      )}
+
+      {activeTab === "account" && (
+        <div className="row g-4">
+          <div className="col-md-8">
+            <div className="card border-0 shadow-sm border-danger">
+              <div className="card-body">
+                <h5 className="card-title text-danger border-bottom border-danger pb-2 mb-4">Zone Danger</h5>
+                <p className="small text-secondary">
+                  La suppression de votre compte est définitive. Toutes vos données, annonces et messages seront supprimés.
+                </p>
+
+                {messages.delete && (
+                  <div className={`alert alert-${messages.delete.type} small py-2 mb-3`}>
+                    {messages.delete.text}
+                  </div>
+                )}
+
+                <form onSubmit={handleDeleteAccount} className="d-flex align-items-end gap-3 mt-3">
+                  <div className="flex-grow-1">
+                    <FormField label="Mot de passe pour confirmer" htmlFor="delete-pwd">
+                      <input type="password" id="delete-pwd" className="form-control border-danger" value={deletePassword} onChange={e => setDeletePassword(e.target.value)} required placeholder="Entrez votre mot de passe..." />
+                    </FormField>
+                  </div>
+                  <div>
+                    <button type="submit" className="btn btn-danger" disabled={loading.delete || !deletePassword}>
+                      {loading.delete ? "Suppression..." : "Supprimer mon compte"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
