@@ -2,8 +2,8 @@ import { create } from "zustand"
 import {
   getNotifications,
   getUnreadCount,
-  markNotificationRead,
-  markAllNotificationsRead,
+  deleteNotification,
+  deleteAllNotifications,
 } from "../api/notificationsApi"
 
 export const useNotificationsStore = create((set, get) => ({
@@ -33,28 +33,14 @@ export const useNotificationsStore = create((set, get) => ({
     }
   },
 
-  async markRead(id) {
-    try {
-      await markNotificationRead(id)
-      set((state) => ({
-        notifications: state.notifications.map((n) =>
-          String(n.id) === String(id) ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
-        ),
-      }))
-      get().fetchUnreadCount()
-    } catch (err) {
-      console.error("Failed to mark notification read:", err)
-    }
-  },
-
-  /** Marque la notification comme lue côté serveur puis la retire de la liste. */
+  /** Supprime la notification côté serveur puis la retire de la liste. */
   async removeNotification(id) {
     const target = get().notifications.find((n) => String(n.id) === String(id))
     const wasUnread = target && !target.is_read
     try {
-      await markNotificationRead(id)
+      await deleteNotification(id)
     } catch (err) {
-      console.error("Failed to mark notification read:", err)
+      console.error("Failed to delete notification:", err)
     }
     set((state) => ({
       notifications: state.notifications.filter((n) => String(n.id) !== String(id)),
@@ -70,7 +56,7 @@ export const useNotificationsStore = create((set, get) => ({
     if (matches.length === 0) return
     const unreadRemoved = matches.filter((n) => !n.is_read).length
     matches.forEach((n) => {
-      markNotificationRead(n.id).catch((err) => console.error("Failed to mark notification read:", err))
+      deleteNotification(n.id).catch((err) => console.error("Failed to delete notification:", err))
     })
     set((state) => ({
       notifications: state.notifications.filter(
@@ -80,15 +66,16 @@ export const useNotificationsStore = create((set, get) => ({
     }))
   },
 
+  /** Supprime toutes les notifications (bouton « Tout supprimer »). */
   async markAllRead() {
     try {
-      await markAllNotificationsRead()
-      set((state) => ({
-        notifications: state.notifications.map((n) => ({ ...n, is_read: true, read_at: new Date().toISOString() })),
+      await deleteAllNotifications()
+      set({
+        notifications: [],
         unreadCount: 0,
-      }))
+      })
     } catch (err) {
-      console.error("Failed to mark all notifications read:", err)
+      console.error("Failed to delete all notifications:", err)
     }
   },
 

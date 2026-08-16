@@ -23,3 +23,15 @@ export async function markAllNotificationsRead() {
   const response = await apiClient.patch("/notifications/read-all")
   return response.data
 }
+
+// DELETE /notifications/:id — Supprimer une notification (après lecture)
+export async function deleteNotification(id) {
+  const response = await apiClient.delete(`/notifications/${id}`)
+  return response.data
+}
+
+// DELETE /notifications/read-all — Supprimer toutes les notifications
+export async function deleteAllNotifications() {
+  const response = await apiClient.delete("/notifications/read-all")
+  return response.data
+}

@@ -136,7 +136,7 @@ function NotificationBell() {
             <span className="notification-panel-title">Notifications</span>
             {unreadCount > 0 && (
               <button type="button" className="notification-mark-all" onClick={markAllRead}>
-                Tout marquer comme lu
+                Tout supprimer
               </button>
             )}
           </div>
