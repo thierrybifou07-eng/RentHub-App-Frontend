@@ -6,6 +6,9 @@ import { getListingById } from "../../services/listingsService"
 import { updateListing, removeListing } from "../../services/ownerService"
 import { uploadAnnouncementImages, uploadAnnouncementVideos, deleteMedia } from "../../api/mediaApi"
 import { ANNOUNCEMENT_STATUS, getAnnouncementStatusLabel } from "../../constants/apiStatuses"
+import { isImageMedia, isVideoMedia } from "../../utils/mediaUrl"
+import { useSubscriptionsStore } from "../../stores/subscriptionsStore"
+import { getPlanFeatures } from "../../utils/subscriptionLimits"
 import useListingForm from "../../hooks/useListingForm"
 import ListingWizardShell from "../../components/listings/ListingWizardShell"
 import LoadingState from "../../components/feedback/LoadingState"
@@ -15,6 +18,7 @@ function EditListingPage() {
   const { id: listingId } = useParams()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const { currentSubscription, fetchMySubscription } = useSubscriptionsStore()
 
   const {
     form,
@@ -36,6 +40,12 @@ function EditListingPage() {
   const [submitting, setSubmitting] = useState(false)
   const [loadingListing, setLoadingListing] = useState(true)
   const [blocked, setBlocked] = useState(null)
+
+  useEffect(() => {
+    fetchMySubscription()
+  }, [fetchMySubscription])
+
+  const planLimits = getPlanFeatures(currentSubscription)
 
   useEffect(() => {
     let active = true
@@ -124,6 +134,12 @@ function EditListingPage() {
 
     const images = newMediaFiles.images || []
     const videos = newMediaFiles.videos || []
+
+    const existingImageCount = existingMedia.filter((m) => isImageMedia(m) || !isVideoMedia(m)).length
+    if (existingImageCount + images.length > planLimits.max_media) {
+      setGlobalError(`Votre plan autorise un maximum de ${planLimits.max_media} photos par annonce.`)
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -265,6 +281,8 @@ function EditListingPage() {
       existingMedia={existingMedia}
       onDeleteExisting={handleDeleteExistingMedia}
       onMediaChange={handleMediaChange}
+      maxImages={planLimits.max_media}
+      maxVideos={3}
       submitting={submitting}
       onSubmit={handleSubmit}
       onSubmitLabel="Enregistrer les modifications"

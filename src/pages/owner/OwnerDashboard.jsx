@@ -2,6 +2,8 @@ import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { APP_ROUTES } from "../../constants/routes"
 import { useAuthStore } from "../../stores/authStore"
+import { useSubscriptionsStore } from "../../stores/subscriptionsStore"
+import { getPlanFeatures } from "../../utils/subscriptionLimits"
 import { getOwnerListings } from "../../services/ownerService"
 import { getConversationsByUser } from "../../services/messagingService"
 import { getUnreadCount } from "../../api/conversationsApi"
@@ -10,11 +12,12 @@ import StatCard from "../../components/common/StatCard"
 import ListingBadge from "../../components/listings/ListingBadge"
 import LoadingState from "../../components/feedback/LoadingState"
 import { formatXAF } from "../../utils/formatters"
-import { CircleCheck, ClipboardList, Clock, Archive, Mail, MessageSquare, Star } from "lucide-react"
+import { CircleCheck, ClipboardList, Clock, Archive, CreditCard, Mail, MessageSquare, Star } from "lucide-react"
 import { ANNOUNCEMENT_STATUS } from "../../constants/apiStatuses"
 
 function OwnerDashboard() {
   const user = useAuthStore((s) => s.user)
+  const { currentSubscription, fetchMySubscription } = useSubscriptionsStore()
   const [loading, setLoading] = useState(true)
   const [listings, setListings] = useState([])
   const [conversationCount, setConversationCount] = useState(0)
@@ -23,6 +26,8 @@ function OwnerDashboard() {
   useEffect(() => {
     if (!user) return
     let active = true
+
+    fetchMySubscription()
 
     Promise.all([
       getOwnerListings({ limit: 100 }),
@@ -39,7 +44,7 @@ function OwnerDashboard() {
     })
 
     return () => { active = false }
-  }, [user])
+  }, [user, fetchMySubscription])
 
   const publishedCount = listings.filter((l) => l.status_id === ANNOUNCEMENT_STATUS.ACTIVE.id).length
   const pendingCount = listings.filter((l) => l.status_id === ANNOUNCEMENT_STATUS.PENDING_REVIEW.id).length
@@ -49,6 +54,7 @@ function OwnerDashboard() {
     0
   )
   const recentListings = listings.slice(0, 5)
+  const planLimits = getPlanFeatures(currentSubscription)
 
   return (
     <div>
@@ -67,6 +73,14 @@ function OwnerDashboard() {
             </div>
             <div className="col-sm-6 col-md-4 col-xl-3">
               <StatCard icon={CircleCheck} value={publishedCount} label="Publiées" color="success" />
+            </div>
+            <div className="col-sm-6 col-md-4 col-xl-3">
+              <StatCard
+                icon={CreditCard}
+                value={`${publishedCount}/${planLimits.max_active_announcements}`}
+                label="Annonces actives / quota"
+                color={publishedCount >= planLimits.max_active_announcements ? "danger" : "primary"}
+              />
             </div>
             <div className="col-sm-6 col-md-4 col-xl-3">
               <StatCard icon={Clock} value={pendingCount} label="En attente de revue" color="warning" />

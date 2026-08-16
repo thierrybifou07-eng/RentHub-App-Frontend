@@ -21,6 +21,8 @@ export default function ListingWizardShell({
   existingMedia,
   onDeleteExisting,
   onMediaChange,
+  maxImages,
+  maxVideos,
   submitting,
   onSubmit,
   onSubmitLabel,
@@ -88,6 +90,8 @@ export default function ListingWizardShell({
                 existingMedia={existingMedia}
                 onDeleteExisting={onDeleteExisting}
                 onChange={onMediaChange}
+                maxImages={maxImages}
+                maxVideos={maxVideos}
               />
             )}
           </div>

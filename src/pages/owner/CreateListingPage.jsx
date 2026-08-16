@@ -1,13 +1,16 @@
-import { useState, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { APP_ROUTES } from "../../constants/routes"
 import { createListing } from "../../services/ownerService"
 import { uploadAnnouncementVideos } from "../../api/mediaApi"
 import useListingForm from "../../hooks/useListingForm"
+import { useSubscriptionsStore } from "../../stores/subscriptionsStore"
+import { getPlanFeatures } from "../../utils/subscriptionLimits"
 import ListingWizardShell from "../../components/listings/ListingWizardShell"
 
 function CreateListingPage() {
   const navigate = useNavigate()
+  const { currentSubscription, fetchMySubscription } = useSubscriptionsStore()
   const {
     form,
     setField,
@@ -27,6 +30,12 @@ function CreateListingPage() {
   const handleMediaChange = useCallback((files) => {
     setNewMediaFiles(files)
   }, [])
+
+  useEffect(() => {
+    fetchMySubscription()
+  }, [fetchMySubscription])
+
+  const planLimits = getPlanFeatures(currentSubscription)
 
   // Construit un FormData multipart : champs de l'annonce + fichiers "media"
   function buildCreateFormData(payload, images) {
@@ -56,6 +65,11 @@ function CreateListingPage() {
 
     const images = newMediaFiles.images || []
     const videos = newMediaFiles.videos || []
+
+    if (images.length > planLimits.max_media) {
+      setGlobalError(`Votre plan autorise un maximum de ${planLimits.max_media} photos par annonce.`)
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -115,6 +129,8 @@ function CreateListingPage() {
       handleWizardBack={handleWizardBack}
       existingMedia={[]}
       onMediaChange={handleMediaChange}
+      maxImages={planLimits.max_media}
+      maxVideos={3}
       submitting={submitting}
       onSubmit={handleSubmit}
       onSubmitLabel="Créer l'annonce"
