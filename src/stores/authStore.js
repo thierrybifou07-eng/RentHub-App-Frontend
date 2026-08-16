@@ -102,16 +102,24 @@ export const useAuthStore = create((set, get) => ({
   },
 
   async verifyEmail(email, code) {
+    const current = get()
     const { token, user: rawUser } = await authApi.verifyEmail({ email, code })
-    const user = normalizeUser(rawUser)
-    const { refreshToken } = get()
-    // The API might return a new token on verify email
+    const normalized = normalizeUser(rawUser)
+    // Sécurité : si le backend ne renvoie pas l'utilisateur (réponse partielle),
+    // on recompose la session courante en marquant l'e-mail vérifié.
+    const user = normalized || {
+      ...current.user,
+      emailVerified: true,
+      verifiedAt: new Date().toISOString(),
+    }
+    const refreshToken = current.refreshToken
+    // L'API renvoie un nouveau token après vérification.
     if (token) {
       persistAuth(token, refreshToken, user)
-      set({ user, token })
+      set({ user, token, isAuthenticated: true })
     } else {
-      persistAuth(get().token, refreshToken, user)
-      set({ user })
+      persistAuth(current.token, refreshToken, user)
+      set({ user, isAuthenticated: true })
     }
     return user
   },

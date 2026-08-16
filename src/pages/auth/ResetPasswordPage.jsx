@@ -6,7 +6,7 @@ import { resetPasswordSchema } from "../../schemas/userSchema"
 import * as authApi from "../../api/authApi"
 import { APP_ROUTES } from "../../constants/routes"
 import FormField from "../../components/forms/FormField"
-import { PartyPopper, TriangleAlert } from "lucide-react"
+import { CircleCheck, PartyPopper, TriangleAlert } from "lucide-react"
 
 function ResetPasswordPage() {
   const navigate = useNavigate()
@@ -14,6 +14,9 @@ function ResetPasswordPage() {
   const [searchParams] = useSearchParams()
   const [globalError, setGlobalError] = useState(null)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [codeExpired, setCodeExpired] = useState(false)
+  const [regenerated, setRegenerated] = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
 
   // Pré-remplir l'email si présent dans l'URL ou dans le state de navigation
   // (ex: redirigé depuis "Mot de passe oublié")
@@ -23,6 +26,8 @@ function ResetPasswordPage() {
   const {
     register,
     handleSubmit,
+    getValues,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(resetPasswordSchema),
@@ -44,7 +49,25 @@ function ResetPasswordPage() {
         navigate(APP_ROUTES.login)
       }, 3000)
     } catch (error) {
+      const expired = error.body?.error === "RESET_CODE_EXPIRED" || /expired/i.test(error.message || "")
+      if (expired) setCodeExpired(true)
       setGlobalError(error.message || "Impossible de réinitialiser le mot de passe. Le code est peut-être invalide ou expiré.")
+    }
+  }
+
+  const handleRegenerateCode = async () => {
+    setGlobalError(null)
+    setRegenerating(true)
+    try {
+      const email = getValues("email") || defaultEmail
+      await authApi.forgotPassword(email)
+      setCodeExpired(false)
+      setRegenerated(true)
+      reset({ email, code: "", password: "", confirmPassword: "" })
+    } catch (error) {
+      setGlobalError(error.message || "Impossible de renvoyer un nouveau code. Veuillez réessayer.")
+    } finally {
+      setRegenerating(false)
     }
   }
 
@@ -84,6 +107,41 @@ function ResetPasswordPage() {
         </div>
       )}
 
+      {regenerated && (
+        <div
+          style={{
+            marginBottom: "var(--space-4)",
+            padding: "var(--space-3)",
+            background: "var(--color-success-light)",
+            color: "var(--color-success-dark)",
+            borderRadius: "var(--radius-md)",
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-2)",
+          }}
+          role="status"
+        >
+          <CircleCheck size={18} aria-hidden="true" /> Un nouveau code a été envoyé à votre adresse e-mail.
+        </div>
+      )}
+
+      {codeExpired && (
+        <div
+          style={{
+            marginBottom: "var(--space-4)",
+            padding: "var(--space-3)",
+            background: "var(--color-danger-light)",
+            borderRadius: "var(--radius-md)",
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-2)",
+          }}
+          role="status"
+        >
+          <TriangleAlert size={18} aria-hidden="true" /> Votre code a expiré. Générez un nouveau code pour continuer.
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
         <FormField
           label="Adresse e-mail"
@@ -97,7 +155,7 @@ function ResetPasswordPage() {
             className="input-premium"
             placeholder="jean.dupont@exemple.com"
             autoComplete="email"
-            disabled={isSubmitting || defaultEmail !== ""}
+            disabled={isSubmitting || codeExpired || defaultEmail !== ""}
             {...register("email")}
           />
         </FormField>
@@ -116,7 +174,7 @@ function ResetPasswordPage() {
             placeholder="123456"
             maxLength={6}
             autoComplete="one-time-code"
-            disabled={isSubmitting}
+            disabled={isSubmitting || codeExpired}
             {...register("code")}
           />
         </FormField>
@@ -133,7 +191,7 @@ function ResetPasswordPage() {
             className="input-premium"
             placeholder="Min. 8 caractères, 1 maj, 1 chiffre, 1 spécial"
             autoComplete="new-password"
-            disabled={isSubmitting}
+            disabled={isSubmitting || codeExpired}
             {...register("password")}
           />
         </FormField>
@@ -150,23 +208,39 @@ function ResetPasswordPage() {
             className="input-premium"
             placeholder="Répétez le nouveau mot de passe"
             autoComplete="new-password"
-            disabled={isSubmitting}
+            disabled={isSubmitting || codeExpired}
             {...register("confirmPassword")}
           />
         </FormField>
 
-        <button
-          type="submit"
-          className="btn-primary-gradient"
-          disabled={isSubmitting}
-          style={{ marginTop: "var(--space-2)", position: "relative" }}
-        >
-          {isSubmitting ? (
-            <span className="btn-spinner" />
-          ) : (
-            "Enregistrer"
-          )}
-        </button>
+        {codeExpired ? (
+          <button
+            type="button"
+            className="btn-primary-gradient"
+            onClick={handleRegenerateCode}
+            disabled={regenerating}
+            style={{ marginTop: "var(--space-2)", position: "relative" }}
+          >
+            {regenerating ? (
+              <span className="btn-spinner" />
+            ) : (
+              "Regénérer le code"
+            )}
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="btn-primary-gradient"
+            disabled={isSubmitting}
+            style={{ marginTop: "var(--space-2)", position: "relative" }}
+          >
+            {isSubmitting ? (
+              <span className="btn-spinner" />
+            ) : (
+              "Enregistrer"
+            )}
+          </button>
+        )}
       </form>
     </div>
   )

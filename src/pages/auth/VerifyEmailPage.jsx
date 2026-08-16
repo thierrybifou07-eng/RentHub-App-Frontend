@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useNavigate } from "react-router-dom"
@@ -7,7 +7,11 @@ import { useAuthStore } from "../../stores/authStore"
 import * as authApi from "../../api/authApi"
 import { APP_ROUTES } from "../../constants/routes"
 import FormField from "../../components/forms/FormField"
-import { CircleCheck, TriangleAlert } from "lucide-react"
+import { CircleCheck, Info, TriangleAlert } from "lucide-react"
+
+// S'assure qu'on ne lance l'auto-régénération qu'une seule fois par chargement
+// de page, même si React remonte le composant (StrictMode en développement).
+let autoRegenerateRan = false
 
 function VerifyEmailPage() {
   const navigate = useNavigate()
@@ -16,10 +20,13 @@ function VerifyEmailPage() {
   const [globalError, setGlobalError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
   const [isRegenerating, setIsRegenerating] = useState(false)
+  const [codeExpired, setCodeExpired] = useState(false)
+  const [autoInfo, setAutoInfo] = useState(null)
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(verifyEmailSchema),
@@ -28,8 +35,24 @@ function VerifyEmailPage() {
     },
   })
 
-  // Si l'utilisateur n'est pas connecté du tout, c'est anormal pour cette page (il faut un token)
-  // Mais on laisse le rendu se faire, l'API bloquera si pas de token (401)
+  // À l'arrivée sur la page (ex: login avec e-mail non vérifié), on s'assure
+  // qu'un code est disponible : s'il n'existe plus (expiré ou jamais reçu),
+  // on en régénère un automatiquement.
+  useEffect(() => {
+    if (!user?.email || autoRegenerateRan) return
+    autoRegenerateRan = true
+    ;(async () => {
+      try {
+        await authApi.regenerateCode()
+        setAutoInfo("Un code a été envoyé à votre adresse e-mail.")
+      } catch (error) {
+        // Code actuel encore valide : rien à faire, l'utilisateur saisit son code.
+        if (!/still valid/i.test(error.message || "")) {
+          setAutoInfo("Saisissez le code reçu par e-mail. Vous pourrez en demander un nouveau si besoin.")
+        }
+      }
+    })()
+  }, [user?.email])
 
   const onSubmit = async (data) => {
     setGlobalError(null)
@@ -46,6 +69,11 @@ function VerifyEmailPage() {
         else navigate(APP_ROUTES.tenantDashboard || APP_ROUTES.home)
       }, 2000)
     } catch (error) {
+      const expired =
+        error.body?.error === "EMAIL_CODE_EXPIRED" ||
+        error.body?.error === "Please regenerate a new code" ||
+        /expired/i.test(error.message || "")
+      if (expired) setCodeExpired(true)
       setGlobalError(error.message || "Le code de vérification est invalide ou a expiré.")
     }
   }
@@ -56,6 +84,8 @@ function VerifyEmailPage() {
     setIsRegenerating(true)
     try {
       await authApi.regenerateCode()
+      setCodeExpired(false)
+      reset({ code: "" })
       setSuccessMessage("Un nouveau code a été envoyé à votre adresse e-mail.")
     } catch (error) {
       setGlobalError(error.message || "Impossible de renvoyer le code. Veuillez réessayer plus tard.")
@@ -104,6 +134,42 @@ function VerifyEmailPage() {
         </div>
       )}
 
+      {autoInfo && (
+        <div
+          style={{
+            marginBottom: "var(--space-4)",
+            padding: "var(--space-3)",
+            background: "var(--color-info-light)",
+            color: "var(--color-info-dark)",
+            borderRadius: "var(--radius-md)",
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-2)",
+            fontSize: "var(--text-sm)",
+          }}
+          role="status"
+        >
+          <Info size={18} aria-hidden="true" /> {autoInfo}
+        </div>
+      )}
+
+      {codeExpired && (
+        <div
+          style={{
+            marginBottom: "var(--space-4)",
+            padding: "var(--space-3)",
+            background: "var(--color-danger-light)",
+            borderRadius: "var(--radius-md)",
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-2)",
+          }}
+          role="status"
+        >
+          <TriangleAlert size={18} aria-hidden="true" /> Votre code a expiré. Générez un nouveau code pour continuer.
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
         <FormField
           label="Code de vérification"
@@ -118,23 +184,39 @@ function VerifyEmailPage() {
             placeholder="123456"
             maxLength={6}
             autoComplete="one-time-code"
-            disabled={isSubmitting || isRegenerating}
+            disabled={isSubmitting || isRegenerating || codeExpired}
             {...register("code")}
           />
         </FormField>
 
-        <button
-          type="submit"
-          className="btn-primary-gradient"
-          disabled={isSubmitting || isRegenerating}
-          style={{ marginTop: "var(--space-2)", position: "relative" }}
-        >
-          {isSubmitting ? (
-            <span className="btn-spinner" />
-          ) : (
-            "Vérifier mon e-mail"
-          )}
-        </button>
+        {codeExpired ? (
+          <button
+            type="button"
+            className="btn-primary-gradient"
+            onClick={handleRegenerateCode}
+            disabled={isRegenerating || isSubmitting}
+            style={{ marginTop: "var(--space-2)", position: "relative" }}
+          >
+            {isRegenerating ? (
+              <span className="btn-spinner" />
+            ) : (
+              "Regénérer le code"
+            )}
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="btn-primary-gradient"
+            disabled={isSubmitting || isRegenerating}
+            style={{ marginTop: "var(--space-2)", position: "relative" }}
+          >
+            {isSubmitting ? (
+              <span className="btn-spinner" />
+            ) : (
+              "Vérifier mon e-mail"
+            )}
+          </button>
+        )}
       </form>
 
       <div style={{ textAlign: "center", marginTop: "var(--space-6)" }}>

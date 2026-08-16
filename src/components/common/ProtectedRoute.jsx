@@ -11,12 +11,11 @@ const ROLE_DASHBOARD = {
 function ProtectedRoute({ requiredRole }) {
   const { isAuthenticated, user } = useAuthStore()
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !user) {
     return <Navigate to={APP_ROUTES.login} replace />
   }
-
-  if (requiredRole && user.role !== requiredRole) {
-    return <Navigate to={ROLE_DASHBOARD[user.role] || APP_ROUTES.home} replace />
+  if (requiredRole && user?.role !== requiredRole) {
+    return <Navigate to={ROLE_DASHBOARD[user?.role] || APP_ROUTES.home} replace />
   }
 
   return <Outlet />
