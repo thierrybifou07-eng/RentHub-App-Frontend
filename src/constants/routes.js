@@ -29,6 +29,7 @@ export const APP_ROUTES = {
   // Admin
   adminDashboard: "/admin/dashboard",
   adminModeration: "/admin/moderation",
+  adminModerationDetail: "/admin/moderation/:id",
   adminUsers: "/admin/utilisateurs",
   adminReports: "/admin/signalements",
   adminSubscriptions: "/admin/abonnements",

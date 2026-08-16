@@ -36,6 +36,7 @@ import OwnerListingDetailPage from "../pages/owner/OwnerListingDetailPage"
 
 import AdminDashboard from "../pages/admin/AdminDashboard"
 import AdminModeration from "../pages/admin/AdminModeration"
+import AdminListingDetail from "../pages/admin/AdminListingDetail"
 import AdminUsers from "../pages/admin/AdminUsers"
 import AdminReports from "../pages/admin/AdminReports"
 import AdminSubscriptions from "../pages/admin/AdminSubscriptions"
@@ -110,6 +111,7 @@ export const router = createBrowserRouter([
             children: [
               { path: APP_ROUTES.adminDashboard, element: <AdminDashboard /> },
               { path: APP_ROUTES.adminModeration, element: <AdminModeration /> },
+              { path: APP_ROUTES.adminModerationDetail, element: <AdminListingDetail /> },
               { path: APP_ROUTES.adminUsers, element: <AdminUsers /> },
               { path: APP_ROUTES.adminReports, element: <AdminReports /> },
               { path: APP_ROUTES.adminSubscriptions, element: <AdminSubscriptions /> },

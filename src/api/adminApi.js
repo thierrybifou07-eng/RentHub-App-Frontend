@@ -50,3 +50,8 @@ export async function getUserById(id) {
   const response = await apiClient.get(`/admin/users/${id}`)
   return response.data || response
 }
+
+export async function getModerationListingById(id) {
+  const response = await apiClient.get(`/announcements/admin/${id}`)
+  return response.data || response
+}

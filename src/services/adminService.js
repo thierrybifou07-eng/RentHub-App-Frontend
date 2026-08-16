@@ -26,6 +26,11 @@ export async function getModerationListings(params = {}) {
   return announcementsApi.getPendingAnnouncements(params)
 }
 
+export async function getModerationListing(id) {
+  const response = await adminApi.getModerationListingById(id)
+  return response?.announcement || response?.data || response || null
+}
+
 export async function approveListing(listingId) {
   return announcementsApi.approveAnnouncement(listingId)
 }

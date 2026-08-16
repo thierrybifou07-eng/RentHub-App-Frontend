@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { Link } from "react-router-dom"
+import { APP_ROUTES } from "../../constants/routes"
 import ListingBadge from "../../components/listings/ListingBadge"
 import EmptyState from "../../components/feedback/EmptyState"
 import PageHeader from "../../components/common/PageHeader"
@@ -137,7 +138,7 @@ export default function AdminModeration() {
                   return (
                     <tr key={listing.id}>
                       <td className="fw-semibold">
-                        <Link to={`/annonces/${listing.id}`} target="_blank">
+                        <Link to={APP_ROUTES.adminModerationDetail.replace(":id", listing.id)}>
                           {listing.title}
                         </Link>
                       </td>
@@ -148,36 +149,44 @@ export default function AdminModeration() {
                         <ListingBadge statusId={listing.status?.id ?? listing.status_id} />
                       </td>
                       <td className="text-end">
-                        {statusCode === "PENDING_REVIEW" && (
-                          <div className="btn-group btn-group-sm">
-                            <button
-                              type="button"
-                              className="btn btn-success"
-                              onClick={() => handleApprove(listing.id)}
-                              disabled={actionLoading === listing.id}
-                            >
-                              Approuver
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-outline-danger"
-                              onClick={() => handleReject(listing.id)}
-                              disabled={actionLoading === listing.id}
-                            >
-                              Rejeter
-                            </button>
-                          </div>
-                        )}
-                        {statusCode === "REJECTED" && (
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => handleDelete(listing.id)}
-                            disabled={actionLoading === listing.id}
+                        <div className="d-inline-flex align-items-center gap-2">
+                          <Link
+                            to={APP_ROUTES.adminModerationDetail.replace(":id", listing.id)}
+                            className="btn btn-sm btn-outline-primary"
                           >
-                            Supprimer
-                          </button>
-                        )}
+                            Détails
+                          </Link>
+                          {statusCode === "PENDING_REVIEW" && (
+                            <div className="btn-group btn-group-sm">
+                              <button
+                                type="button"
+                                className="btn btn-success"
+                                onClick={() => handleApprove(listing.id)}
+                                disabled={actionLoading === listing.id}
+                              >
+                                Approuver
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn-outline-danger"
+                                onClick={() => handleReject(listing.id)}
+                                disabled={actionLoading === listing.id}
+                              >
+                                Rejeter
+                              </button>
+                            </div>
+                          )}
+                          {statusCode === "REJECTED" && (
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => handleDelete(listing.id)}
+                              disabled={actionLoading === listing.id}
+                            >
+                              Supprimer
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )
