@@ -42,14 +42,52 @@
 .listing-card-image {
   overflow: hidden;
   position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--color-neutral-100);
 }
 
 .listing-card-image img,
 .listing-card-image video {
-  height: 210px;
-  object-fit: cover;
+  height: 100%;
   width: 100%;
-  transition: transform var(--transition-slow);
+  object-fit: cover;
+  transition: transform var(--transition-slow), opacity var(--transition-base);
+}
+
+.listing-card-image .media-hidden {
+  opacity: 0;
+}
+
+.listing-card-image .image-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-100) 25%,
+    var(--color-neutral-200) 50%,
+    var(--color-neutral-100) 75%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.listing-card-image .skeleton-image {
+  position: absolute;
+  inset: 0;
+  height: auto;
+  width: 100%;
+  border-radius: 0;
+}
+
+.listing-card-image .listing-card-image-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-neutral-400);
+  background: var(--color-neutral-100);
 }
 
 .listing-card:hover .listing-card-image img,

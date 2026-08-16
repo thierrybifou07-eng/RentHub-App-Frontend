@@ -2,13 +2,18 @@ import ListingPrice from "./ListingPrice"
 import ListingLocation from "./ListingLocation"
 import { getListingDetailPath } from "../../constants/routes"
 import { getPrimaryMedia, getPrimaryMediaUrl, isVideoMedia } from "../../utils/mediaUrl"
-import { BadgeCheck, Star } from "lucide-react"
+import { BadgeCheck, ImageOff, Star } from "lucide-react"
 import { Link } from "react-router-dom"
+import { useState } from "react"
 
 function ListingCard({ listing, showFavorite, isFavorite, onToggleFavorite }) {
   const primaryMedia = getPrimaryMedia(listing.Media)
   const imageUrl = primaryMedia ? getPrimaryMediaUrl(listing.Media) : (listing.image || null)
   const coverIsVideo = Boolean(primaryMedia && isVideoMedia(primaryMedia))
+
+  const [mediaLoaded, setMediaLoaded] = useState(false)
+  const [mediaFailed, setMediaFailed] = useState(false)
+  const showSkeleton = Boolean(imageUrl) && !mediaLoaded && !mediaFailed
 
   const ownerVerified = Boolean(
     listing.User?.verified_at ||
@@ -22,27 +27,37 @@ function ListingCard({ listing, showFavorite, isFavorite, onToggleFavorite }) {
     <article className="card border-0 shadow-sm h-100 listing-card position-relative">
       <Link to={getListingDetailPath(listing.id)} className="text-decoration-none">
         <div className="listing-card-image">
+          {showSkeleton && <div className="image-loading-overlay" aria-hidden="true" />}
           {imageUrl ? (
             coverIsVideo ? (
               <video
                 src={imageUrl}
-                className="card-img-top"
+                className={`card-img-top ${mediaLoaded ? "" : "media-hidden"}`}
                 muted
                 autoPlay
                 loop
                 playsInline
                 preload="metadata"
+                onLoadedData={() => setMediaLoaded(true)}
+                onError={() => setMediaFailed(true)}
               />
             ) : (
               <img
                 src={imageUrl}
                 alt={listing.title}
-                className="card-img-top"
+                className={`card-img-top ${mediaLoaded ? "" : "media-hidden"}`}
                 loading="lazy"
+                onLoad={() => setMediaLoaded(true)}
+                onError={() => setMediaFailed(true)}
               />
             )
           ) : (
             <div className="skeleton-image" />
+          )}
+          {mediaFailed && !showSkeleton && (
+            <div className="listing-card-image-fallback">
+              <ImageOff size={28} />
+            </div>
           )}
         </div>
       </Link>
