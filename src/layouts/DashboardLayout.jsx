@@ -34,6 +34,7 @@ const NAV_SECTIONS = {
     { to: APP_ROUTES.ownerDashboard, label: "Tableau de bord", icon: BarChart3 },
     { to: APP_ROUTES.ownerListings,  label: "Mes annonces",    icon: House },
     { to: APP_ROUTES.ownerMessages,  label: "Messages",        icon: MessageCircle },
+    { to: APP_ROUTES.ownerSubscription, label: "Mon abonnement", icon: CreditCard },
   ],
   admin: [
     { to: APP_ROUTES.adminDashboard,   label: "Vue d'ensemble",  icon: TrendingUp },
