@@ -36,6 +36,10 @@ function PublicLayout() {
     clearTimeout(closeTimer.current)
     setMobileOpen(true)
   }
+  const scheduleClose = () => {
+    clearTimeout(closeTimer.current)
+    closeTimer.current = setTimeout(() => setMobileOpen(false), 150)
+  }
   const closeMenu = () => {
     clearTimeout(closeTimer.current)
     setMobileOpen(false)
@@ -240,9 +244,13 @@ function PublicLayout() {
             type="button"
             className="d-lg-none"
             onClick={() => setMobileOpen(!mobileOpen)}
+            onMouseEnter={openMenu}
+            onMouseLeave={scheduleClose}
             aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
             aria-expanded={mobileOpen}
             style={{
+              position: "relative",
+              zIndex: "calc(var(--z-overlay) + 1)",
               background: "none",
               border: "1px solid var(--color-border)",
               borderRadius: "var(--radius-sm)",
@@ -276,7 +284,7 @@ function PublicLayout() {
               role="dialog"
               aria-label="Menu de navigation"
               onMouseEnter={openMenu}
-              onMouseLeave={closeMenu}
+              onMouseLeave={scheduleClose}
               style={{
                 position: "fixed",
                 top: 72,
