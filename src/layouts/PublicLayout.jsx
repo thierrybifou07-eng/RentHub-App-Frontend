@@ -73,6 +73,7 @@ function PublicLayout() {
   }, [mobileOpen])
 
   async function handleLogout() {
+    if (!window.confirm("Voulez-vous vraiment vous déconnecter ?")) return
     await logout()
     navigate(APP_ROUTES.home, { replace: true })
   }
@@ -243,8 +244,6 @@ function PublicLayout() {
             type="button"
             className="d-lg-none"
             onClick={() => setMobileOpen(!mobileOpen)}
-            onMouseEnter={openMenu}
-            onMouseLeave={scheduleMenuClose}
             aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
             aria-expanded={mobileOpen}
             style={{

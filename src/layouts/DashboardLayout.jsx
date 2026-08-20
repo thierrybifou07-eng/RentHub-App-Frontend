@@ -146,6 +146,7 @@ function DashboardLayout() {
   }, [location.pathname])
 
   async function handleLogout() {
+    if (!window.confirm("Voulez-vous vraiment vous déconnecter ?")) return
     await logout()
     navigate(APP_ROUTES.home, { replace: true })
   }
