@@ -226,7 +226,7 @@ export default function RootUsers() {
                             className={`form-select form-select-sm shadow-none border-0 fw-bold ${ROLE_CLASSES[roleCode] || "bg-light"}`}
                             style={{ width: "130px", color: "inherit" }}
                             value={roleCode}
-                            onChange={(e) => handleRoleChange(u.id, roleCode, e.target.value)}
+                            onChange={(e) => handleRoleChange(u.id, roleCode, ROLE_ID_MAP[e.target.value])}
                             disabled={actionLoading === u.id || isRoot}
                           >
                             <option value="ROLE_TENANT">Locataire</option>
