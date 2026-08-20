@@ -54,6 +54,10 @@ const AdminUsers = lazyPage(() => import("../pages/admin/AdminUsers"))
 const AdminReports = lazyPage(() => import("../pages/admin/AdminReports"))
 const AdminSubscriptions = lazyPage(() => import("../pages/admin/AdminSubscriptions"))
 
+const RootDashboard = lazyPage(() => import("../pages/root/RootDashboard"))
+const RootAuditLogs = lazyPage(() => import("../pages/root/RootAuditLogs"))
+const RootUsers = lazyPage(() => import("../pages/root/RootUsers"))
+
 export const router = createBrowserRouter([
   {
     element: <PublicLayout />,
@@ -128,6 +132,19 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.adminUsers, element: <AdminUsers /> },
               { path: APP_ROUTES.adminReports, element: <AdminReports /> },
               { path: APP_ROUTES.adminSubscriptions, element: <AdminSubscriptions /> },
+            ],
+          },
+        ],
+      },
+      {
+        element: <ProtectedRoute requiredRole={ROLE_KEYS.root} />,
+        children: [
+          {
+            element: <DashboardLayout />,
+            children: [
+              { path: APP_ROUTES.rootDashboard, element: <RootDashboard /> },
+              { path: APP_ROUTES.rootAuditLogs, element: <RootAuditLogs /> },
+              { path: APP_ROUTES.rootUsers, element: <RootUsers /> },
             ],
           },
         ],

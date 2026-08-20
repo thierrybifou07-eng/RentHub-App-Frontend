@@ -16,7 +16,9 @@ import {
   LogOut,
   Menu,
   MessageCircle,
+  ScrollText,
   Search,
+  Shield,
   Siren,
   TrendingUp,
   Users,
@@ -43,18 +45,25 @@ const NAV_SECTIONS = {
     { to: APP_ROUTES.adminReports,     label: "Signalements",    icon: Siren },
     { to: APP_ROUTES.adminSubscriptions, label: "Abonnements",   icon: CreditCard },
   ],
+  root: [
+    { to: APP_ROUTES.rootDashboard, label: "Vue d'ensemble", icon: Shield },
+    { to: APP_ROUTES.rootAuditLogs, label: "Logs d'audit",   icon: ScrollText },
+    { to: APP_ROUTES.rootUsers,     label: "Utilisateurs",   icon: Users },
+  ],
 }
 
 const SECTION_LABELS = {
   tenant: "Locataire",
   owner:  "Propriétaire",
   admin:  "Administration",
+  root:   "Super Admin",
 }
 
 const SECTION_COLORS = {
   tenant: { accent: "#10b981", bg: "rgba(16,185,129,0.15)", text: "#a7f3d0" },
   owner:  { accent: "#f59f00", bg: "rgba(245,159,0,0.15)",  text: "#fde68a" },
   admin:  { accent: "#3b82f6", bg: "rgba(59,130,246,0.15)", text: "#bfdbfe" },
+  root:   { accent: "#8b5cf6", bg: "rgba(139,92,246,0.15)", text: "#ddd6fe" },
 }
 
 /* ── Composant ──────────────────────────────────────────────── */
