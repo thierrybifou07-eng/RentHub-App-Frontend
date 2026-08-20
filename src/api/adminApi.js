@@ -25,8 +25,8 @@ export async function manageAnnouncementStatus(id, newStatus) {
   return response.data || response
 }
 
-export async function manageUserStatus({ userId, currentStatus, newStatus }) {
-  const response = await apiClient.patch(`/admin/users/${userId}/status`, { currentStatus, newStatus })
+export async function manageUserStatus({ userId, currentStatus, newStatus, reason }) {
+  const response = await apiClient.patch(`/admin/users/${userId}/status`, { currentStatus, newStatus, reason })
   return response.data || response
 }
 

@@ -32,6 +32,7 @@ const RegisterPage = lazyPage(() => import("../pages/auth/RegisterPage"))
 const ForgotPasswordPage = lazyPage(() => import("../pages/auth/ForgotPasswordPage"))
 const ResetPasswordPage = lazyPage(() => import("../pages/auth/ResetPasswordPage"))
 const VerifyEmailPage = lazyPage(() => import("../pages/auth/VerifyEmailPage"))
+const AccountStatusPage = lazyPage(() => import("../pages/auth/AccountStatusPage"))
 
 const ProfilePage = lazyPage(() => import("../pages/profile/ProfilePage"))
 
@@ -78,6 +79,8 @@ export const router = createBrowserRouter([
       { path: APP_ROUTES.forgotPassword, element: <ForgotPasswordPage /> },
       { path: APP_ROUTES.resetPassword, element: <ResetPasswordPage /> },
       { path: APP_ROUTES.verifyEmail, element: <VerifyEmailPage /> },
+      { path: APP_ROUTES.accountSuspended, element: <AccountStatusPage /> },
+      { path: APP_ROUTES.accountInactive, element: <AccountStatusPage /> },
     ],
   },
   {

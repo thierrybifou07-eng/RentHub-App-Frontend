@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom"
 import { loginSchema } from "../../schemas/userSchema"
 import { useAuthStore } from "../../stores/authStore"
 import { APP_ROUTES } from "../../constants/routes"
@@ -12,7 +12,7 @@ import { TriangleAlert } from "lucide-react"
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login } = useAuthStore()
+  const { login, isAuthenticated, user } = useAuthStore()
 
   const [globalError, setGlobalError] = useState(null)
 
@@ -29,6 +29,13 @@ function LoginPage() {
       password: "",
     },
   })
+
+  if (isAuthenticated && user?.userStatus === USER_STATUS.SUSPENDED.id) {
+    return <Navigate to={APP_ROUTES.accountSuspended} replace />
+  }
+  if (isAuthenticated && user?.userStatus === USER_STATUS.INACTIVE.id) {
+    return <Navigate to={APP_ROUTES.accountInactive} replace />
+  }
 
   const onSubmit = async (data) => {
     setGlobalError(null)

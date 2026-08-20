@@ -39,6 +39,10 @@ export const APP_ROUTES = {
   rootAuditLogs: "/super-admin/audit-logs",
   rootUsers: "/super-admin/utilisateurs",
 
+  // Account status
+  accountSuspended: "/compte-suspendu",
+  accountInactive: "/compte-inactif",
+
   // Missing routes
   listingDetail: "/annonces/:listingId",
   ownerListingNew: "/proprietaire/annonces/nouveau",

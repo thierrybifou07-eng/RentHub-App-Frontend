@@ -92,10 +92,11 @@ export default function RootUsers() {
 
   const handleStatusChange = async (userId, currentStatusId, newStatusId) => {
     const label = Object.values(STATUS_MAP).find((s) => s.id === newStatusId)?.label || newStatusId
-    if (!window.confirm(`Changer le statut de cet utilisateur en "${label}" ?`)) return
+    const reason = window.prompt(`Motif du changement de statut en "${label}" ? (optionnel)`)
+    if (reason === null) return
     setActionLoading(userId)
     try {
-      await changeUserStatus(userId, newStatusId)
+      await changeUserStatus(userId, newStatusId, reason || undefined)
       await loadUsers()
     } catch (err) {
       alert(err.message || "Erreur lors du changement de statut.")

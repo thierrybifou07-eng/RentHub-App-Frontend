@@ -67,6 +67,26 @@ const SHOWCASE_CONTENT = {
       { icon: ShieldCheck, text: "Un gage de confiance pour la communauté" },
     ],
   },
+  [APP_ROUTES.accountSuspended]: {
+    kicker: "Compte suspendu",
+    title: "Accès restreint",
+    description: "Votre compte a été suspendu. Vous pouvez toujours consulter les annonces publiques.",
+    points: [
+      { icon: Heart, text: "Consultez les annonces disponibles" },
+      { icon: MessageCircle, text: "Contactez le support pour contester" },
+      { icon: ShieldCheck, text: "Vos données restent sécurisées" },
+    ],
+  },
+  [APP_ROUTES.accountInactive]: {
+    kicker: "Compte inactif",
+    title: "Accès restreint",
+    description: "Votre compte a été désactivé. Vous pouvez toujours consulter les annonces publiques.",
+    points: [
+      { icon: Heart, text: "Consultez les annonces disponibles" },
+      { icon: MessageCircle, text: "Contactez le support pour réactiver" },
+      { icon: ShieldCheck, text: "Vos données restent sécurisées" },
+    ],
+  },
 }
 
 function ShowcasePanel() {

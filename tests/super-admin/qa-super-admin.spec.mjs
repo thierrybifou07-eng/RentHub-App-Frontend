@@ -623,7 +623,7 @@ console.log("\n=== SECTION 13: API Edge Cases ===")
     })
     return { status: r.status, body: await r.json() }
   }, token)
-  check("13.2 Cannot change ROOT user role (self-guard fires first)", changeRoot.status === 400 || changeRoot.status === 403, `status=${changeRoot.status}`)
+  check("13.2 Cannot change ROOT user role (ROOT protection fires)", changeRoot.status === 403, `status=${changeRoot.status}`)
 
   const invalidRole = await page.evaluate(async (tk) => {
     const r = await fetch("http://localhost:3000/api/v1/super-admin/users/1/role", {
@@ -660,7 +660,129 @@ console.log("\n=== SECTION 13: API Edge Cases ===")
     })
     return { status: r.status }
   }, token)
-  check("13.6 Cannot delete ROOT user", deleteRoot.status === 400 || deleteRoot.status === 403, `status=${deleteRoot.status}`)
+  check("13.6 Cannot delete ROOT user", deleteRoot.status === 403, `status=${deleteRoot.status}`)
+
+  const changeRootStatus = await page.evaluate(async (tk) => {
+    const r = await fetch("http://localhost:3000/api/v1/super-admin/users/25/status", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + tk },
+      body: JSON.stringify({ newStatusId: 3 }),
+    })
+    return { status: r.status, body: await r.json() }
+  }, token)
+  check("13.7 Cannot change ROOT user status", changeRootStatus.status === 403, `status=${changeRootStatus.status}`)
+
+  const adminToken = await page.evaluate(async () => {
+    const r = await fetch("http://localhost:3000/api/v1/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "admin@renthub.com", password: "Admin@12345" }),
+    })
+    const d = await r.json()
+    return d?.data?.token || d?.token
+  })
+
+  const adminChangeRootRole = await page.evaluate(async (tk) => {
+    const r = await fetch("http://localhost:3000/api/v1/super-admin/users/25/role", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + tk },
+      body: JSON.stringify({ newRoleId: 4 }),
+    })
+    return { status: r.status }
+  }, adminToken)
+  check("13.8 Admin cannot change ROOT role via super-admin endpoint", adminChangeRootRole.status === 403 || adminChangeRootRole.status === 401, `status=${adminChangeRootRole.status}`)
+
+  await browser.close()
+}
+
+// =====================================================================
+// SECTION 14: ROOT Hidden from Admin User List
+// =====================================================================
+console.log("\n=== SECTION 14: ROOT Hidden from Admin User List ===")
+{
+  const browser = await chromium.launch()
+  const page = await browser.newPage({ viewport: { width: 1400, height: 900 } })
+
+  await login(page)
+  const token = await page.evaluate(() => localStorage.getItem("renthub-token"))
+
+  const rootListResp = await page.evaluate(async (tk) => {
+    const r = await fetch("http://localhost:3000/api/v1/super-admin/users?limit=100", {
+      headers: { "Authorization": "Bearer " + tk },
+    })
+    return { status: r.status, body: await r.json() }
+  }, token)
+  check("14.1 Super-admin users endpoint returns 200", rootListResp.status === 200, `status=${rootListResp.status}`)
+
+  const rootInSuperList = (rootListResp.body?.data || []).some(u => u.role?.code === "ROLE_ROOT")
+  check("14.2 ROOT not in super-admin user list", !rootInSuperList, rootInSuperList ? "ROOT found in list" : "ROOT correctly excluded")
+
+  const adminToken = await page.evaluate(async () => {
+    const r = await fetch("http://localhost:3000/api/v1/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "admin@renthub.com", password: "Admin@12345" }),
+    })
+    const d = await r.json()
+    return d?.data?.token || d?.token
+  })
+
+  const adminListResp = await page.evaluate(async (tk) => {
+    const r = await fetch("http://localhost:3000/api/v1/admin/users?limit=100", {
+      headers: { "Authorization": "Bearer " + tk },
+    })
+    return { status: r.status, body: await r.json() }
+  }, adminToken)
+  check("14.3 Admin users endpoint returns 200", adminListResp.status === 200, `status=${adminListResp.status}`)
+
+  const rootInAdminList = (adminListResp.body?.data || []).some(u => u.role?.code === "ROLE_ROOT")
+  check("14.4 ROOT not in admin user list", !rootInAdminList, rootInAdminList ? "ROOT found in admin list" : "ROOT correctly excluded")
+
+  await browser.close()
+}
+
+// =====================================================================
+// SECTION 15: Account Status Pages
+// =====================================================================
+console.log("\n=== SECTION 15: Account Status Pages ===")
+{
+  const browser = await chromium.launch()
+  const page = await browser.newPage({ viewport: { width: 1400, height: 900 } })
+
+  await page.goto(`${BASE}/compte-suspendu`, { waitUntil: "networkidle" })
+  const suspendedText = await page.locator("body").textContent()
+  check("15.1 Account suspended page renders", suspendedText.includes("suspendu") || suspendedText.includes("Suspendu"))
+  check("15.2 Shows contact email", suspendedText.includes("support@renthub.com"))
+  check("15.3 Shows home link", (await page.locator('a[href="/"]').count()) > 0)
+
+  await page.goto(`${BASE}/compte-inactif`, { waitUntil: "networkidle" })
+  const inactiveText = await page.locator("body").textContent()
+  check("15.4 Account inactive page renders", inactiveText.includes("inactif") || inactiveText.includes("Inactif"))
+  check("15.5 Shows contact email on inactive page", inactiveText.includes("support@renthub.com"))
+
+  await browser.close()
+}
+
+// =====================================================================
+// SECTION 16: Suspended User Login Blocked
+// =====================================================================
+console.log("\n=== SECTION 16: Suspended User Login Blocked ===")
+{
+  const browser = await chromium.launch()
+  const page = await browser.newPage({ viewport: { width: 1400, height: 900 } })
+
+  await page.goto(`${BASE}/connexion`, { waitUntil: "networkidle" })
+  await page.locator('input[name="email"]').fill("suspended.test@renthub.com")
+  await page.locator('input[name="password"]').fill("Test@12345")
+  await page.locator('form').first().locator('button[type="submit"]').click()
+  await page.waitForTimeout(3000)
+
+  const bodyText = await page.locator("body").textContent()
+  const loginBlocked = bodyText.includes("suspendu") || bodyText.includes("inactif") || bodyText.includes("incorrect") || bodyText.includes("erreur")
+  check("16.1 Suspended user login shows error", loginBlocked)
+
+  const stillOnLogin = page.url().includes("/connexion")
+  check("16.2 User stays on login page", stillOnLogin, `at: ${page.url()}`)
 
   await browser.close()
 }

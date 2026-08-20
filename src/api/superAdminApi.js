@@ -36,8 +36,8 @@ export async function changeUserRole(id, newRoleId) {
   return response.data || response
 }
 
-export async function changeUserStatus(id, newStatusId) {
-  const response = await apiClient.patch(`/super-admin/users/${id}/status`, { newStatusId })
+export async function changeUserStatus(id, newStatusId, reason) {
+  const response = await apiClient.patch(`/super-admin/users/${id}/status`, { newStatusId, reason })
   return response.data || response
 }
 
