@@ -5,6 +5,7 @@ import PageHeader from "../../components/common/PageHeader"
 import LoadingState from "../../components/feedback/LoadingState"
 import Pagination from "../../components/common/Pagination"
 import { PAGE_LIMIT } from "../../utils/formatters"
+import { formatAuditValues, formatAuditMetadata, formatActorRole } from "../../utils/formatAuditValues"
 
 const ACTION_OPTIONS = [
   { value: "ROLE_CHANGE", label: "Changement de rôle" },
@@ -195,7 +196,7 @@ export default function RootAuditLogs() {
                   </li>
                   <li className="list-group-item d-flex justify-content-between">
                     <span className="text-muted">Rôle acteur</span>
-                    <span className="fw-medium">{selectedLog.actor_role}</span>
+                    <span className="fw-medium">{formatActorRole(selectedLog.actor_role)}</span>
                   </li>
                   <li className="list-group-item d-flex justify-content-between">
                     <span className="text-muted">Action</span>
@@ -214,30 +215,57 @@ export default function RootAuditLogs() {
                     <span className="fw-medium">{new Date(selectedLog.createdAt).toLocaleString("fr-FR")}</span>
                   </li>
                 </ul>
-                {selectedLog.old_values && (
-                  <div className="mt-3">
-                    <h6 className="fw-bold small text-muted mb-1">Valeurs avant</h6>
-                    <pre className="bg-light p-3 rounded small mb-0" style={{ maxHeight: 200, overflowY: "auto" }}>
-                      {JSON.stringify(selectedLog.old_values, null, 2)}
-                    </pre>
-                  </div>
-                )}
-                {selectedLog.new_values && (
-                  <div className="mt-3">
-                    <h6 className="fw-bold small text-muted mb-1">Valeurs après</h6>
-                    <pre className="bg-light p-3 rounded small mb-0" style={{ maxHeight: 200, overflowY: "auto" }}>
-                      {JSON.stringify(selectedLog.new_values, null, 2)}
-                    </pre>
-                  </div>
-                )}
-                {selectedLog.metadata && (
-                  <div className="mt-3">
-                    <h6 className="fw-bold small text-muted mb-1">Métadonnées</h6>
-                    <pre className="bg-light p-3 rounded small mb-0" style={{ maxHeight: 200, overflowY: "auto" }}>
-                      {JSON.stringify(selectedLog.metadata, null, 2)}
-                    </pre>
-                  </div>
-                )}
+                {(() => {
+                  const formatted = formatAuditValues(selectedLog.old_values, selectedLog.action)
+                  if (!formatted) return null
+                  return (
+                    <div className="mt-3">
+                      <h6 className="fw-bold small text-muted mb-1">Valeurs avant</h6>
+                      <div className="bg-light p-3 rounded small mb-0">
+                        {Object.entries(formatted).map(([key, value]) => (
+                          <div key={key}>
+                            <span className="text-muted">{key} :</span>{" "}
+                            <span className="fw-medium">{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+                {(() => {
+                  const formatted = formatAuditValues(selectedLog.new_values, selectedLog.action)
+                  if (!formatted) return null
+                  return (
+                    <div className="mt-3">
+                      <h6 className="fw-bold small text-muted mb-1">Valeurs après</h6>
+                      <div className="bg-light p-3 rounded small mb-0">
+                        {Object.entries(formatted).map(([key, value]) => (
+                          <div key={key}>
+                            <span className="text-muted">{key} :</span>{" "}
+                            <span className="fw-medium">{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+                {(() => {
+                  const formatted = formatAuditMetadata(selectedLog.metadata)
+                  if (!formatted) return null
+                  return (
+                    <div className="mt-3">
+                      <h6 className="fw-bold small text-muted mb-1">Métadonnées</h6>
+                      <div className="bg-light p-3 rounded small mb-0">
+                        {Object.entries(formatted).map(([key, value]) => (
+                          <div key={key}>
+                            <span className="text-muted">{key} :</span>{" "}
+                            <span className="fw-medium">{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
               <div className="modal-footer border-top-0 mt-2">
                 <button type="button" className="btn btn-secondary" onClick={() => setSelectedLog(null)}>Fermer</button>
