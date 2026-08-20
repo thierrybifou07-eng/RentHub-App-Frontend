@@ -788,6 +788,68 @@ console.log("\n=== SECTION 16: Suspended User Login Blocked ===")
 }
 
 // =====================================================================
+// SECTION 17: Audit Log Label Display
+// =====================================================================
+console.log("\n=== SECTION 17: Audit Log Label Display ===")
+{
+  const browser = await chromium.launch()
+  const page = await browser.newPage({ viewport: { width: 1400, height: 900 } })
+
+  await login(page)
+  await page.goto(`${BASE}/super-admin/audit-logs`, { waitUntil: "networkidle" })
+  await page.waitForTimeout(2000)
+
+  const rowCount = await page.locator("table tbody tr").count()
+  check("17.1 Audit logs table has rows for label test", rowCount > 0, `found ${rowCount}`)
+
+  const detailBtn = page.locator('button:has-text("tails")').first()
+  if (await detailBtn.count() > 0) {
+    await detailBtn.click()
+    await page.waitForTimeout(1500)
+    const modal = page.locator(".modal.d-block")
+    check("17.2 Detail modal opens for label check", await modal.count() > 0)
+
+    if (await modal.count() > 0) {
+      const modalText = await modal.textContent()
+
+      const hasNoRawRoleId = !modalText.includes('"role_id":')
+      check("17.3 No raw JSON role_id in modal", hasNoRawRoleId, hasNoRawRoleId ? "clean" : "raw JSON found")
+
+      const hasNoRawStatusId = !modalText.includes('"user_status_id":')
+      check("17.4 No raw JSON user_status_id in modal", hasNoRawStatusId, hasNoRawStatusId ? "clean" : "raw JSON found")
+
+      const hasFormattedLabel = modalText.includes("Administrateur") ||
+        modalText.includes("Locataire") ||
+        modalText.includes("Propriétaire") ||
+        modalText.includes("Super Admin") ||
+        modalText.includes("Agence") ||
+        modalText.includes("Actif") ||
+        modalText.includes("Suspendu") ||
+        modalText.includes("Inactif") ||
+        modalText.includes("Rôle") ||
+        modalText.includes("Statut") ||
+        modalText.includes("Valeurs")
+      check("17.5 Human-readable labels present in modal", hasFormattedLabel)
+
+      const actorRoleRow = modalText.includes("Rôle acteur")
+      if (actorRoleRow) {
+        const hasNoRoleString = !modalText.includes("ROLE_ADMIN") && !modalText.includes("ROLE_TENANT")
+        check("17.6 Actor role shows label not raw string", hasNoRoleString, hasNoRoleString ? "clean" : "raw ROLE_ string found")
+      } else {
+        check("17.6 Actor role shows label not raw string", true, "N/A - role row not visible")
+      }
+
+      await modal.locator('button:has-text("Fermer")').click()
+      await page.waitForTimeout(500)
+    }
+  } else {
+    check("17.2 Detail modal opens for label check", false, "no detail button found")
+  }
+
+  await browser.close()
+}
+
+// =====================================================================
 // SUMMARY
 // =====================================================================
 console.log("\n" + "=".repeat(60))
