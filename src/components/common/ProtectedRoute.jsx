@@ -6,6 +6,7 @@ const ROLE_DASHBOARD = {
   tenant: APP_ROUTES.tenantDashboard,
   owner: APP_ROUTES.ownerDashboard,
   admin: APP_ROUTES.adminDashboard,
+  root: APP_ROUTES.rootDashboard,
 }
 
 function ProtectedRoute({ requiredRole }) {

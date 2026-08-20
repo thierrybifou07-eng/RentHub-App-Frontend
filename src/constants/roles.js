@@ -11,11 +11,13 @@ export const ROLE_KEYS = {
   tenant: "tenant",
   owner: "owner",
   admin: "admin",
+  root: "root",
 }
 
 export function getRoleKey(roleId) {
   if (roleId === ROLE_IDS.TENANT) return ROLE_KEYS.tenant
   if (roleId === ROLE_IDS.OWNER || roleId === ROLE_IDS.AGENCY) return ROLE_KEYS.owner
-  if (roleId === ROLE_IDS.ADMIN || roleId === ROLE_IDS.ROOT) return ROLE_KEYS.admin
+  if (roleId === ROLE_IDS.ADMIN) return ROLE_KEYS.admin
+  if (roleId === ROLE_IDS.ROOT) return ROLE_KEYS.root
   return "user"
 }

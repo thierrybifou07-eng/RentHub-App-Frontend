@@ -34,6 +34,11 @@ export const APP_ROUTES = {
   adminReports: "/admin/signalements",
   adminSubscriptions: "/admin/abonnements",
 
+  // Super Admin (ROOT)
+  rootDashboard: "/super-admin/dashboard",
+  rootAuditLogs: "/super-admin/audit-logs",
+  rootUsers: "/super-admin/utilisateurs",
+
   // Missing routes
   listingDetail: "/annonces/:listingId",
   ownerListingNew: "/proprietaire/annonces/nouveau",
