@@ -4,7 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { resetPasswordSchema } from "../../schemas/userSchema"
 import * as authApi from "../../api/authApi"
+import { useAuthStore } from "../../stores/authStore"
 import { APP_ROUTES } from "../../constants/routes"
+import { USER_STATUS } from "../../constants/apiStatuses"
 import FormField from "../../components/forms/FormField"
 import { CircleCheck, PartyPopper, TriangleAlert } from "lucide-react"
 
@@ -17,6 +19,7 @@ function ResetPasswordPage() {
   const [codeExpired, setCodeExpired] = useState(false)
   const [regenerated, setRegenerated] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
+  const resetPasswordLogin = useAuthStore((s) => s.resetPasswordLogin)
 
   // Pré-remplir l'email si présent dans l'URL ou dans le state de navigation
   // (ex: redirigé depuis "Mot de passe oublié")
@@ -42,12 +45,19 @@ function ResetPasswordPage() {
   const onSubmit = async (data) => {
     setGlobalError(null)
     try {
-      await authApi.resetPassword(data)
+      const response = await authApi.resetPassword(data)
+      const user = await resetPasswordLogin(response)
+
+      if (user.userStatus === USER_STATUS.PENDING_VERIFICATION.id || !user.emailVerified) {
+        navigate(APP_ROUTES.verifyEmail, { replace: true })
+        return
+      }
+
+      const dashRoute = APP_ROUTES[`${user.role}Dashboard`] || APP_ROUTES.home
       setIsSuccess(true)
-      // Redirection après 3 secondes
       setTimeout(() => {
-        navigate(APP_ROUTES.login)
-      }, 3000)
+        navigate(dashRoute, { replace: true })
+      }, 2000)
     } catch (error) {
       const expired = error.body?.error === "RESET_CODE_EXPIRED" || /expired/i.test(error.message || "")
       if (expired) setCodeExpired(true)
@@ -79,7 +89,7 @@ function ResetPasswordPage() {
         </div>
         <h2 style={{ marginBottom: "var(--space-3)" }}>Mot de passe modifié !</h2>
         <p style={{ color: "var(--color-text-muted)", marginBottom: "var(--space-6)" }}>
-          Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé vers la page de connexion.
+          Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé vers votre tableau de bord.
         </p>
       </div>
     )

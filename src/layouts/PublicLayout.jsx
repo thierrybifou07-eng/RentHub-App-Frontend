@@ -36,10 +36,6 @@ function PublicLayout() {
     clearTimeout(closeTimer.current)
     setMobileOpen(true)
   }
-  const scheduleMenuClose = () => {
-    clearTimeout(closeTimer.current)
-    closeTimer.current = setTimeout(() => setMobileOpen(false), 150)
-  }
   const closeMenu = () => {
     clearTimeout(closeTimer.current)
     setMobileOpen(false)

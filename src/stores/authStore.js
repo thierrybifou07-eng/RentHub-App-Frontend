@@ -147,6 +147,14 @@ export const useAuthStore = create((set, get) => ({
     return authApi.updatePassword(data)
   },
 
+  /** Auto-login after password reset — tokens returned by /auth/reset-password */
+  async resetPasswordLogin({ token, refreshToken, user: rawUser }) {
+    const user = normalizeUser(rawUser)
+    persistAuth(token, refreshToken, user)
+    set({ user, token, refreshToken, isAuthenticated: true })
+    return user
+  },
+
   async logout() {
     const refreshToken = get().refreshToken
     set({ user: null, token: null, refreshToken: null, isAuthenticated: false })
