@@ -42,11 +42,11 @@ function ResetPasswordPage() {
     },
   })
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (formData) => {
     setGlobalError(null)
     try {
-      const response = await authApi.resetPassword(data)
-      const user = await resetPasswordLogin(response)
+      const { data } = await authApi.resetPassword(formData)
+      const user = await resetPasswordLogin(data)
 
       if (user.userStatus === USER_STATUS.PENDING_VERIFICATION.id || !user.emailVerified) {
         navigate(APP_ROUTES.verifyEmail, { replace: true })
