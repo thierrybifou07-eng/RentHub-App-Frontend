@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react"
 import { getUsers, getUserById, manageUserStatus, manageUserRole, verifyUser } from "../../api/adminApi"
 import EmptyState from "../../components/feedback/EmptyState"
 import PageHeader from "../../components/common/PageHeader"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonTable } from "../../components/feedback/SkeletonLoader"
 import Pagination from "../../components/common/Pagination"
 import { CircleCheck } from "lucide-react"
 import { PAGE_LIMIT } from "../../utils/formatters"
@@ -170,7 +170,7 @@ export default function AdminUsers() {
       </div>
 
       {loading && users.length === 0 ? (
-        <LoadingState message="Chargement des utilisateurs..." />
+        <SkeletonTable rows={5} cols={6} />
       ) : users.length === 0 ? (
         <EmptyState message="Aucun utilisateur ne correspond à votre recherche." />
       ) : (

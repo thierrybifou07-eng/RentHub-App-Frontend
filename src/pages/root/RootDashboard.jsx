@@ -3,7 +3,7 @@ import { useAuthStore } from "../../stores/authStore"
 import { getAuditStats } from "../../api/superAdminApi"
 import StatCard from "../../components/common/StatCard"
 import PageHeader from "../../components/common/PageHeader"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonDashboard } from "../../components/feedback/SkeletonLoader"
 import ErrorState from "../../components/feedback/ErrorState"
 import { Shield, ScrollText, Users, Activity, AlertTriangle, Key, Trash2, CheckCircle } from "lucide-react"
 
@@ -52,7 +52,7 @@ export default function RootDashboard() {
   }, [])
 
   if (!user) return null
-  if (loading) return <LoadingState message="Chargement de l'espace super admin..." />
+  if (loading) return <SkeletonDashboard stats={4} rows={4} />
   if (error) return <ErrorState message={error} />
 
   const byAction = stats?.byAction || []

@@ -11,7 +11,7 @@ import { useSubscriptionsStore } from "../../stores/subscriptionsStore"
 import { getPlanFeatures } from "../../utils/subscriptionLimits"
 import useListingForm from "../../hooks/useListingForm"
 import ListingWizardShell from "../../components/listings/ListingWizardShell"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonDetailPage } from "../../components/feedback/SkeletonLoader"
 import ErrorState from "../../components/feedback/ErrorState"
 
 function EditListingPage() {
@@ -202,7 +202,7 @@ function EditListingPage() {
 
   if (loadingListing) return (
     <div className="py-4">
-      <LoadingState message="Chargement de l'annonce..." />
+      <SkeletonDetailPage />
     </div>
   )
 

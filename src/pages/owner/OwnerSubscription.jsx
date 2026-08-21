@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { useSubscriptionsStore } from "../../stores/subscriptionsStore"
 import { processSimulatedPayment } from "../../services/subscriptionsService"
 import PageHeader from "../../components/common/PageHeader"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonPage } from "../../components/feedback/SkeletonLoader"
 import ErrorState from "../../components/feedback/ErrorState"
 import { Check } from "lucide-react"
 import { formatXAF, formatDate } from "../../utils/formatters"
@@ -62,7 +62,7 @@ function OwnerSubscription() {
   }
 
   if (loading && !plans.length) {
-    return <LoadingState message="Chargement des offres..." />
+    return <SkeletonPage cols={3} />
   }
 
   if (error) {

@@ -4,9 +4,11 @@
  * Exports:
  *  default SkeletonLoader   — lignes de texte animées
  *  SkeletonCard             — carte avec image + texte
- *  SkeletonPage             — grille de 3/6 cartes
+ *  SkeletonPage             — grille de cartes
  *  SkeletonTable            — tableau de données
  *  SkeletonStat             — stat card en chargement
+ *  SkeletonDashboard        — dashboard avec stats + contenu
+ *  SkeletonDetailPage       — page détail annonce (image + infos)
  */
 
 /* ── Ligne de texte ─────────────────────────────────────────── */
@@ -170,6 +172,139 @@ export function SkeletonStat() {
       />
       <div className="skeleton-line" style={{ width: 80, height: 28, marginBottom: "var(--space-2)" }} />
       <div className="skeleton-line short" style={{ height: 12 }} />
+      <span className="visually-hidden">Chargement en cours...</span>
+    </div>
+  )
+}
+
+/* ── Dashboard (stats + contenu) ────────────────────────────── */
+
+export function SkeletonDashboard({ stats = 4, rows = 3 }) {
+  return (
+    <div
+      className="page-enter"
+      aria-busy="true"
+      aria-label="Chargement du tableau de bord"
+      style={{ padding: "var(--space-6) 0" }}
+    >
+      {/* Header skeleton */}
+      <div style={{ marginBottom: "var(--space-8)" }}>
+        <div className="skeleton-line" style={{ width: 280, height: 28, marginBottom: "var(--space-2)", borderRadius: "var(--radius-md)" }} />
+        <div className="skeleton-line short" style={{ height: 14 }} />
+      </div>
+
+      {/* Stat cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "var(--space-4)", marginBottom: "var(--space-8)" }}>
+        {Array.from({ length: stats }, (_, i) => (
+          <SkeletonStat key={i} />
+        ))}
+      </div>
+
+      {/* Content blocks */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "var(--space-6)" }}>
+        <div
+          style={{
+            background: "var(--color-surface)",
+            border: "1px solid var(--color-border)",
+            borderRadius: "var(--radius-xl)",
+            boxShadow: "var(--shadow-sm)",
+            padding: "var(--space-5)",
+          }}
+        >
+          <div className="skeleton-line medium" style={{ height: 16, marginBottom: "var(--space-4)" }} />
+          <div className="skeleton-base" style={{ width: "100%", height: 180, borderRadius: "var(--radius-md)" }} />
+        </div>
+        <div
+          style={{
+            background: "var(--color-surface)",
+            border: "1px solid var(--color-border)",
+            borderRadius: "var(--radius-xl)",
+            boxShadow: "var(--shadow-sm)",
+            overflow: "hidden",
+          }}
+        >
+          <div className="skeleton-line medium" style={{ height: 16, margin: "var(--space-5) var(--space-5) var(--space-4)" }} />
+          {Array.from({ length: rows }, (_, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                gap: "var(--space-4)",
+                padding: "var(--space-3) var(--space-5)",
+                borderBottom: i < rows - 1 ? "1px solid var(--color-border)" : "none",
+              }}
+            >
+              <div className="skeleton-line" style={{ width: "40%", height: 14, animationDelay: `${i * 60}ms` }} />
+              <div className="skeleton-line" style={{ width: "30%", height: 14, animationDelay: `${i * 60 + 30}ms` }} />
+              <div className="skeleton-line" style={{ width: "20%", height: 14, animationDelay: `${i * 60 + 60}ms` }} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <span className="visually-hidden">Chargement en cours...</span>
+    </div>
+  )
+}
+
+/* ── Page détail annonce ──────────────────────────────────────── */
+
+export function SkeletonDetailPage() {
+  return (
+    <div
+      className="page-enter container py-4"
+      aria-busy="true"
+      aria-label="Chargement de l'annonce"
+    >
+      <div className="row g-4">
+        {/* Colonne gauche — image */}
+        <div className="col-lg-8">
+          <div className="skeleton-line" style={{ width: 140, height: 32, marginBottom: "var(--space-3)", borderRadius: "var(--radius-md)" }} />
+          <div className="skeleton-image" style={{ height: 400, borderRadius: "var(--radius-lg)" }} />
+          <div style={{ display: "flex", gap: "var(--space-2)", marginTop: "var(--space-2)" }}>
+            {Array.from({ length: 4 }, (_, i) => (
+              <div key={i} className="skeleton-base" style={{ width: 72, height: 56, borderRadius: "var(--radius-sm)", animationDelay: `${i * 80}ms` }} />
+            ))}
+          </div>
+          <div style={{ marginTop: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+            <div className="skeleton-line long" style={{ height: 16 }} />
+            <div className="skeleton-line long" style={{ height: 16 }} />
+            <div className="skeleton-line medium" style={{ height: 16 }} />
+            <div className="skeleton-line short" style={{ height: 16 }} />
+          </div>
+        </div>
+
+        {/* Colonne droite — infos */}
+        <div className="col-lg-4">
+          <div
+            style={{
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "var(--radius-xl)",
+              boxShadow: "var(--shadow-sm)",
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-4)",
+            }}
+          >
+            <div className="skeleton-line" style={{ width: "60%", height: 28 }} />
+            <div className="skeleton-line short" style={{ height: 14 }} />
+            <div style={{ display: "flex", gap: "var(--space-3)", marginTop: "var(--space-2)" }}>
+              <div className="skeleton-line" style={{ width: 80, height: 32, borderRadius: "var(--radius-full)" }} />
+              <div className="skeleton-line" style={{ width: 80, height: 32, borderRadius: "var(--radius-full)" }} />
+            </div>
+            <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+              {Array.from({ length: 4 }, (_, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div className="skeleton-line" style={{ width: "40%", height: 13 }} />
+                  <div className="skeleton-line" style={{ width: "35%", height: 13 }} />
+                </div>
+              ))}
+            </div>
+            <div className="skeleton-base" style={{ width: "100%", height: 44, borderRadius: "var(--radius-lg)" }} />
+          </div>
+        </div>
+      </div>
       <span className="visually-hidden">Chargement en cours...</span>
     </div>
   )

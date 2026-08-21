@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react"
 import { getAuditLogs, getAuditLogById } from "../../api/superAdminApi"
 import EmptyState from "../../components/feedback/EmptyState"
 import PageHeader from "../../components/common/PageHeader"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonTable } from "../../components/feedback/SkeletonLoader"
 import Pagination from "../../components/common/Pagination"
 import { PAGE_LIMIT } from "../../utils/formatters"
 import { formatAuditValues, formatAuditMetadata, formatActorRole } from "../../utils/formatAuditValues"
@@ -116,7 +116,7 @@ export default function RootAuditLogs() {
       </div>
 
       {loading && logs.length === 0 ? (
-        <LoadingState message="Chargement des logs d'audit..." />
+        <SkeletonTable rows={5} cols={6} />
       ) : logs.length === 0 ? (
         <EmptyState message="Aucun log d'audit ne correspond à vos filtres." />
       ) : (

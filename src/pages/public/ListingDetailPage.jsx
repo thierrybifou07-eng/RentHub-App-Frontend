@@ -8,7 +8,7 @@ import { resolveMediaUrl } from "../../utils/mediaUrl"
 import { useAuthStore } from "../../stores/authStore"
 import { useFavoritesStore } from "../../stores/favoritesStore"
 import { useConversationsStore } from "../../stores/conversationsStore"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonDetailPage } from "../../components/feedback/SkeletonLoader"
 import ErrorState from "../../components/feedback/ErrorState"
 import ReportModal from "../../components/reports/ReportModal"
 import UserAvatar from "../../components/common/UserAvatar"
@@ -95,7 +95,7 @@ function ListingDetailPage() {
 
   if (loading) return (
     <div className="container py-4">
-      <LoadingState message="Chargement de l'annonce..." />
+      <SkeletonDetailPage />
     </div>
   )
 

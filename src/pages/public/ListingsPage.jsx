@@ -5,7 +5,7 @@ import { getCities, getPropertyTypes } from "../../api/catalogApi"
 import { getAnnouncements } from "../../api/announcementsApi"
 import ListingCard from "../../components/listings/ListingCard"
 import Pagination from "../../components/common/Pagination"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonPage } from "../../components/feedback/SkeletonLoader"
 import ErrorState from "../../components/feedback/ErrorState"
 import EmptyState from "../../components/feedback/EmptyState"
 import { ArrowLeft, RotateCcw } from "lucide-react"
@@ -228,7 +228,7 @@ function ListingsPage() {
       </div>
 
       {/* Résultats */}
-      {loading && <LoadingState message="Chargement des annonces..." />}
+      {loading && <SkeletonPage cols={3} />}
       {error && <ErrorState message={error} />}
       {!loading && !error && listings.length === 0 && (
         <EmptyState

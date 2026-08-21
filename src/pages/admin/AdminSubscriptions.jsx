@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react"
 import { getAdminSubscriptions, activateSubscription, rejectSubscription, cancelSubscription } from "../../api/subscriptionsApi"
 import PageHeader from "../../components/common/PageHeader"
 import EmptyState from "../../components/feedback/EmptyState"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonTable } from "../../components/feedback/SkeletonLoader"
 import Pagination from "../../components/common/Pagination"
 
 const PAGE_LIMIT = 20
@@ -132,7 +132,7 @@ export default function AdminSubscriptions() {
       </ul>
 
       {loading && subscriptions.length === 0 ? (
-        <LoadingState message="Chargement des abonnements..." />
+        <SkeletonTable rows={5} cols={5} />
       ) : filtered.length === 0 ? (
         <EmptyState message="Aucun abonnement trouvé pour ce filtre." />
       ) : (

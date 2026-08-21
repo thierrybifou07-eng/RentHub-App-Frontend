@@ -8,7 +8,7 @@ import { messageFormSchema } from "../../schemas/messageSchema"
 import { formatName } from "../../utils/formatters"
 import PageHeader from "../common/PageHeader"
 import EmptyState from "../feedback/EmptyState"
-import LoadingState from "../feedback/LoadingState"
+import { SkeletonTable } from "../feedback/SkeletonLoader"
 import ConversationList from "./ConversationList"
 import ConversationHeader from "./ConversationHeader"
 import ConversationThread from "./ConversationThread"
@@ -191,7 +191,7 @@ function MessagesView({ variant = "tenant" }) {
       <PageHeader title={cfg.headerTitle} description={cfg.headerDescription} />
 
       {loading ? (
-        <LoadingState message="Chargement de vos conversations..." />
+        <SkeletonTable rows={5} cols={1} />
       ) : conversations.length === 0 ? (
         <EmptyState
           title={cfg.emptyTitle}

@@ -4,7 +4,7 @@ import { useAuthStore } from "../../stores/authStore"
 import { getStats, getPendingCounts, getRecentActivity, getStatsEvolution } from "../../api/adminApi"
 import StatCard from "../../components/common/StatCard"
 import PageHeader from "../../components/common/PageHeader"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonDashboard } from "../../components/feedback/SkeletonLoader"
 import ErrorState from "../../components/feedback/ErrorState"
 import { APP_ROUTES } from "../../constants/routes"
 import { Bell, Coins, CreditCard, Home, MapPin, ShieldCheck, Siren, Tag, User, Users } from "lucide-react"
@@ -114,7 +114,7 @@ export default function AdminDashboard() {
 
   if (!user) return null
 
-  if (loading) return <LoadingState message="Chargement de l'espace administrateur..." />
+  if (loading) return <SkeletonDashboard stats={4} rows={3} />
   if (error) return <ErrorState message={error} />
 
   const statCards = [

@@ -9,7 +9,7 @@ import { resolveMediaUrl } from "../../utils/mediaUrl"
 import { ANNOUNCEMENT_STATUS, getAnnouncementStatusLabel } from "../../constants/apiStatuses"
 import PageHeader from "../../components/common/PageHeader"
 import ListingBadge from "../../components/listings/ListingBadge"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonDetailPage } from "../../components/feedback/SkeletonLoader"
 import ErrorState from "../../components/feedback/ErrorState"
 import { Star, ChevronLeft } from "lucide-react"
 
@@ -98,7 +98,7 @@ function OwnerListingDetailPage() {
 
   if (loading) return (
     <div className="py-4">
-      <LoadingState message="Chargement de l'annonce..." />
+      <SkeletonDetailPage />
     </div>
   )
 

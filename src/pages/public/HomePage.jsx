@@ -4,7 +4,7 @@ import { APP_ROUTES } from "../../constants/routes"
 import { getCities, getPropertyTypes } from "../../api/catalogApi"
 import { getAllListings } from "../../services/listingsService"
 import ListingCard from "../../components/listings/ListingCard"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonPage } from "../../components/feedback/SkeletonLoader"
 import ErrorState from "../../components/feedback/ErrorState"
 import EmptyState from "../../components/feedback/EmptyState"
 import AnimatedCounter, { Reveal } from "../../components/common/AnimatedCounter"
@@ -153,7 +153,7 @@ function HomePage() {
             </Link>
           </Reveal>
 
-          {loading && <LoadingState message="Chargement des annonces..." />}
+          {loading && <SkeletonPage cols={4} />}
           {error && <ErrorState message={error} />}
           {!loading && !error && featuredListings.length === 0 && (
             <EmptyState

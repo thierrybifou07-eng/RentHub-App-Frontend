@@ -7,13 +7,13 @@ import PublicLayout from "../layouts/PublicLayout"
 import AuthLayout from "../layouts/AuthLayout"
 import DashboardLayout from "../layouts/DashboardLayout"
 import ProtectedRoute from "../components/common/ProtectedRoute"
-import LoadingState from "../components/feedback/LoadingState"
+import { SkeletonPage } from "../components/feedback/SkeletonLoader"
 
 const lazyPage = (loader) => {
   const Component = lazy(loader)
   return function LazyPage(props) {
     return (
-      <Suspense fallback={<LoadingState size="sm" message="Chargement de la page..." />}>
+      <Suspense fallback={<SkeletonPage cols={3} />}>
         <Component {...props} />
       </Suspense>
     )

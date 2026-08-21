@@ -4,7 +4,7 @@ import { APP_ROUTES } from "../../constants/routes"
 import ListingBadge from "../../components/listings/ListingBadge"
 import EmptyState from "../../components/feedback/EmptyState"
 import PageHeader from "../../components/common/PageHeader"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonPage } from "../../components/feedback/SkeletonLoader"
 import Pagination from "../../components/common/Pagination"
 import { getModerationListings, approveListing, rejectListing, deleteListing } from "../../services/adminService"
 import { formatXAF } from "../../utils/formatters"
@@ -85,7 +85,7 @@ export default function AdminModeration() {
   }
 
   if (loading && listings.length === 0) {
-    return <LoadingState message="Chargement des annonces à modérer..." />
+    return <SkeletonPage cols={3} />
   }
 
   return (

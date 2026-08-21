@@ -5,7 +5,7 @@ import { ANNOUNCEMENT_STATUS } from "../../constants/apiStatuses"
 import { getModerationListing, approveListing, rejectListing, deleteListing } from "../../services/adminService"
 import PageHeader from "../../components/common/PageHeader"
 import ListingBadge from "../../components/listings/ListingBadge"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonDetailPage } from "../../components/feedback/SkeletonLoader"
 import ErrorState from "../../components/feedback/ErrorState"
 import UserAvatar from "../../components/common/UserAvatar"
 import { formatXAF, formatDate } from "../../utils/formatters"
@@ -63,7 +63,7 @@ function AdminListingDetail() {
     } catch { /* on conserve l'état actuel si le rechargement échoue */ }
   }
 
-  if (loading) return <LoadingState message="Chargement de l'annonce..." />
+  if (loading) return <SkeletonDetailPage />
 
   if (error && !listing) {
     return (

@@ -10,7 +10,7 @@ import { getUnreadCount } from "../../api/conversationsApi"
 import PageHeader from "../../components/common/PageHeader"
 import StatCard from "../../components/common/StatCard"
 import ListingBadge from "../../components/listings/ListingBadge"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonDashboard } from "../../components/feedback/SkeletonLoader"
 import { formatXAF } from "../../utils/formatters"
 import { CircleCheck, ClipboardList, Clock, Archive, CreditCard, Mail, MessageSquare, Star } from "lucide-react"
 import { ANNOUNCEMENT_STATUS } from "../../constants/apiStatuses"
@@ -64,7 +64,7 @@ function OwnerDashboard() {
       />
 
       {loading ? (
-        <LoadingState message="Chargement de votre tableau de bord..." />
+        <SkeletonDashboard stats={8} rows={4} />
       ) : (
         <>
           <div className="row g-3 mb-4">

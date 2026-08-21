@@ -9,7 +9,7 @@ import PageHeader from "../../components/common/PageHeader"
 import ListingBadge from "../../components/listings/ListingBadge"
 import Pagination from "../../components/common/Pagination"
 import EmptyState from "../../components/feedback/EmptyState"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonTable } from "../../components/feedback/SkeletonLoader"
 
 const PAGE_LIMIT = 20
 
@@ -109,7 +109,7 @@ function OwnerListings() {
       )}
 
       {loading ? (
-        <LoadingState message="Chargement de vos annonces..." />
+        <SkeletonTable rows={5} cols={6} />
       ) : listings.length === 0 ? (
         <EmptyState
           title="Aucune annonce"

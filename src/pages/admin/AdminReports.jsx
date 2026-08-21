@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react"
 import { Link } from "react-router-dom"
 import { getAdminReports, reviewReport, dismissReport, takeActionReport } from "../../api/reportsApi"
 import EmptyState from "../../components/feedback/EmptyState"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonTable } from "../../components/feedback/SkeletonLoader"
 import Pagination from "../../components/common/Pagination"
 import { formatDate } from "../../utils/formatters"
 
@@ -133,7 +133,7 @@ export default function AdminReports() {
       </ul>
 
       {loading ? (
-        <LoadingState message="Chargement des signalements..." />
+        <SkeletonTable rows={5} cols={5} />
       ) : reports.length === 0 ? (
         <EmptyState message="Aucun signalement trouvé." />
       ) : (

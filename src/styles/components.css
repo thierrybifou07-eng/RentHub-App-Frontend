@@ -382,7 +382,6 @@
 
 /* ── Feedback States ──────────────────────────────────────────── */
 
-.loading-state,
 .error-state,
 .empty-state {
   max-width: 480px;
@@ -451,26 +450,6 @@
   color: var(--color-text-muted);
   line-height: var(--leading-relaxed);
   margin-bottom: var(--space-5);
-}
-
-/* Loading State premium */
-.loading-state {
-  padding: var(--space-16) var(--space-8);
-}
-
-.loading-state .loader-ring {
-  width: 48px;
-  height: 48px;
-  border: 3px solid var(--color-primary-100);
-  border-top-color: var(--color-primary-500);
-  border-radius: var(--radius-full);
-  animation: spin 750ms linear infinite;
-  margin: 0 auto var(--space-5);
-}
-
-.loading-state p {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
 }
 
 /* ── Compteurs animés (accueil) ─────────────────────────────────── */

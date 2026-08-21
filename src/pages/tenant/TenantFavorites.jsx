@@ -6,7 +6,7 @@ import { getFavorites } from "../../api/favoritesApi"
 import PageHeader from "../../components/common/PageHeader"
 import ListingCard from "../../components/listings/ListingCard"
 import EmptyState from "../../components/feedback/EmptyState"
-import LoadingState from "../../components/feedback/LoadingState"
+import { SkeletonPage } from "../../components/feedback/SkeletonLoader"
 
 function TenantFavorites() {
   const favorites = useFavoritesStore((s) => s.favorites)
@@ -65,7 +65,7 @@ function TenantFavorites() {
       />
 
       {loading && page === 1 ? (
-        <LoadingState message="Chargement de vos favoris..." />
+        <SkeletonPage cols={3} />
       ) : visibleListings.length === 0 ? (
         <EmptyState
           title="Aucun favori"
