@@ -5,6 +5,7 @@ import { getCities, getPropertyTypes } from "../../api/catalogApi"
 import { getAnnouncements } from "../../api/announcementsApi"
 import ListingCard from "../../components/listings/ListingCard"
 import Pagination from "../../components/common/Pagination"
+import SearchableSelect from "../../components/common/SearchableSelect"
 import { SkeletonPage } from "../../components/feedback/SkeletonLoader"
 import ErrorState from "../../components/feedback/ErrorState"
 import EmptyState from "../../components/feedback/EmptyState"
@@ -148,33 +149,29 @@ function ListingsPage() {
                 <label htmlFor="filter-city" className="form-label small fw-semibold">
                   Ville
                 </label>
-                <select
+                <SearchableSelect
                   id="filter-city"
-                  className="form-select form-select-sm"
+                  options={cities.map((city) => ({ value: city.id, label: city.name }))}
                   value={filters.city_id}
-                  onChange={(e) => updateFilter("city_id", e.target.value)}
-                >
-                  <option value="">Toutes</option>
-                  {cities.map((city) => (
-                    <option key={city.id} value={city.id}>{city.name}</option>
-                  ))}
-                </select>
+                  onChange={(v) => updateFilter("city_id", v)}
+                  placeholder="Toutes"
+                  emptyLabel="Toutes"
+                  className="form-select-sm"
+                />
               </div>
               <div className="col-sm-6 col-md-2">
                 <label htmlFor="filter-type" className="form-label small fw-semibold">
                   Type
                 </label>
-                <select
+                <SearchableSelect
                   id="filter-type"
-                  className="form-select form-select-sm"
+                  options={propertyTypes.map((t) => ({ value: t.id, label: t.label }))}
                   value={filters.property_type_id}
-                  onChange={(e) => updateFilter("property_type_id", e.target.value)}
-                >
-                  <option value="">Tous</option>
-                  {propertyTypes.map((t) => (
-                    <option key={t.id} value={t.id}>{t.label}</option>
-                  ))}
-                </select>
+                  onChange={(v) => updateFilter("property_type_id", v)}
+                  placeholder="Tous"
+                  emptyLabel="Tous"
+                  className="form-select-sm"
+                />
               </div>
               <div className="col-sm-6 col-md-2">
                 <label htmlFor="filter-sort" className="form-label small fw-semibold">

@@ -4,6 +4,7 @@ import { APP_ROUTES } from "../../constants/routes"
 import { getCities, getPropertyTypes } from "../../api/catalogApi"
 import { getAllListings } from "../../services/listingsService"
 import ListingCard from "../../components/listings/ListingCard"
+import SearchableSelect from "../../components/common/SearchableSelect"
 import { SkeletonPage } from "../../components/feedback/SkeletonLoader"
 import ErrorState from "../../components/feedback/ErrorState"
 import EmptyState from "../../components/feedback/EmptyState"
@@ -70,30 +71,22 @@ function HomePage() {
               <form onSubmit={handleSearch} className="mt-4">
                 <div className="row g-2">
                   <div className="col-sm-5">
-                    <select
-                      className="form-select"
+                    <SearchableSelect
+                      options={cities.map((city) => ({ value: city.id, label: city.name }))}
                       value={searchCity}
-                      onChange={(e) => setSearchCity(e.target.value)}
-                      aria-label="Ville"
-                    >
-                      <option value="">Toutes les villes</option>
-                      {cities.map((city) => (
-                        <option key={city.id} value={city.id}>{city.name}</option>
-                      ))}
-                    </select>
+                      onChange={(v) => setSearchCity(v)}
+                      placeholder="Toutes les villes"
+                      emptyLabel="Toutes les villes"
+                    />
                   </div>
                   <div className="col-sm-5">
-                    <select
-                      className="form-select"
+                    <SearchableSelect
+                      options={propertyTypes.map((t) => ({ value: t.id, label: t.label }))}
                       value={searchType}
-                      onChange={(e) => setSearchType(e.target.value)}
-                      aria-label="Type de bien"
-                    >
-                      <option value="">Tous les types</option>
-                      {propertyTypes.map((t) => (
-                        <option key={t.id} value={t.id}>{t.label}</option>
-                      ))}
-                    </select>
+                      onChange={(v) => setSearchType(v)}
+                      placeholder="Tous les types"
+                      emptyLabel="Tous les types"
+                    />
                   </div>
                   <div className="col-sm-2">
                     <button type="submit" className="btn btn-warning w-100 fw-semibold">

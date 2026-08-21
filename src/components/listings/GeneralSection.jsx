@@ -1,6 +1,10 @@
 import FormField from "../forms/FormField"
+import SearchableSelect from "../common/SearchableSelect"
 
 export default function GeneralSection({ form, setField, errors, cities, propertyTypes }) {
+  const cityOptions = cities.map((c) => ({ value: c.id, label: c.name }))
+  const typeOptions = propertyTypes.map((t) => ({ value: t.id, label: t.label }))
+
   return (
     <>
       <FormField label="Titre de l'annonce" htmlFor="listing-title" error={errors.title}>
@@ -18,17 +22,15 @@ export default function GeneralSection({ form, setField, errors, cities, propert
       <div className="row g-3 mt-1">
         <div className="col-md-6">
           <FormField label="Type de bien" htmlFor="listing-type" error={errors.property_type_id}>
-            <select
+            <SearchableSelect
               id="listing-type"
-              className={`form-select ${errors.property_type_id ? "is-invalid" : ""}`}
+              options={typeOptions}
               value={form.property_type_id}
-              onChange={(e) => setField("property_type_id", e.target.value)}
-            >
-              <option value="">Sélectionnez un type</option>
-              {propertyTypes.map((t) => (
-                <option key={t.id} value={t.id}>{t.label}</option>
-              ))}
-            </select>
+              onChange={(v) => setField("property_type_id", v)}
+              placeholder="Sélectionnez un type"
+              emptyLabel="Sélectionnez un type"
+              className={errors.property_type_id ? "is-invalid" : ""}
+            />
           </FormField>
         </div>
         <div className="col-md-6">
@@ -50,17 +52,15 @@ export default function GeneralSection({ form, setField, errors, cities, propert
       <div className="row g-3 mt-1">
         <div className="col-md-6">
           <FormField label="Ville" htmlFor="listing-city" error={errors.city_id}>
-            <select
+            <SearchableSelect
               id="listing-city"
-              className={`form-select ${errors.city_id ? "is-invalid" : ""}`}
+              options={cityOptions}
               value={form.city_id}
-              onChange={(e) => setField("city_id", e.target.value)}
-            >
-              <option value="">Sélectionnez une ville</option>
-              {cities.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+              onChange={(v) => setField("city_id", v)}
+              placeholder="Sélectionnez une ville"
+              emptyLabel="Sélectionnez une ville"
+              className={errors.city_id ? "is-invalid" : ""}
+            />
           </FormField>
         </div>
         <div className="col-md-6">

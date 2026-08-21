@@ -5,6 +5,7 @@ import { getMyMedia, uploadAvatar, deleteAvatar } from "../../api/mediaApi"
 import { getCities } from "../../api/catalogApi"
 import { resolveMediaUrl } from "../../utils/mediaUrl"
 import FormField from "../../components/forms/FormField"
+import SearchableSelect from "../../components/common/SearchableSelect"
 import { APP_ROUTES } from "../../constants/routes"
 
 function ProfilePage() {
@@ -292,10 +293,14 @@ function ProfilePage() {
                     </div>
                     <div className="col-md-6">
                       <FormField label="Ville" htmlFor="profile-city">
-                        <select id="profile-city" className="form-select" value={profileForm.city_id} onChange={e => setProfileField("city_id", e.target.value)}>
-                          <option value="">Sélectionnez une ville...</option>
-                          {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                        </select>
+                        <SearchableSelect
+                          id="profile-city"
+                          options={cities.map(c => ({ value: c.id, label: c.name }))}
+                          value={profileForm.city_id}
+                          onChange={(v) => setProfileField("city_id", v)}
+                          placeholder="Sélectionnez une ville..."
+                          emptyLabel="Sélectionnez une ville..."
+                        />
                       </FormField>
                     </div>
                     <div className="col-12">
