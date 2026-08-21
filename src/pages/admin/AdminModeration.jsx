@@ -147,6 +147,11 @@ export default function AdminModeration() {
                       <td>{formatXAF(listing.price)} XAF</td>
                       <td>
                         <ListingBadge statusId={listing.status?.id ?? listing.status_id} />
+                        {listing.submission_count > 1 && (
+                          <span className="badge bg-warning text-dark ms-1" style={{ fontSize: "0.65rem" }}>
+                            ×{listing.submission_count}
+                          </span>
+                        )}
                       </td>
                       <td className="text-end">
                         <div className="d-inline-flex align-items-center gap-2">

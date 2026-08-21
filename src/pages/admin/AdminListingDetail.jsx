@@ -144,6 +144,11 @@ function AdminListingDetail() {
         description={`Modération de l'annonce #${listingId}`}
       >
         <ListingBadge statusId={statusId} />
+        {listing?.submission_count > 1 && (
+          <span className="badge bg-warning text-dark ms-2">
+            Soumis {listing.submission_count} fois
+          </span>
+        )}
       </PageHeader>
 
       {success && (
@@ -338,7 +343,7 @@ function AdminListingDetail() {
             <div className="card-body">
               <h2 className="h6 fw-bold mb-3">Modération</h2>
 
-              {isPending ? (
+              {isPending && listing?.submission_count < 2 ? (
                 <>
                   <p className="text-secondary small">
                     Cette annonce est en attente de validation. Vérifiez les informations avant de la publier.
@@ -359,6 +364,74 @@ function AdminListingDetail() {
                       disabled={actionLoading !== null}
                     >
                       Rejeter
+                    </button>
+                  </div>
+
+                  {rejectMode && (
+                    <div className="mt-3 pt-3 border-top">
+                      <label htmlFor="reject-reason" className="form-label small fw-semibold">
+                        Raison du rejet (transmise au propriétaire)
+                      </label>
+                      <textarea
+                        id="reject-reason"
+                        className="form-control mb-2"
+                        rows={3}
+                        placeholder="Ex. : photos manquantes, prix incohérent..."
+                        value={rejectReason}
+                        onChange={(e) => setRejectReason(e.target.value)}
+                      />
+                      <div className="d-flex gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-danger w-50"
+                          onClick={handleReject}
+                          disabled={actionLoading !== null || !rejectReason.trim()}
+                        >
+                          {actionLoading === "reject" ? "Rejet..." : "Confirmer le rejet"}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-secondary w-50"
+                          onClick={() => setRejectMode(false)}
+                          disabled={actionLoading !== null}
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : isPending && listing?.submission_count >= 2 ? (
+                <>
+                  <p className="text-secondary small">
+                    Cette annonce a été soumise {listing.submission_count} fois. Vous pouvez approuver ou la supprimer définitivement.
+                  </p>
+                  <div className="d-grid gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-success"
+                      onClick={handleApprove}
+                      disabled={actionLoading !== null}
+                    >
+                      {actionLoading === "approve" ? "Approbation..." : "Approuver et publier"}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline-danger"
+                      onClick={() => { setRejectMode((v) => !v); setError(null) }}
+                      disabled={actionLoading !== null}
+                    >
+                      Rejeter
+                    </button>
+                    <hr className="my-1" />
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={handleDelete}
+                      disabled={actionLoading !== null}
+                    >
+                      <Trash2 size={15} className="me-1" />
+                      {actionLoading === "delete" ? "Suppression..." : "Supprimer définitivement"}
                     </button>
                   </div>
 
